@@ -2108,7 +2108,7 @@ init -2 style outfit_style: ##The text style used for text inside of the outfit 
     
 init -2:
     default name = "Input Your Name"
-    default b_name = "Input Your Business Name"
+    default b_name = "Input Your Company Name"
     python:
         def name_func(new_name):
             store.name = new_name
@@ -2140,7 +2140,7 @@ screen character_create_screen():
     
     imagebutton auto "/gui/Text_Entry_Bar_%s.png" action SetScreenVariable("name_select",1) pos (320,120) xanchor 0.5 yanchor 0.5
     imagebutton auto "/gui/Text_Entry_Bar_%s.png" action SetScreenVariable("name_select",2) pos (1600,120) xanchor 0.5 yanchor 0.5
-    imagebutton auto "/gui/button/choice_%s_background.png" action Return([[cha,int,foc],[h_skill,m_skill,r_skill,p_skill,s_skill],[F_skill,O_skill,V_skill,A_skill]]) pos (300,900) xanchor 0.5 yanchor 0.5 sensitive character_points == 0
+    imagebutton auto "/gui/button/choice_%s_background.png" action Return([[cha,int,foc],[h_skill,m_skill,r_skill,p_skill,s_skill],[F_skill,O_skill,V_skill,A_skill]]) pos (300,900) xanchor 0.5 yanchor 0.5 sensitive character_points == 0 and name[0:11] != "Input Your " and b_name[0:11] != "Input Your "
     
     if name_select == 1:
         input default name pos(320,120) changed name_func xanchor 0.5 yanchor 0.5 style "menu_text_style" length 25
@@ -2152,8 +2152,12 @@ screen character_create_screen():
     else:
         text b_name pos(1600,120) xanchor 0.5 yanchor 0.5 style "menu_text_style"
         
-    if character_points > 0:
+    if character_points > 0 or name[0:11] == "Input Your " or b_name[0:11] == "Input Your ":
         text "Spend All Character Points to Proceed" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
+    elif name[0:11] == "Input Your ":
+        text "Change your Character Name" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
+    elif b_name[0:11] == "Input Your ":
+        text "Change your Company Name" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
     else:
         text "Finish Character Creation" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
     
