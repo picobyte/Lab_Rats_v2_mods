@@ -698,7 +698,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                     mc.name "I think that would be a good idea. I'll be over in a moment."
                     "You hang up and travel over to the lab. You're greeted by [rd_staff.name] as soon as you're in the door."
                     $ the_place = mc.business.r_div
-                    $ renpy.show(the_place.name,what=the_place.background_image)
+                    call change_location(the_place) from serum_creation_crisis
                     $ rd_staff.draw_person(emotion="happy")
                     $ rd_staff.call_greeting()
                     mc.name "We're set up over here. come this way."
