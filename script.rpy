@@ -3459,7 +3459,7 @@ label talk_person(the_person, repeat_choice = None):
                     $ repeat_choice = "insult her recent work"
                     call insult_her_recent_work  from chat_insult
 
-                "Offer a cash bonus." if  mc.business.get_employee_workstation(the_person):
+                "Offer a cash bonus." if  mc.business.get_employee_workstation(the_person) and 0 < time_of_day < 4:
                     mc.name "So [the_person.name], you've been putting in a lot of good work at the lab lately and I wanted to make sure you were rewarded properly for that."
                     "You pull out your wallet and start to pull out a few bills."
                     $weeks_wages = the_person.salary*5
@@ -3578,7 +3578,7 @@ label talk_person(the_person, repeat_choice = None):
                     the_person.name "Is this better?"
             call talk_person(the_person) from _call_talk_person_1
             
-        "Move her to a new division." if not mc.business.get_employee_title(the_person) == "None":
+        "Move her to a new division." if not mc.business.get_employee_title(the_person) == "None" and 0 < time_of_day < 4:
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
             $ mc.business.remove_employee(the_person)
@@ -3614,7 +3614,7 @@ label talk_person(the_person, repeat_choice = None):
             
             the_person.name "I'll get started right away!"
             
-        "Fire them!" if not mc.business.get_employee_title(the_person) == "None":
+        "Fire them!" if not mc.business.get_employee_title(the_person) == "None" and 0 < time_of_day < 4:
             $ repeat_choice = None
             "You tell [the_person.name] to collect their things and leave the building."
             $ mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)
