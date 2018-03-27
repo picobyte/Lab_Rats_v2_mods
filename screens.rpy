@@ -213,20 +213,27 @@ style input:
 
 screen choice(items):
     style_prefix "choice"
+    if (len(items) > 1):
 
-    #We want to have 2 vboxes, seperated so that they are staggered as they go down.
-    vbox:
-        xalign 0.34
-        for i in items[0::2]:
-            textbutton i.caption action i.action
-    
-    vbox:
-        xalign 0.67
-        if len(items)%2 == 0:
-            null height 125 #Add an empty list element to keep the alignment correct if there are an even number of elements in both lists.
-        for j in items[1::2]:
-            textbutton j.caption action j.action
+        #We want to have 2 vboxes, seperated so that they are staggered as they go down.
+        vbox:
+            xalign 0.34
+            for i in items[0::2]:
+                textbutton i.caption action i.action
 
+        vbox:
+            xalign 0.67
+            if len(items)%2 == 0:
+                null height 125 #Add an empty list element to keep the alignment correct if there are an even number of elements in both lists.
+            for j in items[1::2]:
+                textbutton j.caption action j.action
+    else:
+        window:
+            id "window"
+
+            text "You decide to %s"%items[0].caption id "what"
+            for k in config.keymap['dismiss']:
+                key k action items[0].action
 
 ## When this is true, menu captions will be spoken by the narrator. When false,
 ## menu captions will be displayed as empty buttons.
@@ -252,6 +259,9 @@ style choice_button_text is default:
     outlines [(2,"#222222",0,0)] 
     ysize 500
     yalign 0.5
+
+style choice_window is say_window
+style choice_text is say_dialogue
 
 
 ## Quick Menu screen ###########################################################
@@ -279,6 +289,21 @@ screen quick_menu():
         textbutton _("Q.Save") action QuickSave()
         textbutton _("Q.Load") action QuickLoad()
         textbutton _("Prefs") action ShowMenu('preferences')
+        if config.developer:
+            textbutton _("Edit") action Function(screen_link(renpy.get_filename_line()))
+            $ screen_link(renpy.get_filename_line())
+
+            key "shift_alt_K_s" action QuickSave()
+            key "shift_alt_K_l" action QuickLoad()
+            key "shift_alt_K_e" action QuickLoad()
+            key "shift_alt_K_q" action Quit(confirm=False)
+            key "shift_alt_K_y" action Function(copy_cursor_pos)
+            key "shift_alt_K_d" action Function(renpy.error, "Triggered by shift alt+d")
+    if config.developer:
+        hbox:
+            xalign 1.0
+            yalign 1.0
+            add DynamicDisplayable(cursor_pos)
 
 
 ## This code ensures that the quick_menu screen is displayed in-game, whenever

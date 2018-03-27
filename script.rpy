@@ -9,6 +9,8 @@ init -2 python:
     import copy
     import math
     import __builtin__
+    import pygame
+    import re
 #    import shader
     
     config.image_cache_size = 12    
@@ -17,7 +19,20 @@ init -2 python:
     config.context_clear_layers.append("Active")
     
     preferences.gl_tearing = True ## Prevents juttery animation with text while using advanced shaders to display images
-    
+    pygame.scrap.init()
+
+    def screen_link(r):
+        def clicked():
+            renpy.exports.launch_editor([r[0]], r[1], transient=1)
+
+        return clicked
+
+    def cursor_pos(st, at):
+        return Text("{color=#222}{size=-8}(%d, %d){/size}{/color}"%renpy.get_mouse_pos()), .1
+
+    def copy_cursor_pos():
+        pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
+
     class Business(renpy.store.object):
         # main jobs to start with:
         # 1) buying raw supplies.
@@ -3214,11 +3229,11 @@ label start:
     $ return_arrays = _return #These are the stat, skill, and sex arrays returned from the character creator.
     call create_test_variables(store.name,store.b_name,return_arrays[0],return_arrays[1],return_arrays[2]) from _call_create_test_variables ##Moving some of this to an init block (init 1 specifically) would let this play better with updates in the future.
             
-    "You have recently graduated from university, having completed your degree in chemical engineering. You've moved away from home, closer to the industrial district of the city to be close to any potential engineering jobs."
+    "You have recently graduated from university, after completing your degree in chemical engineering. You've moved away from home, closer to the industrial district of the city to be close to any potential engineering jobs."
     "While the job search didn't turn up any paying positions, it did lead you to a bank posting for an old pharmaceutical lab. The bank must have needed money quick, because they were practically giving it away."
-    "Without any time to consider the consequences you bought up the lab. It came stocked with all of the standard equipment you would expect, and after a few days of cleaning you're ready to get to work."
+    "Without any time to consider the consequences you bought the lab. It came stocked with all of the standard equipment you would expect, and after a few days of cleaning you're ready to get to work."
     "A lab is nothing without it's product though, and you have just the thing in mind. You still remember the basics for the mind altering serum you produced in university."
-    "With a little work in your new research and development lab you think you could recreate the formula completely, or even improve on it. Hiring on some help would improve your research and production speeds."
+    "With a little work in your new research and development lab you think you could recreate the formula completely, or even improve on it. Hiring some help would improve your research and production speeds."
     "You yawn and stretch as you greet the dawn early in the morning. Today feels like the start of a brand new chapter in your life!"
     ## For now, this ensures reloadin the game doesn't reset any of the variables.
     $ renpy.show
@@ -3340,33 +3355,70 @@ label create_outfit(the_outfit):
     return
     
 label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS YOU TAKE
-    "Now, what would you like to do? You can talk to someone, go somewhere else, perform an action, or reexamine the room."
-    menu:
-        "Talk to someone." if (len(mc.location.people) > 0):
-            python:
-                tuple_list = []
-                for people in mc.location.people:
-                    tuple_list.append([people.name + " " + people.last_name[0] + ".",people])
-                person_choice = renpy.display_menu(tuple_list,True,"Choice")
-                renpy.say("","You approach " + person_choice.name + " and chat for a little bit.")
-                person_choice.call_greeting()
-            call talk_person(person_choice) from _call_talk_person
-            
-        "Go somewhere else." if (len(mc.location.connections) > 0):
+    #"Now, what would you like to do? You can talk to someone, go somewhere else, perform an action, or reexamine the room."
+    python:
+        tuple_list = [("Go somewhere else.", "Go somewhere else."), ("Examine the room.", "Examine the room.")]
+        act_ct = mc.location.valid_actions()
+        if act_ct < 5:
+            for act in mc.location.actions:
+                if act.check_requirement():
+                    tuple_list.append((act.name,act))
+        else:
+            tuple_list.append(("Do something.", "Do something."))
+
+        pers_ct = len(mc.location.people)
+        if pers_ct < 5:
+            for people in mc.location.people:
+                tuple_list.append(("Talk to " + people.name + " " + people.last_name[0] + ".",people))
+        else:
+            tuple_list.append(("Talk to someone.", "Talk to someone."))
+
+        choice = renpy.display_menu(tuple_list,True,"Choice")
+
+    if isinstance(choice, basestring):
+        if choice == "Go somewhere else.":
             call screen map_manager
             call change_location(_return) from _call_change_location #_return is the location returned from the map manager.
-            
-        "Do something." if (mc.location.valid_actions() > 0): ##If mc.locations.valid_actions returns 1 or higher, something goes very wrong with the loop. The first menu is not shown, even when the actual body is commented out.
-            python:
-                tuple_list = []
-                for act in mc.location.actions:
-                    if act.check_requirement():
-                        tuple_list.append([act.name,act])
-                act_choice = renpy.display_menu(tuple_list,True,"Choice")
-                act_choice.call_action()
-            
-        "Examine the room.":
+
+        elif choice == "Examine the room.":
             call examine_room(mc.location) from _call_examine_room_1
+
+        elif choice == "Do something.":
+            python:
+                i = 0
+                while not isinstance(choice, Action) and choice != "Back":
+                    tuple_list = [(act.name,act) for act in mc.location.actions[i:i+7]]
+                    if act_ct > i+12:
+                        tuple_list.append(("Something else", "Something else"))
+                    elif act_ct == i+12:
+                        act = mc.location.actions[i+12]
+                        tuple_list.append((act.name,act))
+                    tuple_list.append(("Back", "Back"))
+                    choice = renpy.display_menu(tuple_list,True, "Choice")
+                    i += 11
+
+        elif choice == "Talk to someone.":
+            python:
+                i = 0
+                while not isinstance(choice, Person) and choice != "Back":
+                    tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in mc.location.people[i:i+7]]
+                    if pers_ct > i+8:
+                        tuple_list.append(("Someone else", "Someone else"))
+                    elif pers_ct == i+8:
+                        people = mc.location.people[i+8]
+                        tuple_list.append((people.name + " " + people.last_name[0] + ".",people))
+                    tuple_list.append(("Back", "Back"))
+                    choice = renpy.display_menu(tuple_list,True, "Choice")
+                    i += 7
+
+    if isinstance(choice, Person):
+        "You approach [choice.name] and chat for a little bit."
+        $ choice.call_greeting()
+        call talk_person(choice) from _call_talk_person
+
+    elif isinstance(choice, Action):
+        $ choice.call_action()
+
     jump game_loop
     
 
@@ -3377,64 +3429,36 @@ label change_location(the_place):
 #    "You spend some time travelling to [the_place.name]." #TODO: Only show this when there is a significant time use? Otherwise takes up too much time changing between locations.
     return
 
-label talk_person(the_person):
+label talk_person(the_person, repeat_choice = None):
     $the_person.draw_person()
     show screen person_info_ui(the_person)
     hide screen business_ui
-    
+
     menu:
         "Finish talking.":
+            $ repeat_choice = None
             "Eventually you're done say goodbye to each other."
+        "Repeat" if repeat_choice:
+            # print the repeat choice and then replace characters so it can be called as a label
+            "You [repeat_choice]"
+            $ renpy.call(re.sub(' ', '_', repeat_choice))
+
         "Chat about something.":
+            $ repeat_choice = None
             menu:
                 "Compliment her outfit.":
-                    mc.name "Hey [the_person.name], I just wanted to say that you look great today. That style really suits you." #TODO: Add more context aware dialogue.
-                    $ slut_difference = int(the_person.sluttiness - the_person.outfit.slut_requirement) #Negative if their outfit is sluttier than what they would normally wear.
-                    # Note: The largest effect should occure when the outfit is just barely in line with her sluttiness. Too high or too low and it will have no effect.
-                    
-                    $ sweet_spot_range = 10
-                    if slut_difference < -sweet_spot_range : #Outfit is too slutty, she will never get use to wearing it.
-                        $ the_person.draw_person(emotion = "default")
-                        the_person.name "Really? It's just so revealing, what do people think of me when they see me? I don't think I'll ever get use to wearing this."                  
-                        
-                    elif slut_difference > sweet_spot_range:  #Outfit is conservative, no increase.
-                        $ the_person.draw_person(emotion = "default")
-                        the_person.name "Really? I think it looks too bland, showing a little more skin would be nice."
-                        
-                    else: #We are within the sweet_spot_range with the outfit.
-                        $ slut_difference = math.fabs(slut_difference)
-                        if slut_difference > sweet_spot_range:
-                            $ slut_difference = sweet_spot_range
-                        $ slut_difference = sweet_spot_range - slut_difference #invert the value so we now have 10 - 10 at both extreme ends, 10 - 0 at the middle where it will have the most effect.
-                        $ change_amount = the_person.change_slut_modified(mc.charisma + 1 + slut_difference) #Increase their sluttiness if they are suggestable right now.
-                        show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
-                        the_person.name "Glad you think so, I was on the fence, but it's nice to know that somebody likes it!"
-                        
+                    $ repeat_choice = "compliment her outfit"
+                    call compliment_her_outfit from chat_compliment_outfit
                 "Flirt with her.":
-                    mc.name "Hey [the_person.name], you're looking particularly good today. I wish I got to see a little bit more of that fabulous body."
-                    $ change_amount = the_person.change_slut_modified(mc.charisma + 1)
-                    show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
-                    $the_person.call_flirt_response()
-                    
+                    $ repeat_choice = "flirt with her"
+                    call flirt_with_her  from chat_flirt
                 "Compliment her recent work." if mc.business.get_employee_workstation(the_person):
-                    mc.name "[the_person.name], I wanted to tell you that you've been doing a great job lately. Keep it up, you're one of hte most important players in this whole operation."
-                    $ change_amount = mc.charisma + 1
-                    $ change_amount_obedience = the_person.change_obedience_modified(-change_amount)
-                    $ the_person.change_happiness(change_amount)
-                    $ the_person.draw_person(emotion = "happy")
-                    show screen float_up_screen(["+[change_amount] Happiness","[change_amount_obedience] Obedience"],["float_text_yellow","float_text_grey"])
-                    the_person.name "Thanks [mc.name], it means a lot to hear that from you. I'll just keep doing what I'm doing I guess."                    
-                    
+                    $ repeat_choice = "compliment her recent work"
+                    call compliment_her_recent_work  from chat_compliment_work
                 "Insult her recent work." if mc.business.get_employee_workstation(the_person):
-                    mc.name "[the_person.name], I have to say I've been disappointed in your work for a little while now. Try to shape up, or we'll have to have a more offical talk about it."
-                    $ change_amount = mc.charisma*2 + 1
-                    $ change_amount_happiness = 5-mc.charisma
-                    $ change_amount= the_person.change_obedience_modified(change_amount)
-                    $ the_person.change_happiness(-change_amount_happiness)
-                    $ the_person.draw_person(emotion = "sad")
-                    show screen float_up_screen(["-[change_amount_happiness] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
-                    the_person.name "Oh... I didn't know there was an issue. I'll try follow your instructions closer then."
-                    
+                    $ repeat_choice = "insult her recent work"
+                    call insult_her_recent_work  from chat_insult
+
                 "Offer a cash bonus." if  mc.business.get_employee_workstation(the_person):
                     mc.name "So [the_person.name], you've been putting in a lot of good work at the lab lately and I wanted to make sure you were rewarded properly for that."
                     "You pull out your wallet and start to pull out a few bills."
@@ -3449,8 +3473,8 @@ label talk_person(the_person):
                             show screen float_up_screen(["-[change_amount] Happiness"],["float_text_yellow"])
                             $the_person.change_happiness(-change_amount)
                             "[the_person.name] looks visibly disapointed."
-                            the_person.name "Right, of course."                          
-                        
+                            the_person.name "Right, of course."
+
                         "Give her a days wages. -$[the_person.salary]" if mc.money >= the_person.salary:
                             mc.name "Here you go, treat yourself to something nice tonight."
                             $ the_person.draw_person(emotion = "happy")
@@ -3458,9 +3482,8 @@ label talk_person(the_person):
                             show screen float_up_screen(["+[change_amount] Happiness"],["float_text_yellow"])
                             $ the_person.change_happiness(change_amount)
                             "[the_person.name] takes the bills from you and smiles."
-                            the_person.name "Thank you sir."                     
-                            
-                            
+                            the_person.name "Thank you sir."
+
                         "Give her a weeks wages. -$[weeks_wages]" if mc.money >= weeks_wages:
                             mc.name "Here you go, don't spend it all in once place."
                             $ the_person.draw_person(emotion = "happy")
@@ -3471,7 +3494,7 @@ label talk_person(the_person):
                             show screen float_up_screen(["+[change_amount] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
                             "[the_person.name] takes the bills, then smiles broadly at you."
                             the_person.name "That's very generous of you sir, thank you."
-                            
+
                         "Give her a months wages. -$[months_wages]" if mc.money >= months_wages:
                             mc.name "Here, you're a key part of the team and you deserved to be rewarded as such."
                             $ the_person.draw_person(emotion = "happy")
@@ -3492,7 +3515,7 @@ label talk_person(the_person):
                                 $ the_person.review_outfit()
                             else:
                                 the_person.name "Wow... this is amazing sir. I'll do everything I can for you and the company!"
-                                
+
                         "Give her a permanent 10%% Raise ($[raise_amount]/day)":
                             mc.name "[the_person.name], it's criminal that I pay you as little as I do. I'm going to mark you down for a 10%% raise, effective by the end of today."
                             $ change_amount = 5+mc.charisma
@@ -3502,11 +3525,11 @@ label talk_person(the_person):
                             show screen float_up_screen(["+$[raise_amount]/day Salary","+[change_amount] Happiness","+[change_amount_obedience] Obedience"],["float_text_green","float_text_yellow","float_text_grey"])
                             $ the_person.salary += raise_amount
                             the_person.name "Thank you sir, that's very generous of you!"
-                        
-                    
-            call talk_person(the_person) from _call_talk_person_4
-                
+
+                    call talk_person(the_person) from _call_talk_person_4
+
         "Modify her wardrobe." if the_person.obedience >= 120:
+            $ repeat_choice = None
             menu:
                 "Add an outfit.":
                     mc.name "[the_person.name], I've got something I'd like you to wear for me." ## Do we want a completely silent protag? Speaks only through menu input maybe?
@@ -3553,10 +3576,10 @@ label talk_person(the_person):
                     $ the_person.draw_person()
                     show screen main_ui
                     the_person.name "Is this better?"
-                    
             call talk_person(the_person) from _call_talk_person_1
             
         "Move her to a new division." if not mc.business.get_employee_title(the_person) == "None":
+            $ repeat_choice = None
             the_person.name "Where would you like me then?"
             $ mc.business.remove_employee(the_person)
             
@@ -3592,6 +3615,7 @@ label talk_person(the_person):
             the_person.name "I'll get started right away!"
             
         "Fire them!" if not mc.business.get_employee_title(the_person) == "None":
+            $ repeat_choice = None
             "You tell [the_person.name] to collect their things and leave the building."
             $ mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)
             if rd_division.has_person(the_person):
@@ -3604,26 +3628,90 @@ label talk_person(the_person):
                 $ m_division.remove_person(the_person)
             
         "Take a closer look at [the_person.name].":
+            $ repeat_choice = None
             call examine_person(the_person) from _call_examine_person
             call talk_person(the_person) from _call_talk_person_2
         "Give her a dose of serum." if mc.inventory.get_any_serum_count() > 0 and mandatory_serum_testing_policy.is_owned():
-            $renpy.scene("Active")
-            call give_serum(the_person) from _call_give_serum
-            call talk_person(the_person) from _call_talk_person_3
+            $ repeat_choice = "give her a dose of serum"
+            call give_her_a_dose_of_serum
         "Seduce her.":
-            "You step close to [the_person.name] and hold her hand."
-            $ the_person.call_seduction_response()
-            call fuck_person(the_person) from _call_fuck_person
-            #Now that you've had sex, we calculate the change to her stats and move on.
-            $ change_amount = the_person.change_slut_modified(the_person.arousal) #Change her slut score by her final arousal. This should be _about_ 100 if she climaxed, but you may keep fucking her silly if you can overcome the arousal loss.
-            show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
-            $ the_person.reset_arousal()
-            $ the_person.review_outfit()
+            $ repeat_choice = None
+            call seduce_her from chat_seduce
+    if repeat_choice:
+        call talk_person(the_person, repeat_choice) from _call_talk_person_3
     hide screen person_info_ui
     show screen business_ui
     $renpy.scene("Active")
     return
-    
+
+label compliment_her_outfit:
+    mc.name "Hey [the_person.name], I just wanted to say that you look great today. That style really suits you." #TODO: Add more context aware dialogue.
+    $ slut_difference = int(the_person.sluttiness - the_person.outfit.slut_requirement) #Negative if their outfit is sluttier than what they would normally wear.
+    # Note: The largest effect should occure when the outfit is just barely in line with her sluttiness. Too high or too low and it will have no effect.
+
+    $ sweet_spot_range = 10
+    if slut_difference < -sweet_spot_range : #Outfit is too slutty, she will never get use to wearing it.
+        $ the_person.draw_person(emotion = "default")
+        the_person.name "Really? It's just so revealing, what do people think of me when they see me? I don't think I'll ever get use to wearing this."
+
+    elif slut_difference > sweet_spot_range:  #Outfit is conservative, no increase.
+        $ the_person.draw_person(emotion = "default")
+        the_person.name "Really? I think it looks too bland, showing a little more skin would be nice."
+
+    else: #We are within the sweet_spot_range with the outfit.
+        $ slut_difference = math.fabs(slut_difference)
+        if slut_difference > sweet_spot_range:
+            $ slut_difference = sweet_spot_range
+        $ slut_difference = sweet_spot_range - slut_difference #invert the value so we now have 10 - 10 at both extreme ends, 10 - 0 at the middle where it will have the most effect.
+        $ change_amount = the_person.change_slut_modified(mc.charisma + 1 + slut_difference) #Increase their sluttiness if they are suggestable right now.
+        show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+        the_person.name "Glad you think so, I was on the fence, but it's nice to know that somebody likes it!"
+    return
+
+label flirt_with_her:
+    mc.name "Hey [the_person.name], you're looking particularly good today. I wish I got to see a little bit more of that fabulous body."
+    $ change_amount = the_person.change_slut_modified(mc.charisma + 1)
+    show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+    $the_person.call_flirt_response()
+    return
+
+label compliment_her_recent_work:
+    mc.name "[the_person.name], I wanted to tell you that you've been doing a great job lately. Keep it up, you're one of hte most important players in this whole operation."
+    $ change_amount = mc.charisma + 1
+    $ change_amount_obedience = the_person.change_obedience_modified(-change_amount)
+    $ the_person.change_happiness(change_amount)
+    $ the_person.draw_person(emotion = "happy")
+    show screen float_up_screen(["+[change_amount] Happiness","[change_amount_obedience] Obedience"],["float_text_yellow","float_text_grey"])
+    the_person.name "Thanks [mc.name], it means a lot to hear that from you. I'll just keep doing what I'm doing I guess."
+    return
+
+label insult_her_recent_work:
+    mc.name "[the_person.name], I have to say I've been disappointed in your work for a little while now. Try to shape up, or we'll have to have a more offical talk about it."
+    $ change_amount = mc.charisma*2 + 1
+    $ change_amount_happiness = 5-mc.charisma
+    $ change_amount= the_person.change_obedience_modified(change_amount)
+    $ the_person.change_happiness(-change_amount_happiness)
+    $ the_person.draw_person(emotion = "sad")
+    show screen float_up_screen(["-[change_amount_happiness] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
+    the_person.name "Oh... I didn't know there was an issue. I'll try follow your instructions closer then."
+    return
+
+label give_her_a_dose_of_serum:
+    $renpy.scene("Active")
+    call give_serum(the_person) from _call_give_serum
+    return
+
+label seduce_her:
+    "You step close to [the_person.name] and hold her hand."
+    $ the_person.call_seduction_response()
+    call fuck_person(the_person) from _call_fuck_person
+    #Now that you've had sex, we calculate the change to her stats and move on.
+    $ change_amount = the_person.change_slut_modified(the_person.arousal) #Change her slut score by her final arousal. This should be _about_ 100 if she climaxed, but you may keep fucking her silly if you can overcome the arousal loss.
+    show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+    $ the_person.reset_arousal()
+    $ the_person.review_outfit()
+    return
+
 label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness increase for situations like blackmail or getting drunk
     python:
         tuple_list = []
@@ -3636,14 +3724,17 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         
     if not position_choice == "Leave":
         python:
-            renpy.say("","Where do you do it?")
-            
             tuple_list = []
             for object in mc.location.objects:
                 if object.has_trait(position_choice.requires_location):
-                    tuple_list.append([object.name,object])
+                    tuple_list.append((object.name,object))
+            if len(tuple_list) > 1:
+                renpy.say("","Where do you do it?")
+                object_choice = renpy.display_menu(tuple_list,True,"Choice")
+            else:
+                renpy.say("", "You decide to do it on the %s."%tuple_list[0][0])
+                object_choice = tuple_list[0][1]
             
-            object_choice = renpy.display_menu(tuple_list,True,"Choice")
         call sex_description(the_person, position_choice, object_choice, 0) from _call_sex_description
     
     return
@@ -3787,61 +3878,38 @@ label strip_menu(the_person):
     
 label examine_room(the_room):
     python:
-        renpy.say("","You are at [the_room.name].") #Where are we right now?
-        
+        desc = "You are at the [the_room.name]. "
+
         people_here = the_room.people #Format the names of people in the room with you so it looks nice.
-        if len(people_here) == 0:
-            room_names = "There's nobody else in the room with you."
-        elif len(people_here) == 1:
-            room_names = "The only other person in the room with you is "
-            room_names += people_here[0].name
-            room_names += "."
-        elif len(people_here) == 2:
-            room_names = "Inside the room you see "
-            room_names += people_here[0].name
-            room_names += " and "
-            room_names += people_here[1].name
-            room_names += "."
-        elif len(people_here) >2 and len(people_here) < 6:
-            room_names = "Inside the room you see "
-            for person in people_here[0:len(people_here)-2]:
-                room_names += person.name
-                room_names += ", "
-            last_person = people_here[len(people_here)-1].name
-            room_names += "and "
-            room_names += last_person
-            room_names += " among other people."
-        else:
-            room_names = "The room is filled with people."
-            
-        renpy.say("",room_names) ##This is the actual print statement!!
-        
+        pers_ct = len(people_here)
+        if pers_ct == 1:
+            desc += people_here[0].name + " is here. "
+        elif pers_ct > 0:
+            if pers_ct < 6:
+                desc = "You see "
+                if pers_ct > 2:
+                    for person in people_here[0:pers_ct-3]:
+                        desc += person.name
+                        desc += ", "
+                desc += people_here[pers_ct-2].name + "and " + people_here[pers_ct-1].name + " here. "
+            else:
+                desc += "It is filled with people here. "
+
         connections_here = the_room.connections # Now we format the output for the connections so that it is readable.
-        if len(connections_here) == 0:
-            connect_names = "There are no exits from here. You're trapped!" #Shouldn't ever happen, hopefully."
-        elif len(connections_here) == 1:
-            connect_names = "From here your only option is to head to "
-            connect_names += connections_here[0].name
-            connect_names += "."
-        elif len(connections_here) == 2:
-            connect_names = "From here you can head to either "
-            connect_names += connections_here[0].name
-            connect_names += " or "
-            connect_names += connections_here[1].name
-            connect_names += "."
+        conn_ct = len(connections_here)
+        if conn_ct == 0:
+            desc += "There are no exits from here. You're trapped! " #Shouldn't ever happen, hopefully."
         else:
-            connect_names = "From here you can go to "
-            for place in connections_here[0:len(connections_here)-1]:
-                connect_names += place.name
-                connect_names += ", "
-            last_place = connections_here[len(connections_here)-1].name
-            connect_names += "and "
-            connect_names += last_place
-            connect_names += "."
-        renpy.say("",connect_names) ##This is the actual print statement!!
-        
-    "That's all there is to see nearby."
-        
+            desc += "From here you can head to "
+            if conn_ct == 2:
+                desc += "either the " + connections_here[0].name + " or "
+            elif conn_ct > 2:
+                for place in connections_here[0:conn_ct-2]:
+                    desc += "the " + place.name + ", the "
+                desc += connections_here[conn_ct-2].name + " or "
+            desc += "the " + connections_here[conn_ct-1].name +". "
+        #desc += "That's all there is to see nearby." # don't state the obvious
+        renpy.say("",desc) ##This is the actual print statement!!
     return
     
 label examine_person(the_person):

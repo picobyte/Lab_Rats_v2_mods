@@ -25,6 +25,7 @@ define gui.show_name = False
 
 define config.version = "v0.3.2"
 
+define config.developer = 1
 
 ## Text that is placed on the game's about screen. To insert a blank line
 ## between paragraphs, write \n\n.
