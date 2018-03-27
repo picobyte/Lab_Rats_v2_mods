@@ -3387,29 +3387,29 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
             python:
                 i = 0
                 while not isinstance(choice, Action) and choice != "Back":
-                    tuple_list = [(act.name,act) for act in mc.location.actions[i:i+7]]
-                    if act_ct > i+12:
+                    tuple_list = [(act.name,act) for act in mc.location.actions[i:i+9]]
+                    if act_ct > i+10:
                         tuple_list.append(("Something else", "Something else"))
-                    elif act_ct == i+12:
-                        act = mc.location.actions[i+12]
+                        i += 9
+                    elif act_ct == i+10:
+                        act = mc.location.actions[i+10]
                         tuple_list.append((act.name,act))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
-                    i += 11
 
         elif choice == "Talk to someone.":
             python:
                 i = 0
                 while not isinstance(choice, Person) and choice != "Back":
-                    tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in mc.location.people[i:i+7]]
-                    if pers_ct > i+8:
+                    tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in mc.location.people[i:i+9]]
+                    if pers_ct > i+10:
                         tuple_list.append(("Someone else", "Someone else"))
-                    elif pers_ct == i+8:
-                        people = mc.location.people[i+8]
+                        i += 9
+                    elif pers_ct == i+10:
+                        people = mc.location.people[pers_ct]
                         tuple_list.append((people.name + " " + people.last_name[0] + ".",people))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
-                    i += 7
 
     if isinstance(choice, Person):
         "You approach [choice.name] and chat for a little bit."
