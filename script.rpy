@@ -2304,7 +2304,7 @@ screen business_ui: #Shows some information about your business.
             text "Daily Salary Cost: $"+ str(mc.business.calculate_salary_cost()) style "menu_text_style"
             text "Company Efficency: [mc.business.team_effectiveness]%" style "menu_text_style"
 #            text "Company Marketability: [mc.business.marketability]" style "menu_text_style"
-            text "Current Raw Supplys: [mc.business.supply_count] (Target:[mc.business.supply_goal])" style "menu_text_style"
+            text "Current Raw Supplies: [mc.business.supply_count] (Target:[mc.business.supply_goal])" style "menu_text_style"
             if not mc.business.active_research_design == None:
                 text "Current Research: " style "menu_text_style"
                 text "    [mc.business.active_research_design.name] ([mc.business.active_research_design.current_research]/[mc.business.active_research_design.research_needed])" style "menu_text_style"
