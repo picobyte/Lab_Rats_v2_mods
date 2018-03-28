@@ -3396,7 +3396,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
                         tuple_list.append(("Something else", "Something else"))
                         i += 9
                     elif act_ct == i+10:
-                        act = mc.location.actions[i+10]
+                        act = mc.location.actions[i+9]
                         tuple_list.append((act.name,act))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
@@ -3410,7 +3410,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
                         tuple_list.append(("Someone else", "Someone else"))
                         i += 9
                     elif pers_ct == i+10:
-                        people = mc.location.people[pers_ct]
+                        people = mc.location.people[i+9]
                         tuple_list.append((people.name + " " + people.last_name[0] + ".",people))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
