@@ -294,7 +294,7 @@ label lab_accident_crisis_label():
     $ the_place = mc.business.r_div
     
     if mc.location == mc.business.r_div:
-        $ renpy.show(the_place.name,what=the_place.background_image)
+        call change_location(the_place) from _call_lab_accident_1
         "There's a sudden crash and sharp yell of suprise as you're working in the lab."
         $the_person.call_suprised_exclaim()
         the_person.name "[mc.name], I think I need you for a moment."
@@ -304,7 +304,7 @@ label lab_accident_crisis_label():
         "Your phone buzzes - it's a text from [the_person.name] on your research team."
         the_person.name "There's been a small accident, can I see you in the lab?"
         "You hurry over to your research and development lab to see what the problem is."
-        $ renpy.show(the_place.name,what=the_place.background_image)
+        call change_location(the_place) from _call_lab_accident_2
     
     
     $ the_person.draw_person(emotion = "sad")
@@ -342,7 +342,7 @@ label production_accident_crisis_label():
     $ the_place = mc.business.p_div
     
     if mc.location == mc.business.p_div:
-        $ renpy.show(the_place.name,what=the_place.background_image)
+        call change_location(the_place) from _call_production_accident_1
         "There's a sudden crash and sharp yell of suprise as you're working in the lab."
         $the_person.call_suprised_exclaim()
         the_person.name "[mc.name], I think I need you for a moment."
@@ -352,7 +352,7 @@ label production_accident_crisis_label():
         "Your phone buzzes - it's a text from [the_person.name] on your production team."
         the_person.name "There's been a small accident, can I see you in the lab?"
         "You hurry over to the production lab to see what the problem is."
-        $ renpy.show(the_place.name,what=the_place.background_image)
+        call change_location(the_place) from _call_production_accident_2
     
     
     $ the_person.draw_person(emotion = "sad")
@@ -580,7 +580,7 @@ label quitting_crisis_label(the_person): #The person tries to quit, you have a c
     the_person.name "[mc.name], there's something important I need to talk to you about. When can we have a meeting?"
     $ the_place = mc.business.h_div
     if mc.location == mc.business.h_div: #If you're arleady in your office just kick back and relax.
-        $ renpy.show(the_place.name,what=the_place.background_image) #Just in case another crisis had interupted us being here.
+        call change_location(the_place) from _call_quitting_crisis_1 #Just in case another crisis had interupted us being here.
         "You type up a response."
         mc.name "I'm in my office right now, come over whenever you would like."
         "You organize the papers on your desk while you wait for [the_person.name]. After a few minutes she comes in and closes the door behind her."
@@ -588,7 +588,7 @@ label quitting_crisis_label(the_person): #The person tries to quit, you have a c
         "You type up a response."
         mc.name "I'm out of the office right now, but if it's important I can be back in a few minutes."
         the_person.name "It is. See you at your office."
-        $ renpy.show(the_place.name,what=the_place.background_image) #Just in case another crisis had interupted us being here.
+        call change_location(the_place) from _call_quitting_crisis_2 #Just in case another crisis had interupted us being here.
         "You travel back to your office. You're just in the door when [the_person.name] comes in and closes the door behind her."
     
     $the_person.draw_person()
@@ -672,7 +672,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
     if rd_staff is not None:
         if mc.location == mc.business.r_div: # The MC is in the lab, just physically get them.
             $ the_place = mc.business.r_div
-            $ renpy.show(the_place.name,what=the_place.background_image) #Just in case another crisis had interupted us being here.
+            call change_location(the_place) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.
             "There's a tap on your shoulder. You turn and see [rd_staff.name], looking obviously excited."
             $ rd_staff.draw_person(emotion="happy")
             rd_staff.name "[mc.name], I'm sorry to bother you but I've had a breakthrough! The first test dose of serum \"[the_serum.name]\" is coming out right now!"
@@ -698,7 +698,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                     mc.name "I think that would be a good idea. I'll be over in a moment."
                     "You hang up and travel over to the lab. You're greeted by [rd_staff.name] as soon as you're in the door."
                     $ the_place = mc.business.r_div
-                    call change_location(the_place) from serum_creation_crisis
+                    call change_location(the_place) from _call_serum_creation_2
                     $ rd_staff.draw_person(emotion="happy")
                     $ rd_staff.call_greeting()
                     mc.name "We're set up over here. come this way."
