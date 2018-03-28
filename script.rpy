@@ -2418,39 +2418,43 @@ screen employee_overview():
         yanchor 0.0
         background "#1a45a1aa"
         xsize 1800
-        grid 14 len(showing_team)+1:
-            text "Name" style "menu_text_style"
-            text "Salary" style "menu_text_style"
-            text "Happiness" style "menu_text_style"
-            text "Obedience" style "menu_text_style"
-            text "Sluttiness" style "menu_text_style"
-            text "Suggest" style "menu_text_style"
-            text "Charisma" style "menu_text_style"
-            text "Int" style "menu_text_style"
-            text "Focus" style "menu_text_style"
-            text "Research" style "menu_text_style"
-            text "Production " style "menu_text_style"
-            text "Supply" style "menu_text_style"
-            text "Marketing " style "menu_text_style"
-            text "HR" style "menu_text_style"
-            
-            for person in showing_team:
-                textbutton person.name + "\n" + person.last_name style "textbutton_style" text_style "menu_text_style" action Show("person_info_detailed",None,person)
-#                text person.name + "\n" + person.last_name style "menu_text_style"
-                text "$" + str(person.salary) + "/day" style "menu_text_style"
-                text str(int(person.happiness)) style "menu_text_style"
-                text str(int(person.obedience)) style "menu_text_style"
-                text str(int(person.sluttiness)) style "menu_text_style"
-                text str(int(person.suggestibility)) style "menu_text_style"
-                text str(int(person.charisma)) style "menu_text_style"
-                text str(int(person.int)) style "menu_text_style"
-                text str(int(person.focus)) style "menu_text_style"
-                text str(int(person.research_skill)) style "menu_text_style"
-                text str(int(person.production_skill)) style "menu_text_style"
-                text str(int(person.supply_skill)) style "menu_text_style"
-                text str(int(person.market_skill)) style "menu_text_style"
-                text str(int(person.hr_skill)) style "menu_text_style"
-    
+        side ("c r"):
+            area (1,0,1800,600)
+            viewport id "Positions_list":
+                draggable True mousewheel True
+                grid 14 len(showing_team)+1:
+                    text "Name" style "menu_text_style"
+                    text "Salary" style "menu_text_style"
+                    text "Happiness" style "menu_text_style"
+                    text "Obedience" style "menu_text_style"
+                    text "Sluttiness" style "menu_text_style"
+                    text "Suggest" style "menu_text_style"
+                    text "Charisma" style "menu_text_style"
+                    text "Int" style "menu_text_style"
+                    text "Focus" style "menu_text_style"
+                    text "Research" style "menu_text_style"
+                    text "Production " style "menu_text_style"
+                    text "Supply" style "menu_text_style"
+                    text "Marketing " style "menu_text_style"
+                    text "HR" style "menu_text_style"
+
+                    for person in showing_team:
+                        textbutton person.name + "\n" + person.last_name style "textbutton_style" text_style "menu_text_style" action Show("person_info_detailed",None,person)
+#                        text person.name + "\n" + person.last_name style "menu_text_style"
+                        text "$" + str(person.salary) + "/day" style "menu_text_style"
+                        text str(int(person.happiness)) style "menu_text_style"
+                        text str(int(person.obedience)) style "menu_text_style"
+                        text str(int(person.sluttiness)) style "menu_text_style"
+                        text str(int(person.suggestibility)) style "menu_text_style"
+                        text str(int(person.charisma)) style "menu_text_style"
+                        text str(int(person.int)) style "menu_text_style"
+                        text str(int(person.focus)) style "menu_text_style"
+                        text str(int(person.research_skill)) style "menu_text_style"
+                        text str(int(person.production_skill)) style "menu_text_style"
+                        text str(int(person.supply_skill)) style "menu_text_style"
+                        text str(int(person.market_skill)) style "menu_text_style"
+                        text str(int(person.hr_skill)) style "menu_text_style"
+            vbar value YScrollValue("Positions_list") xalign 1.0
     frame:
         background None
         anchor [0.5,0.5]
