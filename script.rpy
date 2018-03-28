@@ -3453,6 +3453,7 @@ label talk_person(the_person, repeat_choice = None):
 
         "Chat about something.":
             $ repeat_choice = None
+            $ mc.money -= the_person.salary
             menu:
                 "Compliment her outfit.":
                     $ repeat_choice = "compliment her outfit"
