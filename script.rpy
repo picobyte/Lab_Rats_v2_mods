@@ -3453,7 +3453,6 @@ label talk_person(the_person, repeat_choice = None):
 
         "Chat about something.":
             $ repeat_choice = None
-            $ mc.money -= the_person.salary
             menu:
                 "Compliment her outfit.":
                     $ repeat_choice = "compliment her outfit"
@@ -3490,6 +3489,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ change_amount = 1+mc.charisma
                             show screen float_up_screen(["+[change_amount] Happiness"],["float_text_yellow"])
                             $ the_person.change_happiness(change_amount)
+                            $ mc.money -= the_person.salary
                             "[the_person.name] takes the bills from you and smiles."
                             the_person.name "Thank you sir."
 
@@ -3500,6 +3500,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ change_amount_happiness = 5+mc.charisma
                             $ the_person.change_happiness(change_amount_happiness)
                             $ the_person.change_obedience_modified(change_amount)
+                            $ mc.money -= weeks_wages
                             show screen float_up_screen(["+[change_amount] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
                             "[the_person.name] takes the bills, then smiles broadly at you."
                             the_person.name "That's very generous of you sir, thank you."
@@ -3509,6 +3510,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ the_person.draw_person(emotion = "happy")
                             $ change_amount = 5+mc.charisma
                             $ change_amount_happiness = 10+mc.charisma
+                            $ mc.money -= months_wages
                             $the_person.change_happiness(change_amount_happiness)
                             $the_person.change_obedience_modified(change_amount)
                             "[the_person.name] takes the bills, momentarily stunned by the amount."
