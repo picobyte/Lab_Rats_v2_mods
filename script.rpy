@@ -3423,7 +3423,7 @@ label create_outfit(the_outfit):
 label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS YOU TAKE
     #"Now, what would you like to do? You can talk to someone, go somewhere else, perform an action, or reexamine the room."
     python:
-        tuple_list = [("Go somewhere else.", "Go somewhere else."), ("Examine the room.", "Examine the room.")]
+        tuple_list = [("Go somewhere else.", "Go somewhere else."), ("Examine the area.", "Examine the area.")]
         act_ct = mc.location.valid_actions()
         if act_ct < 5:
             for act in mc.location.actions:
@@ -3446,7 +3446,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
             call screen map_manager
             call change_location(_return) from _call_change_location #_return is the location returned from the map manager.
 
-        elif choice == "Examine the room.":
+        elif choice == "Examine the area.":
             call examine_room(mc.location) from _call_examine_room_1
 
         elif choice == "Do something.":
