@@ -2435,38 +2435,38 @@ screen end_of_day_update():
         
 screen employee_overview():
     add "Paper_Background.png"
-    default division_select = "None"
+    default division_select = mc.location.name
     default division_name = "None"
     $ showing_team = []
     modal True
     hbox:
         yalign 0.05
         xalign 0.05
-        textbutton "Research" action SetScreenVariable("division_select","r") style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Production" action SetScreenVariable("division_select","p") style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Supply" action SetScreenVariable("division_select","s") style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Marketing" action SetScreenVariable("division_select","m") style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Human Resources" action SetScreenVariable("division_select","h") style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Research" action SetScreenVariable("division_select",rd_division.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Production" action SetScreenVariable("division_select",p_division.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Supply" action SetScreenVariable("division_select",office.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Marketing" action SetScreenVariable("division_select",m_division.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Human Resources" action SetScreenVariable("division_select",lobby.name) style "textbutton_style" text_style "textbutton_text_style"
     
     python:
-        if division_select is None:
-            showing_team = []
-            division_name = "None"
-        elif division_select == "r":
+        if division_select == rd_division.name:
             showing_team = mc.business.research_team
             division_name = "Research"
-        elif division_select == "p":
+        elif division_select == p_division.name:
             showing_team = mc.business.production_team
             division_name = "Production"
-        elif division_select == "s":
+        elif division_select == office.name:
             showing_team = mc.business.supply_team
             division_name = "Supply Procurement"
-        elif division_select == "m":
+        elif division_select == m_division.name:
             showing_team = mc.business.market_team
             division_name = "Marketing"
-        elif division_select == "h":
+        elif division_select == lobby.name:
             showing_team = mc.business.hr_team
             division_name = "Human Resources"
+        else:
+            showing_team = []
+            division_name = "None"
     
     
     text "Position: " + division_name style "menu_text_style" size 20 yalign 0.18 xalign 0.02 xanchor 0.0
