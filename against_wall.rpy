@@ -48,6 +48,7 @@ label scene_against_wall_3(the_girl, the_location, the_object, the_round):
         "[the_girl.name] arches her back and leans into each of your thrusts, letting you get nice and deep. You pause for a second to appreciate the view of her cute ass."
         the_girl.name "Come on [mc.name], don't just stare at it..."
         "She pushes her ass back and slides you all the way inside of her again."
+    return
         
 
 label outro_against_wall(the_girl, the_location, the_object, the_round):
