@@ -3734,18 +3734,10 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         position_choice = renpy.display_menu(tuple_list,True,"Choice")
         
     if not position_choice == "Leave":
-        python:
-            tuple_list = []
-            for object in mc.location.objects:
-                if object.has_trait(position_choice.requires_location):
-                    tuple_list.append((object.name,object))
-            if len(tuple_list) > 1:
-                renpy.say("","Where do you do it?")
-                object_choice = renpy.display_menu(tuple_list,True,"Choice")
-            else:
-                renpy.say("", "You decide to do it on the %s."%tuple_list[0][0])
-                object_choice = tuple_list[0][1]
-            
+        $ tuple_list = [("do it on the " + obj.name, obj) for obj in mc.location.objects_with_trait(position_choice.requires_location)]
+        if len(tuple_list) > 1:
+           "Where do you do it?"
+        $ object_choice = renpy.display_menu(tuple_list,True,"Choice")
         call sex_description(the_person, position_choice, object_choice, 0) from _call_sex_description
     
     return
