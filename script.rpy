@@ -3787,6 +3787,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
 
         strip_options = [("Take off " + cloth.name + ".",cloth) for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]
         strip_options.append(("Go back to fucking her.","Finish"))
+        alt_options = [("Strip her down.","Strip"), ("Leave","Leave")]
 
         position_choice = "Try again"
         round = 0
@@ -3794,11 +3795,11 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
     while position_choice != "Leave":
         python:
             # ask what position you want
-            position_choice = renpy.display_menu(available_positions + [("Strip her down.","Strip"), ("Leave","Leave")], True, "Choice")
+            position_choice = renpy.display_menu(available_positions + alt_options, True, "Choice")
             if isinstance(position_choice, Position):
                 the_person.draw_person(position_choice.position_tag)
                 if round == 0 or position_choice != the_position: #We are changing to a new position.
-                    sites = [("do it on the " + obj.name, obj) for obj in mc.location.objects_with_trait(the_position.requires_location)]
+                    sites = [("do it on the " + obj.name, obj) for obj in mc.location.objects_with_trait(position_choice.requires_location)]
                     if len(sites) > 1:
                        renpy.say("", "Where do you do it?")
 
@@ -3809,7 +3810,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         while isinstance(position_choice, Position):
 
             $ the_position = position_choice
-            $ the_position.call_transition(position_choice, the_person, mc.location, the_object, round)
+            $ the_position.call_transition(the_position, the_person, mc.location, the_object, round)
             $ the_position.call_scene(the_person, mc.location, the_object, round)
             $ the_person.call_for_arouse(mc, the_position)
 
@@ -3822,12 +3823,10 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
                     tuple_list = [("Keep going some more.",the_position), ("Back off and change positions.","Pull Out")]
                     if (mc.arousal > 80): #Only let you finish if you've got a high enough arousal score. #TODO: Add stat that controls how much control you have over this.
                         tuple_list.append(("Cum!","Finish"))
-                    if len(strip_options) > 1:
-                        tuple_list.append(("Strip her down.","Strip"))
                     for position in the_position.connections:
                         if the_object.has_trait(position.requires_location) and position.check_clothing(the_person):
                             tuple_list.append(("Change to " + position.name + ".", position))
-                    position_choice = renpy.display_menu(tuple_list,True,"Choice")
+                    position_choice = renpy.display_menu(tuple_list + alt_options, True,"Choice")
                     round += 1
         if position_choice == "Finish":
             python:
@@ -3838,6 +3837,8 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
 
         elif position_choice == "Strip":
             call strip_menu(the_person, strip_options) from _call_strip_menu
+            if len(strip_options) == 1:
+                $ alt_options = [("Leave","Leave")]
     return
 
 label strip_menu(the_person, strip_options):
