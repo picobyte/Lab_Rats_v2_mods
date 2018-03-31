@@ -106,7 +106,10 @@ label relaxed_sex_accept(the_person):
         the_person.name "Okay, we can give that a try."
     return
     
-label relaxed_sex_obedience_accept(the_person):
+label relaxed_sex_obedience_accept(the_person, amount=None):
+    if amount is not None:
+        show screen float_up_screen(["[amount] Happiness"],["float_text_yellow"])
+
     if the_person.sluttiness > 70:
         the_person.name "Oh god [mc.name], I should really say no... But you always make me feel so good, I can't say no to you."
     else:
@@ -123,7 +126,9 @@ label relaxed_sex_gentle_reject(the_person):
         the_person.name "Wait. I don't think I'm comfortable with this. Could we just do something else instead?"
     return
     
-label relaxed_sex_angry_reject(the_person):
+label relaxed_sex_angry_reject(the_person, amount=None):
+    if amount is not None:
+        show screen float_up_screen(["[amount] Happiness"],["float_text_yellow"])
     if the_person.sluttiness < 20:
         the_person.name "Who the fuck do you think I am, some whore who puts out for anyone who asks?"
         the_person.name "Ugh! Get away from me, I don't even want to talk to you after that."
@@ -279,7 +284,10 @@ label reserved_sex_accept(the_person):
         the_person.name "Oh, I know I shouldn't [mc.name]... but I think you've managed to convince me."
     return
     
-label reserved_sex_obedience_accept(the_person):
+label reserved_sex_obedience_accept(the_person, amount=None):
+    if amount is not None:
+        show screen float_up_screen(["[amount] Happiness"],["float_text_yellow"])
+
     if the_person.sluttiness > 70:
         the_person.name "I shouldn't... I really shouldn't. But I know you want me, and I think I want you too. Promise you'll make me feel good too?"
     else:
@@ -296,7 +304,9 @@ label reserved_sex_gentle_reject(the_person):
         the_person.name "This doesn't seem like the kind of thing a proper lady would do. Lets do something else, please."
     return
     
-label reserved_sex_angry_reject(the_person):
+label reserved_sex_angry_reject(the_person, amount=None):
+    if amount is not None:
+        show screen float_up_screen(["[amount] Happiness"],["float_text_yellow"])
     if the_person.sluttiness < 20:
         the_person.name "Excuse me? Do I look like some sort of prostitute?"
         the_person.name "Get away from me, you're lucky I don't turn you into the police for that! Give me some space, I don't want to talk after that."

@@ -870,18 +870,66 @@ init -2 python:
             
         def call_strip_reject(self):
             self.personality.get_strip_reject(self)
+
+        def call_for_consent(self, by_ref):
+            the_position = by_ref[0]
+
+            if self.effective_sluttiness() >= the_position.slut_requirement:
+                # The person is slutty enough to want to have sex like this.
+                self.call_sex_accept_response()
+
+            elif self.effective_sluttiness() + (self.obedience-100) >= the_position.slut_requirement:
+                # The person isn't slutty enough for this. First, try and use obedience.
+                self.draw_person(the_position.position_tag, emotion="sad")
+                # She looses happiness equal to the difference between her sluttiness and the requirement.
+                # ie the amount obedience covered.
+                self.call_sex_obedience_accept_response(self.sluttiness - the_position.slut_requirement)
+
+            elif self.effective_sluttiness() >= the_position.slut_requirement/2:
+                # No amount of obedience will help here. How badly did you screw up?
+                # If you still fail, but by a little, she rebukes you but you keep seducing her. Otherwise, the entire thing ends.
+                by_ref[0] = "Try again"
+                self.call_sex_gentle_reject()
+            else:
+                # Your seduction attempt wasn't even close, angry response follows
+                self.draw_person(the_position.position_tag,emotion="angry")
+                self.change_happiness(-5) #She's pissed you would even try that
+                by_ref[0] = "Leave"
+                self.call_sex_angry_reject(-5)
+
+        def call_for_arouse(self, mc, the_position):
+
+            # The same calculation but for the guy
+            mc.change_arousal(the_position.guy_arousal + (the_position.guy_arousal * self.sex_skills[the_position.skill_tag] * 0.1))
+            change_amount = the_position.girl_arousal + (the_position.girl_arousal * mc.sex_skills[the_position.skill_tag] * 0.1)
+            renpy.show_screen("float_up_screen", ["+[change_amount] Arousal"], ["float_text_red"])
+            self.change_arousal(change_amount) #The girls arousal gain is the base gain + 10% per the characters skill in that category.
+
+            if self.arousal >= 100:
+                #She's climaxing.
+                self.draw_person(the_position.position_tag,emotion="orgasm")
+                renpy.show_screen("float_up_screen", ["+5 Happiness"], ["float_text_yellow"])
+                self.change_happiness(5) #Orgasms are good, right?
+                renpy.call(self.personality.climax_response_label, self)
+            else:
+                renpy.call(self.personality.sex_response_label, self)
+
             
         def call_sex_accept_response(self):
             self.personality.get_sex_accept_response(self)
         
-        def call_sex_obedience_accept_response(self):
-            self.personality.get_sex_obedience_accept_response(self)
+        def call_sex_obedience_accept_response(self, amount=None):
+            if amount:
+                self.change_happiness(amount)
+            self.personality.get_sex_obedience_accept_response(self, amount)
             
         def call_sex_gentle_reject(self):
             self.personality.get_sex_gentle_reject(self)
             
-        def call_sex_angry_reject(self):
-            self.personality.get_sex_angry_reject(self)
+        def call_sex_angry_reject(self, amount=None):
+            if amount:
+                self.change_happiness(amount)
+            self.personality.get_sex_angry_reject(self, amount)
             
         def call_seduction_response(self):
             self.personality.get_seduction_response(self)
@@ -1065,14 +1113,14 @@ init -2 python:
         def get_sex_accept_response(self, the_person):
             renpy.call(self.sex_accept_label, the_person)
         
-        def get_sex_obedience_accept_response(self, the_person):
-            renpy.call(self.sex_obedience_accept_label, the_person)
+        def get_sex_obedience_accept_response(self, the_person, amount):
+            renpy.call(self.sex_obedience_accept_label, the_person, amount)
             
         def get_sex_gentle_reject(self, the_person):
             renpy.call(self.sex_gentle_reject_label, the_person)
             
-        def get_sex_angry_reject(self, the_person):
-            renpy.call(self.sex_angry_reject_label, the_person)
+        def get_sex_angry_reject(self, the_person, amount):
+            renpy.call(self.sex_angry_reject_label, the_person, amount)
             
         def get_seduction_response(self, the_person):
             renpy.call(self.seduction_response_label, the_person)
@@ -1804,11 +1852,14 @@ init -2 python:
             renpy.call(self.outro,the_person, the_location, the_object, round)
             
         def call_transition(self,the_position, the_person, the_location, the_object, round):
-            transition_scene = the_position.transition_default
-            for position_tuple in self.transitions:
-                if position_tuple[0] == the_position: ##Does the position match the one we are looking for?
-                    transition_scene = position_tuple[1] ##If so, set it's label as the one we are going to change to.
-            renpy.call(transition_scene, the_person, the_location, the_object, round)
+            if round:
+                transition_scene = the_position.transition_default
+                for position_tuple in self.transitions:
+                    if position_tuple[0] == the_position: ##Does the position match the one we are looking for?
+                        transition_scene = position_tuple[1] ##If so, set it's label as the one we are going to change to.
+                renpy.call(transition_scene, the_person, the_location, the_object, round)
+            else:
+                self.call_intro(the_person, the_location, the_object, round)
             
         def check_clothing(self, the_person):
             if self.requires_clothing == "Vagina":
@@ -3741,70 +3792,33 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         round = 0
 
     while position_choice != "Leave":
-        $ position_choice = renpy.display_menu(available_positions + [("Leave","Leave")], True, "Choice")
-        ##Describe the current round
-        if isinstance(position_choice, Position):
-            $ the_person.draw_person(position_choice.position_tag)
-            if round == 0 or position_choice != the_position: #We are changing to a new position.
-                $ sites = [("do it on the " + obj.name, obj) for obj in mc.location.objects_with_trait(position_choice.requires_location)]
-                if len(sites) > 1:
-                   "Where do you do it?"
-                $ the_object = renpy.display_menu(sites, True, "Choice")
-                $ the_position = position_choice
-                if the_person.effective_sluttiness() >= the_position.slut_requirement: #The person is slutty enough to want to have sex like this.
-                    $ the_person.call_sex_accept_response()
-                else: #The person isn't slutty enough for this. First, try and use obedience. If you still fail, but by a little, she rebukes you but you keep seducing her. Otherwise, the entire thing ends.
-                    if the_person.effective_sluttiness() + (the_person.obedience-100) >= the_position.slut_requirement:
-                        #You can use obedience to do it.
-                        $ the_person.draw_person(the_position.position_tag,emotion="sad")
-                        $ change_amount = the_position.slut_requirement - the_person.sluttiness
-                        show screen float_up_screen(["-[change_amount] Happiness"],["float_text_yellow"])
-                        $ the_person.call_sex_obedience_accept_response()
-                        $ the_person.change_happiness(-change_amount) #She looses happiness equal to the difference between her sluttiness and the requirement. ie the amount obedience covered.
-                    else:
-                        #No amount of obedience will help here. How badly did you screw up?
-                        if the_person.effective_sluttiness() < the_position.slut_requirement/2: #Badly, not even half way to what you needed
-                            $ the_person.draw_person(the_position.position_tag,emotion="angry")
-                            show screen float_up_screen(["-5 Happiness"],["float_text_yellow"])
-                            $ the_person.change_happiness(-5) #She's pissed you would even try that
-                            $ the_person.call_sex_angry_reject()
-                            $ position_choice = "Leave"
-                        else:
-                            $ the_person.call_sex_gentle_reject()
-                            $ position_choice = "Try again"
-                            #Gives a chance to fuck them some other way, but this path is ended by the return right after you finish having sex like that.
+        python:
+            # ask what position you want
+            position_choice = renpy.display_menu(available_positions + [("Strip her down.","Strip"), ("Leave","Leave")], True, "Choice")
+            if isinstance(position_choice, Position):
+                the_person.draw_person(position_choice.position_tag)
+                if round == 0 or position_choice != the_position: #We are changing to a new position.
+                    sites = [("do it on the " + obj.name, obj) for obj in mc.location.objects_with_trait(the_position.requires_location)]
+                    if len(sites) > 1:
+                       renpy.say("", "Where do you do it?")
 
+                    the_object = renpy.display_menu(sites, True, "Choice")
+                    the_person.call_for_consent([position_choice]) # in list so it's can be modified (by reference)
+
+        # keep going as long as it is a position
         while isinstance(position_choice, Position):
-            if round == 0:
-                $ the_position.call_intro(the_person, mc.location, the_object, round)
-            else:
-                ## ONCE WE HAVE DONE FIRST ROUND CHECKS WE GO HERE ##
-                $ the_position.call_transition(position_choice, the_person, mc.location, the_object, round)
+
+            $ the_position = position_choice
+            $ the_position.call_transition(position_choice, the_person, mc.location, the_object, round)
             $ the_position.call_scene(the_person, mc.location, the_object, round)
+            $ the_person.call_for_arouse(mc, the_position)
 
-            $ change_amount = the_position.girl_arousal + (the_position.girl_arousal * mc.sex_skills[the_position.skill_tag] * 0.1)
-            show screen float_up_screen(["+[change_amount] Arousal"],["float_text_red"])
-            $ the_person.change_arousal(change_amount) #The girls arousal gain is the base gain + 10% per the characters skill in that category.
-            $ mc.change_arousal(the_position.guy_arousal + (the_position.guy_arousal * the_person.sex_skills[the_position.skill_tag] * 0.1)) # The same calculation but for the guy
-
-            ## POST ROUND CALCULATION AND DECISIONS PAST HERE ##
-
-            if the_person.arousal >= 100:
-                #She's climaxing.
-                $the_person.call_climax_response()
-                $the_person.draw_person(the_position.position_tag,emotion="orgasm")
-                show screen float_up_screen(["+5 Happiness"],["float_text_yellow"])
-                $the_person.change_happiness(5) #Orgasms are good, right?
-            else:
-                $the_person.call_sex_response()
-
-            ##Ask how you want to keep fucking her##
-            $ position_choice = "Keep Going" #Default value just to make sure scope is correct.
-            if (mc.arousal >= 100):
-                "You're past your limit, you have no choice but to cum!"
-                $ position_choice = "Finish"
-            else:
-                python:
+            python:
+                ##Ask how you want to keep fucking her##
+                if (mc.arousal >= 100):
+                    "You're past your limit, you have no choice but to cum!"
+                    position_choice = "Finish"
+                else:
                     tuple_list = [("Keep going some more.",the_position), ("Back off and change positions.","Pull Out")]
                     if (mc.arousal > 80): #Only let you finish if you've got a high enough arousal score. #TODO: Add stat that controls how much control you have over this.
                         tuple_list.append(("Cum!","Finish"))
@@ -3814,35 +3828,38 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
                         if the_object.has_trait(position.requires_location) and position.check_clothing(the_person):
                             tuple_list.append(("Change to " + position.name + ".", position))
                     position_choice = renpy.display_menu(tuple_list,True,"Choice")
-
-            if position_choice == "Finish":
-                $ the_position.call_outro(the_person, mc.location, the_object, round)
-                $ mc.reset_arousal()
-                $ position_choice = "Leave"
+                    round += 1
+        if position_choice == "Finish":
+            python:
+                mc.reset_arousal()
+                position_choice = "Leave"
+                the_position.call_outro(the_person, mc.location, the_object, round)
                 # TODO: have you finishing bump her arousal up so you might both cum at once.
 
-            elif position_choice == "Strip":
-                python:
-                    strip_choice = renpy.display_menu(strip_options,True,"Choice")
-                    while strip_choice != "Finish":
-
-                        test_outfit = copy.deepcopy(the_person.outfit)
-                        test_outfit.remove_clothing(strip_choice)
-                        if the_person.judge_outfit(test_outfit):
-                            the_person.outfit.remove_clothing(strip_choice)
-                            the_person.draw_person()
-                            renpy.say("", "You pull her " + strip_choice.name + " off, dropping it to the ground.")
-                            strip_options.remove(("Take off " + strip_choice.name + ".", strip_choice))
-                            available_positions = mc.get_available_positions(list_of_positions, the_person)
-                        else:
-                            renpy.say("", "You start to pull off " + the_person.name + "'s " + strip_choice.name + " when she grabs your hand and stops you.")
-                            the_person.call_strip_reject()
-
-                        strip_choice = renpy.display_menu(strip_options,True,"Choice") if len(strip_options) > 1 else "Finish"
-
-            $ round += 1
-
+        elif position_choice == "Strip":
+            call strip_menu(the_person, strip_options) from _call_strip_menu
     return
+
+label strip_menu(the_person, strip_options):
+    python:
+        strip_choice = renpy.display_menu(strip_options,True,"Choice")
+        while strip_choice != "Finish":
+
+            test_outfit = copy.deepcopy(the_person.outfit)
+            test_outfit.remove_clothing(strip_choice)
+            if the_person.judge_outfit(test_outfit):
+                the_person.outfit.remove_clothing(strip_choice)
+                the_person.draw_person()
+                renpy.say("", "You pull her " + strip_choice.name + " off, dropping it to the ground.")
+                strip_options.remove(("Take off " + strip_choice.name + ".", strip_choice))
+                available_positions = mc.get_available_positions(list_of_positions, the_person)
+            else:
+                renpy.say("", "You start to pull off " + the_person.name + "'s " + strip_choice.name + " when she grabs your hand and stops you.")
+                the_person.call_strip_reject()
+
+            strip_choice = renpy.display_menu(strip_options,True,"Choice")
+    return
+
     
 label examine_room(the_room):
     python:
