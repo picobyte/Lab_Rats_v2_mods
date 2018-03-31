@@ -3796,6 +3796,8 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         python:
             # ask what position you want
             position_choice = renpy.display_menu(available_positions + alt_options, True, "Choice")
+            # position_choice needs to be modifyable by reference in call_for_consent() below.
+            by_ref = [position_choice]
             if isinstance(position_choice, Position):
                 the_person.draw_person(position_choice.position_tag)
                 if round == 0 or position_choice != the_position: #We are changing to a new position.
@@ -3804,7 +3806,8 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
                        renpy.say("", "Where do you do it?")
 
                     the_object = renpy.display_menu(sites, True, "Choice")
-                    the_person.call_for_consent([position_choice]) # in list so it's can be modified (by reference)
+                    the_person.call_for_consent(by_ref) # in list so it's can be modified (by reference)
+        $ position_choice = by_ref[0]
 
         # keep going as long as it is a position
         while isinstance(position_choice, Position):
