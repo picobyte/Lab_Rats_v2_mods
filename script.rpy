@@ -3321,17 +3321,20 @@ label check_business_inventory_loop:
     return
     
 label outfit_design_loop:
-    menu:
-        "Create a new outfit.":
-            call create_outfit(None) from _call_create_outfit
-            
-        "Load an old outfit." if mc.designed_wardrobe.get_count() > 0:   
-            call screen outfit_select_manager()
-            if _return != "No Return":
-                call create_outfit(_return) from _call_create_outfit_1
-            
-        "Delete an old outfit." if mc.designed_wardrobe.get_count() > 0:
-            call screen outfit_delete_manager(mc.designed_wardrobe)
+    if mc.designed_wardrobe.get_count() == 0:
+        call create_outfit(None) from _call_create_outfit
+    else:
+        menu:
+            "Create a new outfit.":
+                call create_outfit(None) from _call_create_outfit_1
+
+            "Load an old outfit.":
+                call screen outfit_select_manager()
+                if _return != "No Return":
+                    call create_outfit(_return) from _call_create_outfit_2
+
+            "Delete an old outfit.":
+                call screen outfit_delete_manager(mc.designed_wardrobe)
     return
             
     
