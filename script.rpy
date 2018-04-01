@@ -1669,63 +1669,60 @@ init -2 python:
             return visible
             
         def wearing_bra(self):
-            if self.get_upper_ordered():
-                if self.get_upper_ordered()[0].underwear:
+            for cloth in self.upper_body:
+                if cloth.underwear:
                     return True
             return False
                     
         def wearing_panties(self):
-            if self.get_lower_ordered():
-                if self.get_lower_ordered()[0].underwear:
+            for cloth in self.lower_body:
+                if cloth.underwear:
                     return True
             return False
             
         def bra_covered(self):
-            if self.get_upper_ordered():
-                if not self.get_upper_ordered()[-1].underwear:
+            layers = 0
+            for cloth in self.upper_body:
+                layers |= 1 if cloth.underwear else 2
+                if layers & 3:
                     return True
             return False
             
         def panties_covered(self):
-            if self.get_lower_ordered():
-                if not self.get_lower_ordered()[-1].underwear:
+            layers = 0
+            for cloth in self.lower_body:
+                layers |= 1 if cloth.underwear else 2
+                if layers & 3:
                     return True
             return False
-                    
-            
+
+        def is_nude(self):
+            return len(self.lower_body) + len(self.upper_body) == 0
+
         def update_slut_requirement(self): # Recalculates the slut requirement of the outfit. Should be called after each new addition.
             new_score = 0
-            
-            if self.get_upper_ordered(): # We're wearing something on our top.
-                if self.tits_available(): # You can reach your tits easily for a titfuck.
-                    new_score += 20
-                if self.tits_visible(): # Everyone can see your tits clearly.
-                    
-                    new_score += 20
-                if not self.wearing_bra():
-                    new_score += 10
-                if not self.bra_covered():
-                    new_score += 20 # You're not wearing a top with your underwear. 
-            else:
-                new_score += 40 # No top is worth a flat 40.
-                
-            if self.get_lower_ordered(): # We're wearing something on our top.
-                if self.vagina_available(): # You can reach your tits easily for a titfuck.
-                    new_score += 20
-                if self.vagina_visible(): # Everyone can see your tits clearly.
-                    new_score += 20
-                if not self.wearing_panties():
-                    new_score += 10 # You're not wearing any underwear.
-                if not self.panties_covered():
-                    new_score += 20 # You're not wearing a top with your underwear. 
-            else:
-                new_score += 40 # No bottom is worth a flat 40.
-            
-            
-                
-            for cloth in self.upper_body + self.lower_body + self.feet: #Add the extra sluttiness values of any of the pieces of clothign we're wearing.
+            for attr in ["upper_body", "lower_body"]:
+                lst = getattr(self, attr)
+                if len(lst):
+                    bits = 0xf # bits are unset below for each item that decreases slut value
+                    for cloth in lst:
+                        new_score += cloth.slut_value
+                        if cloth.anchor_below: # no easy tits / pussy access.
+                            bits &= ~8
+                        if cloth.hide_below: # layer not see-thru.
+                            bits &= ~4
+                        if not cloth.underwear:
+                            bits &= ~2 # wearing an above underwear layer.
+                        else:
+                            bits &= ~1 # wearing underwear
+                    # 10 * (has_access * 2 + has_see-thru * 2 + has_top_layer * 2 + has_underwear)
+                    new_score += 10 * (((bits & 8) >> 2) + ((bits & 4) >> 1) + (bits & 3))
+                else:
+                    new_score += 40 # No top/bottom is worth a flat 40.
+
+            for cloth in self.feet: #Add the extra sluttiness values of any of the pieces of clothign we're wearing.
                 new_score += cloth.slut_value
-                
+
             self.slut_requirement = new_score
                 
                 
