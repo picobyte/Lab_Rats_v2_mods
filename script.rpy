@@ -3785,8 +3785,6 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
     python:
         available_positions = mc.get_available_positions(list_of_positions, the_person)
 
-        strip_options = [("Take off " + cloth.name + ".",cloth) for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]
-        strip_options.append(("Go back to fucking her.","Finish"))
         alt_options = [("Strip her down.","Strip"), ("Leave","Leave")]
 
         position_choice = "Try again"
@@ -3839,29 +3837,32 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
                 # TODO: have you finishing bump her arousal up so you might both cum at once.
 
         elif position_choice == "Strip":
-            call strip_menu(the_person, strip_options) from _call_strip_menu
-            if len(strip_options) == 1:
-                $ alt_options = [("Leave","Leave")]
+            call strip_menu(the_person) from _call_strip_menu
+            python:
+                if len([cloth for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]]) == 1:
+                    alt_options = [("Leave","Leave")]
+                available_positions = mc.get_available_positions(list_of_positions, the_person)
     return
 
-label strip_menu(the_person, strip_options):
+label strip_menu(the_person):
     python:
-        strip_choice = renpy.display_menu(strip_options,True,"Choice")
-        while strip_choice != "Finish":
+        strip_options = [("Take off " + cloth.name + ".",cloth) for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]
+        alt_options = [("Go back to fucking her.","Finish")]
+        cloth = renpy.display_menu(strip_options + alt_options, True, "Choice")
+        while cloth != "Finish":
 
             test_outfit = copy.deepcopy(the_person.outfit)
-            test_outfit.remove_clothing(strip_choice)
+            test_outfit.remove_clothing(cloth)
             if the_person.judge_outfit(test_outfit):
-                the_person.outfit.remove_clothing(strip_choice)
+                the_person.outfit.remove_clothing(cloth)
                 the_person.draw_person()
-                renpy.say("", "You pull her " + strip_choice.name + " off, dropping it to the ground.")
-                strip_options.remove(("Take off " + strip_choice.name + ".", strip_choice))
-                available_positions = mc.get_available_positions(list_of_positions, the_person)
+                renpy.say("", "You pull her " + cloth.name + " off, dropping it to the ground.")
+                strip_options = [("Take off " + cloth.name + ".",cloth) for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]
             else:
-                renpy.say("", "You start to pull off " + the_person.name + "'s " + strip_choice.name + " when she grabs your hand and stops you.")
+                renpy.say("", "You start to pull off " + the_person.name + "'s " + cloth.name + " when she grabs your hand and stops you.")
                 the_person.call_strip_reject()
 
-            strip_choice = renpy.display_menu(strip_options,True,"Choice")
+            cloth = renpy.display_menu(strip_options + alt_options, True, "Choice")
     return
 
     
