@@ -33,6 +33,42 @@ init -2 python:
     def copy_cursor_pos():
         pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
 
+    class PeopleContainer(renpy.store.object):
+        def __init__(self, name, people):
+            self.name = name
+            self.people = people
+
+        def add_person(self,the_person):
+            self.people.append(the_person)
+
+        def remove_person(self,the_person):
+            self.people.remove(the_person)
+
+        def move_person(self,the_person,the_destination):
+            if not the_person in the_destination.people: # Don't bother moving people who are already there.
+                self.remove_person(the_person)
+                the_destination.add_person(the_person)
+
+        def has_person(self,the_person):
+            return the_person in self.people
+
+    class Division(PeopleContainer):
+        def __init__(self, name, people, room, employment_title=None):
+            self.employment_title = employment_title or name
+            self.room = room
+            self.uniform = None
+            self.serum = None
+            super(Division, self).__init__(name, people)
+
+        def give_daily_serum(self, inventory):
+            if self.serum:
+                for person in self.people:
+                    if inventory.get_serum_count(self.serum) > 0:
+                        inventory.change_serum(self.serum,-1)
+                        person.give_serum(copy.copy(self.serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
+                    else:
+                        return "Stockpile ran out of %s to give to the %s division." % (self.serum.name, self.name.lower())
+
     class Business(renpy.store.object):
         # main jobs to start with:
         # 1) buying raw supplies.
@@ -42,37 +78,32 @@ init -2 python:
         # 4) Working in marketing. Increases volumn you can sell, and max price you can sell for.
         # 5) Packaging and selling serums that have been produced.
         # 6) General secretary work. Starts at none needed, grows as your company does (requires an "HR", eventually). Maybe a general % effectivness rating.
-        def __init__(self, name, m_div, p_div, r_div, s_div, h_div):
+        def __init__(self, name, m_room, p_room, rd_room, s_room, h_room):
             self.name = name 
             self.funds = 1000 #Your starting wealth.
             
             self.bankrupt_days = 0 #How many days you've been bankrupt. If it hits the max value you lose.
             self.max_bankrupt_days = 3 #How many days you can be negative without loosing the game. Can be increased through research.
-            
-            self.m_div = m_div #The phsyical locations of all of the teams, so you can move to different offices in the future.
-            self.p_div = p_div
-            self.r_div = r_div
-            self.s_div = s_div
-            self.h_div = h_div
-            
-            self.m_uniform = None #These are the uniforms used by the various departments. If a girl is employed and currently at work she will be wearing her uniform
-            self.p_uniform = None
-            self.r_uniform = None
-            self.s_uniform = None
-            self.h_uniform = None
-            
-            self.m_serum = None #These are the serums given to the different departments if the daily serum dosage policy is researched.
-            self.p_serum = None
-            self.r_serum = None
-            self.s_serum = None
-            self.h_serum = None
-            
-            self.research_team = [] #Researches new serums that the player designs, does theoretical research into future designs, or improves old serums slightly over time
-            self.market_team = [] # Increases company marketability. Raises max price serum can be sold for, and max volumn that can be sold.
-            self.supply_team = [] # Buys the raw supplies used by the other departments.
-            self.production_team = [] # Physically makes the serum and sends it off to be sold.
-            self.hr_team = [] # Manages everyone else and improves effectiveness. Needed as company grows.
-            
+
+            # m_div etc: The phsyical locations of all of the teams, so you can move to different offices in the future.
+
+            # Increases company marketability. Raises max price serum can be sold for, and max volumn that can be sold.
+            self.m_div = Division("Marketing", [], m_room)
+
+            # Physically makes the serum and sends it off to be sold.
+            self.p_div = Division("Production", [], p_room)
+
+            # Researches new serums that the player designs, does theoretical research into future designs, or improves old serums slightly over time
+            self.r_div = Division("Research and Development", [], rd_room, "Researcher")
+
+            # Buys the raw supplies used by the other departments.
+            self.s_div = Division("Supply Procurement", [], s_room, "Supply")
+
+            # Manages everyone else and improves effectiveness. Needed as company grows.
+            self.h_div = Division("Human Resources", [], h_room)
+
+            self.division = [self.m_div, self.p_div, self.r_div, self.s_div, self.h_div]
+
             self.supply_count = 0
             self.supply_goal = 250
             self.auto_sell_threshold = None
@@ -101,40 +132,41 @@ init -2 python:
             self.mandatory_crises_list = [] #A list of crises to be resolved at the end of the turn, generally generated by events that have taken place.
             
         def run_turn(self): #Run each time the time segment changes. Most changes are done here.
-            
+
             #Compute efficency drop
-            for person in self.supply_team + self.research_team + self.production_team + self.market_team:
-                if person in self.s_div.people + self.r_div.people + self.p_div.people + self.m_div.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
-                    self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
-                
+            for div in self.division:
+                for person in div.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
+                    if person in div.room.people:
+                        self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
+
             #Compute effiency rise from HR
-            for person in self.hr_team:
-                if person in self.h_div.people:
+            for person in self.m_div.people:
+                if person in div.room.people:
                     self.hr_progress(person.charisma,person.int,person.hr_skill)
-                
+
             if self.team_effectiveness < 50:
                 self.team_effectiveness = 50
-                
+
             if self.team_effectiveness > self.effectiveness_cap:
                 self.team_effectiveness = self.effectiveness_cap
-            
+
             #Compute other deparement effects
-            for person in self.supply_team:
-                if person in self.s_div.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
+            for person in self.s_div.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
+                if person in div.room.people:
                     self.supply_purchase(person.focus,person.charisma,person.supply_skill)
-            
-            for person in self.research_team:
-                if person in self.r_div.people:
+
+            for person in self.r_div.people:
+                if person in div.room.people:
                     self.research_progress(person.int,person.focus,person.research_skill)
-                
-            for person in self.production_team:
-                if person in self.p_div.people:
+
+            for person in self.p_div.people:
+                if person in div.room.people:
                     self.production_progress(person.focus,person.int,person.production_skill)
-            
-            for person in self.market_team:
-                if person in self.m_div.people:
+
+            for person in self.m_div.people:
+                if person in div.room.people:
                     self.sale_progress(person.charisma,person.focus,person.market_skill)
-            
+
         def run_day(self): #Run at the end of the day.
             #Pay everyone for the day
             cost = self.calculate_salary_cost()
@@ -149,19 +181,10 @@ init -2 python:
                 return False
                 
         def get_uniform(self,title): #Takes a division (a room) and returns the correct uniform for that division, if one exists. If it is None, returns false.
-            if title == "Marketing":
-                return self.m_uniform
-            elif title == "Researcher":
-                return self.r_uniform
-            elif title == "Production":
-                return self.p_uniform
-            elif title == "Supply":
-                return self.s_uniform
-            elif title == "Human Resources":
-                return self.h_uniform
-            else:
-                return None
-            
+            for div in self.division:
+                if title == div.employment_title:
+                    return div.uniform
+
         def clear_messages(self): #clear all messages for the day.
             self.message_list = []
             self.counted_message_list = {}
@@ -176,13 +199,13 @@ init -2 python:
                 self.counted_message_list[message] += new_count
             else:
                 self.counted_message_list[message] = new_count
-            
+
         def calculate_salary_cost(self):
             daily_cost = 0
-            for person in self.supply_team + self.research_team + self.production_team + self.market_team + self.hr_team:
+            for person in self.get_employee_list():
                 daily_cost += person.salary
             return daily_cost
-            
+
         def add_serum_design(self,the_serum):
             self.serum_designs.append(the_serum)
             
@@ -222,8 +245,8 @@ init -2 python:
         def sale_progress(self,cha,focus,skill):
             
             serum_value_multiplier = 1.00 #For use with value boosting policies. Multipliers are multiplicative.
-            if mc.business.m_uniform and male_focused_marketing_policy.is_owned(): #If there is a uniform and we have the policy to increase value based on that we change the multilier.
-                sluttiness_multiplier = (mc.business.m_uniform.slut_requirement/100.0) + 1
+            if mc.business.m_div.uniform and male_focused_marketing_policy.is_owned(): #If there is a uniform and we have the policy to increase value based on that we change the multilier.
+                sluttiness_multiplier = (mc.business.m_div.uniform.slut_requirement/100.0) + 1
                 serum_value_multiplier = serum_value_multiplier * (sluttiness_multiplier)
             
             serum_sale_count = __builtin__.round(((3*cha) + (focus) + (2*skill) + 10) * (self.team_effectiveness))/100 #Total number of doses of serum that can be sold by this person.
@@ -287,44 +310,26 @@ init -2 python:
                 
         def hr_progress(self,cha,int,skill): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
             self.team_effectiveness += (3*cha) + (int) + (2*skill) + 10
-                
-        def add_employee_research(self, new_person):
-            self.research_team.append(new_person)
-            new_person.job = self.get_employee_title(new_person)
-            
-        def add_employee_production(self, new_person):
-            self.production_team.append(new_person)
-            new_person.job = self.get_employee_title(new_person)
-            
-        def add_employee_supply(self, new_person):
-            self.supply_team.append(new_person)
-            new_person.job = self.get_employee_title(new_person)
-            
-        def add_employee_marketing(self, new_person):
-            self.market_team.append(new_person)
-            new_person.job = self.get_employee_title(new_person)
-            
-        def add_employee_hr(self, new_person):
-            self.hr_team.append(new_person)
-            new_person.job = self.get_employee_title(new_person)
-            
+
+        def add_employee(self, new_person, division, to_room_as_well=True):
+            division.people.append(new_person)
+            new_person.job = division.employment_title
+            if to_room_as_well:
+                division.room.people.append(new_person)
+
         def remove_employee(self, the_person):
-            if the_person in self.research_team:
-                self.research_team.remove(the_person)
-            elif the_person in self.production_team:
-                self.production_team.remove(the_person)
-            elif the_person in self.supply_team:
-                self.supply_team.remove(the_person)
-            elif the_person in self.market_team:
-                self.market_team.remove(the_person)
-            elif the_person in self.hr_team:
-                self.hr_team.remove(the_person)
-        
+            for div in self.division:
+                if the_person in div.people:
+                    div.people.remove(the_person)
+                    if the_person in div.room.people:
+                        div.room.people.remove(the_person)
+                    break
+
         def get_employee_list(self):
-            return self.research_team + self.production_team + self.supply_team + self.market_team + self.hr_team
-        
+            return [people for div in self.division for people in div.people]
+
         def get_employee_count(self):
-            return len(self.get_employee_list())
+            return sum([len(div.people) for div in self.division])
             
         def get_max_employee_slut(self):
             max = -1 #Set to -1 for an empty business, all calls should require at least sluttiness 0
@@ -334,97 +339,23 @@ init -2 python:
             return max
             
         def get_employee_title(self, the_person):
-            if the_person in self.research_team:
-                return "Researcher"
-                
-            elif the_person in self.market_team:
-                return "Marketing"
-                
-            elif the_person in self.supply_team:
-                return "Supply"
-                
-            elif the_person in self.production_team:
-                return "Production"
-                
-            elif the_person in self.hr_team:
-                return "Human Resources"
-            else:
-                return "None"
+            for div in self.division:
+                if the_person in div.people:
+                    return div.employment_title
+            return "None"
                 
         def get_employee_workstation(self, the_person): #Returns the location a girl should be working at, or "None" if the girl does not work for you
-            if the_person in self.research_team:
-                return self.r_div
-                
-            elif the_person in self.market_team:
-                return self.m_div
-                
-            elif the_person in self.supply_team:
-                return self.s_div
-                
-            elif the_person in self.production_team:
-                return self.p_div
-                
-            elif the_person in self.hr_team:
-                return self.h_div
-            else:
-                return None
+            for div in self.division:
+                if the_person in div.people:
+                    return div.room
+            return None
                 
         def give_daily_serum(self):
-            if self.r_serum:
-                the_serum = self.r_serum
-                for person in self.research_team:
-                    if self.inventory.get_serum_count(the_serum) > 0:
-                        self.inventory.change_serum(the_serum,-1)
-                        person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
-                    else:
-                        the_message = "Stockpile ran out of [the_serum.name] to give to the research division."
-                        if not the_message in self.message_list:
-                            self.message_list.append(the_message)
-                        
-            if self.m_serum:
-                the_serum = self.m_serum
-                for person in self.market_team:
-                    if self.inventory.get_serum_count(the_serum) > 0:
-                        self.inventory.change_serum(the_serum,-1)
-                        person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
-                    else:
-                        the_message = "Stockpile ran out of [the_serum.name] to give to the marketing division."
-                        if not the_message in self.message_list:
-                            self.message_list.append(the_message)
-                        
-            if self.p_serum:
-                the_serum = self.p_serum
-                for person in self.production_team:
-                    if self.inventory.get_serum_count(the_serum) > 0:
-                        self.inventory.change_serum(the_serum,-1)
-                        person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
-                    else:
-                        the_message = "Stockpile ran out of [the_serum.name] to give to the production division."
-                        if not the_message in self.message_list:
-                            self.message_list.append(the_message)
-                        
-            if self.s_serum:
-                the_serum = self.s_serum
-                for person in self.supply_team:
-                    if self.inventory.get_serum_count(the_serum) > 0:
-                        self.inventory.change_serum(the_serum,-1)
-                        person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
-                    else:
-                        the_message = "Stockpile ran out of [the_serum.name] to give to the supply procurement division."
-                        if not the_message in self.message_list:
-                            self.message_list.append(the_message)
-                        
-            if self.h_serum:
-                the_serum = self.h_serum
-                for person in self.hr_team:
-                    if self.inventory.get_serum_count(the_serum) > 0:
-                        self.inventory.change_serum(the_serum,-1)
-                        person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
-                    else:
-                        the_message = "Stockpile ran out of [the_serum.name] to give to the human resources division."
-                        if not the_message in self.message_list:
-                            self.message_list.append(the_message)
-            
+            for div in self.division:
+                the_message = div.give_daily_serum(self.inventory)
+                if the_message:
+                    self.message_list.append(the_message)
+
     class SerumDesign(renpy.store.object):
         def __init__(self):
             self.name = ""
@@ -677,7 +608,7 @@ init -2 python:
             self.arousal = 0
             
         def is_at_work(self): #Checks to see if the main character is at work, generally used in crisis checks.
-            if self.location == self.business.m_div or self.location == self.business.p_div or self.location == self.business.r_div or self.location == self.business.s_div or self.location == self.business.h_div:
+            if self.location == self.business.m_div.room or self.location == self.business.p_div.room or self.location == self.business.r_div.room or self.location == self.business.s_div.room or self.location == self.business.h_div.room:
                 return True
             else:
                 return False
@@ -1262,50 +1193,35 @@ init -2 python:
             if not emotion in self.emotion_set:
                 emotion = "default"
             renpy.show(self.name+position+emotion+self.facial_style,at_list=[right,scale_person(height)],layer="Active",what=self.position_dict[position][emotion],tag=self.name+position+emotion)
-    
-    class Room(renpy.store.object): #Contains people and objects.
+
+    class Room(PeopleContainer): #Contains people and objects.
         def __init__(self,name,formalName,connections,background_image,objects,people,actions,public,map_pos):
-            self.name = name
             self.formalName = formalName
             self.connections = connections
             self.background_image = background_image
             self.objects = objects
-            self.people = people       
             self.actions = actions #A list of Action objects
             self.public = public #If True, random people can wander here. TODO: Update rooms to include this value.
             self.map_pos = map_pos #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically.
-            
+            super(Room, self).__init__(name, people)
+
         def link_locations(self,other): #This is a one way connection!
             self.connections.append(other)
-            
+
         def link_locations_two_way(self,other): #Link it both ways. Great for adding locations after the fact, when you don't want to modify existing locations.
             self.link_locations(other)
             other.link_locations(self)
-            
+
         def add_object(self,the_object):
-            self.objects.append(the_object)  
-            
-        def add_person(self,the_person):
-            self.people.append(the_person)
-        
-        def remove_person(self,the_person):
-            self.people.remove(the_person)
-            
-        def move_person(self,the_person,the_destination):
-            if not the_person in the_destination.people: # Don't bother moving people who are already there.
-                self.remove_person(the_person)
-                the_destination.add_person(the_person)
-            
-        def has_person(self,the_person):
-            return the_person in self.people
-            
+            self.objects.append(the_object)
+
         def objects_with_trait(self,the_trait):
             return_list = []
             for object in self.objects:
                 if object.has_trait(the_trait):
                     return_list.append(object)
             return return_list
-            
+
         def has_object_with_trait(self,the_trait):
             if the_trait == "None":
                 return True
@@ -1313,7 +1229,7 @@ init -2 python:
                 if object.has_trait(the_trait):
                     return True
             return False
-            
+
         def valid_actions(self):
             count = 0
             for act in self.actions:
@@ -2376,38 +2292,28 @@ screen end_of_day_update():
         
 screen employee_overview():
     add "Paper_Background.png"
-    default division_select = mc.location.name
+    default division_select = "None"
     default division_name = "None"
     $ showing_team = []
     modal True
     hbox:
         yalign 0.05
         xalign 0.05
-        textbutton "Research" action SetScreenVariable("division_select",rd_division.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Production" action SetScreenVariable("division_select",p_division.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Supply" action SetScreenVariable("division_select",office.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Marketing" action SetScreenVariable("division_select",m_division.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Human Resources" action SetScreenVariable("division_select",lobby.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Research" action SetScreenVariable("division_select",mc.business.r_div.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Production" action SetScreenVariable("division_select",mc.business.p_div.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Supply" action SetScreenVariable("division_select",mc.business.s_div.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Marketing" action SetScreenVariable("division_select",mc.business.m_div.name) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Human Resources" action SetScreenVariable("division_select",mc.business.h_div.name) style "textbutton_style" text_style "textbutton_text_style"
     
     python:
-        if division_select == rd_division.name:
-            showing_team = mc.business.research_team
-            division_name = "Research"
-        elif division_select == p_division.name:
-            showing_team = mc.business.production_team
-            division_name = "Production"
-        elif division_select == office.name:
-            showing_team = mc.business.supply_team
-            division_name = "Supply Procurement"
-        elif division_select == m_division.name:
-            showing_team = mc.business.market_team
-            division_name = "Marketing"
-        elif division_select == lobby.name:
-            showing_team = mc.business.hr_team
-            division_name = "Human Resources"
-        else:
+        for div in mc.business.division:
+            if division_select == div.name or mc.location.name == div.room.name:
+                showing_team = div.people
+                division_name = div.name
+                if division_select == div.name:
+                    break
+        if division_name == "None":
             showing_team = []
-            division_name = "None"
     
     
     text "Position: " + division_name style "menu_text_style" size 20 yalign 0.18 xalign 0.02 xanchor 0.0
@@ -3594,52 +3500,21 @@ label talk_person(the_person, repeat_choice = None):
         "Move her to a new division." if mc.business.get_employee_title(the_person) != "None" and 0 < time_of_day < 4:
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
-            $ mc.business.remove_employee(the_person)
-            
-            if rd_division.has_person(the_person):
-                $ rd_division.remove_person(the_person)
-            elif p_division.has_person(the_person):
-                $ p_division.remove_person(the_person)
-            elif office.has_person(the_person):
-                $ office.remove_person(the_person)
-            elif m_division.has_person(the_person):
-                $ m_division.remove_person(the_person)
-            menu:
-                "Research and Development.":
-                    $ mc.business.add_employee_research(the_person)
-                    $ rd_division.add_person(the_person)
-                
-                "Production.":
-                    $ mc.business.add_employee_production(the_person)
-                    $ p_division.add_person(the_person)
-                    
-                "Supply Procurement.":
-                    $ mc.business.add_employee_supply(the_person)
-                    $ office.add_person(the_person)
-                    
-                "Marketing.":
-                    $ mc.business.add_employee_marketing(the_person)
-                    $ m_division.add_person(the_person)
-                    
-                "Human Resources.":
-                    $ mc.business.add_employee_hr(the_person)
-                    $ office.add_person(the_person)
-            
-            the_person.name "I'll get started right away!"
-            
+            $ selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
+            if selected_div.employment_title != the_person.job:
+                $ mc.business.remove_employee(the_person)
+                $ mc.business.add_employee(the_person, selected_div)
+                the_person.name "I'll get started right away!"
+            else:
+                $ the_person.change_happiness(-1) # for desinterest
+                show screen float_up_screen(["-1 Happiness"],["float_text_yellow"])
+                the_person.name "Actually I am already working there."
+
         "Fire them!" if mc.business.get_employee_title(the_person) != "None" and 0 < time_of_day < 4:
             $ repeat_choice = None
             "You tell [the_person.name] to collect their things and leave the building."
             $ mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)
-            if rd_division.has_person(the_person):
-                $ rd_division.remove_person(the_person)
-            elif p_division.has_person(the_person):
-                $ p_division.remove_person(the_person)
-            elif office.has_person(the_person):
-                $ office.remove_person(the_person)
-            elif m_division.has_person(the_person):
-                $ m_division.remove_person(the_person)
-            
+
         "Take a closer look at [the_person.name].":
             $ repeat_choice = None
             call examine_person(the_person) from _call_examine_person
@@ -3878,17 +3753,10 @@ label examine_person(the_person):
             if not outfit_bottom[1].hide_below:
                 string += " You can see her pussy underneath."
         renpy.say("",string)
-        title = mc.business.get_employee_title(the_person)
-        if title == "Researcher":
-            renpy.say("", the_person.name + " currently works in your research department.")
-        elif title == "Marketing":
-            renpy.say("", the_person.name + " currently works in your marketing department.")
-        elif title == "Supply":
-            renpy.say("", the_person.name + " currently works in your supply procurement department.")
-        elif title == "Production":
-            renpy.say("", the_person.name + " currently works in your production department.")
-        elif title == "Human Resources":
-            renpy.say("", the_person.name + " currently works in your human resources department.")
+        for div in mc.business.division:
+            if the_person in div.people:
+                renpy.say("", "%s currently works in your %s department." % (the_person.name, div.name.lower()) )
+                break
         else:
             renpy.say("", the_person.name + " does not currently work for you.")
     
@@ -3975,27 +3843,10 @@ label interview_action_description:
             if _return != "None":
                 $ new_person = _return
                 "You complete the nessesary paperwork and hire [_return.name]. What division do you assign them to?"
-                menu:
-                    "Research and Development.":
-                        $ mc.business.add_employee_research(new_person)
-                        $ rd_division.add_person(new_person)
-                        
-                    "Production.":
-                        $ mc.business.add_employee_production(new_person)
-                        $ p_division.add_person(new_person)
-                        
-                    "Supply Procurement.":
-                        $ mc.business.add_employee_supply(new_person)
-                        $ office.add_person(new_person)
-                        
-                    "Marketing.":
-                        $ mc.business.add_employee_marketing(new_person)
-                        $ m_division.add_person(new_person)
-                        
-                    "Human Resources.":
-                        $ mc.business.add_employee_hr(new_person)
-                        $ office.add_person(new_person)
-                        
+                python:
+                    mc.business.remove_employee(new_person)
+                    selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
+                    mc.business.add_employee(new_person, selected_div)
             else:
                 "You decide against hiring anyone new for now."
             call advance_time from _call_advance_time_6
@@ -4129,26 +3980,14 @@ label policy_purchase_description:
             
 label set_uniform_description:
     "Which division do you want to set the uniform for?"
+    python:
+        tuple_list = [("All", "All")]
+        for div in mc.business.division:
+            tuple_list.append((div.name, div))
+
+        selected_div = renpy.display_menu(tuple_list,True,"Choice")
     $ selected_div = None
-    menu:
-        "All.":
-            $ selected_div = "All"
-        
-        "Research and Development.":
-            $ selected_div = "R"
-        
-        "Production.":
-            $ selected_div = "P"
-            
-        "Supply Procurement.":
-            $ selected_div = "S"
-            
-        "Marketing.":
-            $ selected_div = "M"
-            
-        "Human Resources.":
-            $ selected_div = "H"
-            
+
     if maximal_arousal_uniform_policy.is_owned():
         $slut_limit = 999 #ie. no limit at all.
     elif corporate_enforced_nudity_policy.is_owned():
@@ -4165,59 +4004,27 @@ label set_uniform_description:
         $slut_limit = 5
     else:
         $slut_limit = 0
-            
+
     call screen outfit_select_manager(slut_limit)
     $ selected_outfit = _return
-    
-    if selected_outfit == "No Return":
-        return
-        
-    if selected_div == "All":
-        $ mc.business.m_uniform = selected_outfit
-        $ mc.business.p_uniform = selected_outfit
-        $ mc.business.r_uniform = selected_outfit
-        $ mc.business.s_uniform = selected_outfit
-        $ mc.business.h_uniform = selected_outfit
-        
-    elif selected_div == "R":
-        $ mc.business.r_uniform = selected_outfit
-        
-    elif selected_div == "P":
-        $ mc.business.p_uniform = selected_outfit
-        
-    elif selected_div == "S":
-        $ mc.business.s_uniform = selected_outfit
-        
-    elif selected_div == "M":
-        $ mc.business.m_uniform = selected_outfit
-        
-    elif selected_div == "H":
-        $ mc.business.h_uniform = selected_outfit
-    
+
+    python:
+        if selected_outfit != "No Return":
+            if isinstnace(selected_div, Division):
+                div.uniform = selected_outfit
+            else:
+                for div in mc.business.division:
+                    div.uniform = selected_outfit
     return
-    
+
 label set_serum_description:
     "Which divisions would you like to set a daily serum for?"
-    $ selected_div = None
-    menu:
-        "All.":
-            $ selected_div = "All"
-        
-        "Research and Development.":
-            $ selected_div = "R"
-        
-        "Production.":
-            $ selected_div = "P"
-            
-        "Supply Procurement.":
-            $ selected_div = "S"
-            
-        "Marketing.":
-            $ selected_div = "M"
-            
-        "Human Resources.":
-            $ selected_div = "H"
-    
+    python:
+        tuple_list = [("All", "All")]
+        for div in mc.business.division:
+            tuple_list.append((div.name, div))
+
+        selected_div = renpy.display_menu(tuple_list,True,"Choice")
     menu:
         "Pick a new serum.":
             call screen serum_inventory_select_ui(mc.business.inventory)
@@ -4225,32 +4032,14 @@ label set_serum_description:
 
         "Clear existing serum.":
             $ selected_serum = None
-    
-    if selected_serum == "None": #IF we didn't select an actual serum, just return and don't chagne anything.
-        return
-    
-    if selected_div == "All":
-        $ mc.business.m_serum = selected_serum
-        $ mc.business.p_serum = selected_serum
-        $ mc.business.r_serum = selected_serum
-        $ mc.business.s_serum = selected_serum
-        $ mc.business.h_serum = selected_serum
-        
-    elif selected_div == "R":
-        $ mc.business.r_serum = selected_serum
-        
-    elif selected_div == "P":
-        $ mc.business.p_serum = selected_serum
-        
-    elif selected_div == "S":
-        $ mc.business.s_serum = selected_serum
-        
-    elif selected_div == "M":
-        $ mc.business.m_serum = selected_serum
-        
-    elif selected_div == "H":
-        $ mc.business.h_serum = selected_serum
-    
+
+    python:
+        if selected_serum != "None": #IF we didn't select an actual serum, just return and don't chagne anything.
+            if isinstnace(selected_div, Division):
+                selected_div.serum = selected_serum
+            else:
+                for div in mc.business.division:
+                    div.serum = selected_serum
     return
     
 label advance_time:
@@ -4440,13 +4229,13 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         ##PC's Work##
         lobby = Room(business_name + " lobby",business_name + " Lobby",[],office_background,[],[],[],False,[0.8,0.6])
         office = Room("main office","Main Office",[],office_background,[],[],[policy_purhase_action,hr_work_action,supplies_work_action,interview_action,sell_serum_action,pick_supply_goal_action,move_funds_action,set_uniform_action,set_serum_action],False,[0.85,0.82])
-        rd_division = Room("R&D division","R&D Division",[],lab_background,[],[],[research_work_action,design_serum_action,pick_research_action],False,[0.9,0.67])
-        p_division = Room("Production division", "Production Division",[],office_background,[],[],[production_work_action,pick_production_action,trade_serum_action,set_autosell_action],False,[0.9,0.53])
-        m_division = Room("marketing division","Marketing Division",[],office_background,[],[],[market_work_action],False,[0.85,0.38])
-        
+        rd_room = Room("R&D division","R&D Division",[],lab_background,[],[],[research_work_action,design_serum_action,pick_research_action],False,[0.9,0.67])
+        p_room = Room("Production division", "Production Division",[],office_background,[],[],[production_work_action,pick_production_action,trade_serum_action,set_autosell_action],False,[0.9,0.53])
+        m_room = Room("marketing division","Marketing Division",[],office_background,[],[],[market_work_action],False,[0.85,0.38])
+
         ##Connects all Locations##
         downtown = Room("downtown","Downtown",[],outside_background,[],[],[],True,[0.5,0.65])
-        
+
         ##A mall, for buying things##
         office_store = Room("office supply store","Office Supply Store",[],mall_background,[],[],[],True,[0.68,0.24])
         clothing_store = Room("clothing store","Clothing Store",[],mall_background,[],[],[],True,[0.6,0.15])
@@ -4456,7 +4245,7 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         mall = Room("mall","Mall",[],mall_background,[],[],[],True,[0.5,0.3])
         
         ##PC starts in his bedroom## 
-        main_business = Business(business_name, m_division, p_division, rd_division, office, office)
+        main_business = Business(business_name, m_room, p_room, rd_room, office, office)
         mc = MainCharacter(bedroom,character_name,main_business,stat_array,skill_array,_sex_array)
         generate_premade_list() # Creates the list with all the premade characters for the game in it. Without this we both break the policies call in create_random_person, and regenerate the premade list on each restart.
         
@@ -4467,9 +4256,9 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         
         list_of_places.append(lobby)
         list_of_places.append(office)
-        list_of_places.append(rd_division)
-        list_of_places.append(p_division)
-        list_of_places.append(m_division)
+        list_of_places.append(rd_room)
+        list_of_places.append(p_room)
+        list_of_places.append(m_room)
         
         list_of_places.append(downtown)
         
@@ -4488,9 +4277,9 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         downtown.link_locations_two_way(mall)
         
         lobby.link_locations_two_way(office)
-        lobby.link_locations_two_way(rd_division)
-        lobby.link_locations_two_way(m_division)
-        lobby.link_locations_two_way(p_division)
+        lobby.link_locations_two_way(rd_room)
+        lobby.link_locations_two_way(m_room)
+        lobby.link_locations_two_way(p_room)
         
         mall.link_locations_two_way(office_store)
         mall.link_locations_two_way(clothing_store)
@@ -4520,17 +4309,17 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         office.add_object(make_chair())
         office.add_object(make_window())
         
-        rd_division.add_object(make_wall())
-        rd_division.add_object(make_floor())
-        rd_division.add_object(make_chair())
+        rd_room.add_object(make_wall())
+        rd_room.add_object(make_floor())
+        rd_room.add_object(make_chair())
         
-        m_division.add_object(make_wall())
-        m_division.add_object(make_floor())
-        m_division.add_object(make_chair())
+        m_room.add_object(make_wall())
+        m_room.add_object(make_floor())
+        m_room.add_object(make_chair())
         
-        p_division.add_object(make_wall())
-        p_division.add_object(make_floor())
-        p_division.add_object(make_chair())
+        p_room.add_object(make_wall())
+        p_room.add_object(make_floor())
+        p_room.add_object(make_chair())
         
         downtown.add_object(make_floor())
         
