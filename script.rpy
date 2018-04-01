@@ -3025,7 +3025,7 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
     default preview_outfit = None
     vbox:
         for outfit in the_wardrobe.get_outfit_list():
-            textbutton "Delete "+outfit.name+ " (Sluttiness " +str(outfit.slut_requirement) +")" action Return(outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
+            textbutton "Wear "+outfit.name+ " (Sluttiness " +str(outfit.slut_requirement) +")" action Return(outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
         
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
         
