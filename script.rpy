@@ -192,7 +192,7 @@ init -2 python:
         def research_progress(self,int,focus,skill):
             research_amount = __builtin__.round(((3*int) + (focus) + (2*skill) + 10) * (self.team_effectiveness))/100
             self.research_produced += research_amount
-            if not self.active_research_design == None:
+            if self.active_research_design != None:
                 if self.active_research_design.add_research(research_amount): #Returns true if the research is completed by this amount'
                     if type(self.active_research_design) is SerumDesign:
                         self.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",self.active_research_design)) #Create a serum finished crisis, it will trigger at the end of the round
@@ -258,7 +258,7 @@ init -2 python:
                 production_amount = self.supply_count
             self.production_used += production_amount
                 
-            if not self.serum_production_target == None:
+            if self.serum_production_target != None:
                 self.supply_count += -production_amount
                 ##Check how many serum can be made, make them and add them to your inventory.
                 self.production_points += production_amount
@@ -1056,10 +1056,7 @@ init -2 python:
             self.arousal = 0
             
         def has_large_tits(self): #Returns true if the girl has large breasts. "D" cups and up are considered large enough for titfucking, swinging, etc.
-            if self.tits == "D" or self.tits == "DD" or self.tits == "DDD" or self.tits == "E" or self.tits == "F" or self.tits == "FF":
-                return True
-            else:
-                return False
+            return self.tits == "D" or self.tits == "DD" or self.tits == "DDD" or self.tits == "E" or self.tits == "F" or self.tits == "FF"
                 
         def effective_sluttiness(self): #Used in sex scenes where the girl will be more aroused, making it easier for her to be seduced.
             return self.sluttiness + (self.arousal/2)
@@ -1300,10 +1297,7 @@ init -2 python:
                 the_destination.add_person(the_person)
             
         def has_person(self,the_person):
-            if the_person in self.people:
-                return True
-            else:
-                return False
+            return the_person in self.people
             
         def objects_with_trait(self,the_trait):
             return_list = []
@@ -1340,16 +1334,8 @@ init -2 python:
             if type(other) is Action:
                 if self.name == other.name and self.requirement == other.requirement and self.effect == other.effect and self.args == other.args:
                     return 0
-                else:
-                    if self.__hash__() < other.__hash__(): #Use hash values to break ties.
-                        return -1
-                    else:
-                        return 1
-            else:
-                if self.__hash__() < other.__hash__(): #Use hash values to break ties.
-                    return -1
-                else:
-                    return 1
+
+            return -1 if self.__hash__() < other.__hash__() else 1 #Use hash values to break ties.
         
         def __hash__(self):
             return hash((self.name,self.requirement,self.effect,self.args))
@@ -1375,26 +1361,14 @@ init -2 python:
             if type(other) is Policy:
                 if self.name == other.name and self.desc == other.desc and self.cost == other.cost:
                     return 0
-                else:
-                    if self.__hash__() < other.__hash__(): #Use hash values to break ties.
-                        return -1
-                    else:
-                        return 1
-                
-            else:
-                if self.__hash__() < other.__hash__(): #Use hash values to break ties.
-                    return -1
-                else:
-                    return 1
+
+            return -1 if self.__hash__() < other.__hash__() else 1 #Use hash values to break ties.
                     
         def __hash__(self):
             return hash((self.name,self.desc,self.cost))
             
         def is_owned(self):                
-            if self in mc.business.policy_list:
-                return True
-            else:
-                return False
+            return self in mc.business.policy_list
         
     class Object(renpy.store.object): #Contains a list of traits for the object which decides how it can be used.
         def __init__(self,name,traits):
@@ -1479,12 +1453,9 @@ init -2 python:
             if type(self) is type(other):
                 if self.name == other.name and self.hide_below == other.hide_below and self.layer == other.layer:
                     return 0
-                    
-            if self.__hash__() < other.__hash__():
-                return -1
-            else:
-                return 1
-                    
+
+            return -1 if self.__hash__() < other.__hash__() else 1
+
         def __hash__(self):
             return hash((self.name,self.hide_below,self.anchor_below,self.layer,self.draws_breasts,self.underwear,self.slut_value))
             
@@ -1869,61 +1840,37 @@ init -2 python:
     ##Initialization of requirement functions go down here. Can also be moved to init -1 eventually##
                 
     def sleep_action_requirement():
-        if time_of_day == 4:
-            return True
-        else:
-            return False
+        return time_of_day == 4
             
     def faq_action_requirement():
         return True
             
     def hr_work_action_requirement():
-        if time_of_day < 4:
-            return True
-        else:
-            return False
+        return time_of_day < 4
             
     def research_work_action_requirement():
         if time_of_day < 4:
-            if not mc.business.active_research_design == None:
-                return True
-            else:
-                return False
+            return mc.business.active_research_design != None
         else:
             return False
             
     def supplies_work_action_requirement():
-        if time_of_day < 4:
-            return True
-        else:
-            return False
+        return time_of_day < 4
             
     def market_work_action_requirement():
-        if time_of_day < 4:
-            return True
-        else:
-            return False
+        return time_of_day < 4
             
     def production_work_action_requirement():
         if time_of_day < 4:
-            if not mc.business.serum_production_target == None:
-                return True
-            else:
-                return False
+            return mc.business.serum_production_target != None
         else:
             return False
             
     def interview_action_requirement():
-        if time_of_day < 4:
-            return True
-        else:
-            return False
+        return time_of_day < 4
             
     def serum_design_action_requirement():
-        if time_of_day < 4:
-            return True
-        else:
-            return False
+        return time_of_day < 4
             
     def research_select_action_requirement():
         return True
@@ -2113,11 +2060,8 @@ init -2 python:
         def __eq__(self,other): ## Used to see if two Vren_Line objects are equivelent and thus don't need to be redrawn each time any of the variables is changed.
             if not type(other) is Vren_Line:
                 return False
-            
-            if not (self.start == other.start and self.end == other.end and self.thickness == other.thickness and self.color == other.color): ##ie not the same
-                return False
-            else:
-                return True
+
+            return self.start != other.start or self.end != other.end or self.thickness != other.thickness or self.color != other.color ##ie not the same
             
             
         
@@ -2360,12 +2304,12 @@ screen business_ui: #Shows some information about your business.
             text "Company Efficency: [mc.business.team_effectiveness]%" style "menu_text_style"
 #            text "Company Marketability: [mc.business.marketability]" style "menu_text_style"
             text "Current Raw Supplies: [mc.business.supply_count] (Target:[mc.business.supply_goal])" style "menu_text_style"
-            if not mc.business.active_research_design == None:
+            if mc.business.active_research_design != None:
                 text "Current Research: " style "menu_text_style"
                 text "    [mc.business.active_research_design.name] ([mc.business.active_research_design.current_research]/[mc.business.active_research_design.research_needed])" style "menu_text_style"
             else:
                 text "Current Research: None!" style "menu_text_style" color "#DD0000"
-            if not mc.business.serum_production_target == None:
+            if mc.business.serum_production_target != None:
                 text "Currently Producing: " style "menu_text_style"
                 text "    [mc.business.serum_production_target.name]" style "menu_text_style"
             else:
@@ -2852,7 +2796,7 @@ screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business")
 screen serum_select_ui: #How you select serum and trait research
     add "Science_Menu_Background.png"
     vbox:
-        if not mc.business.active_research_design == None:
+        if mc.business.active_research_design != None:
             text "Current Research: [mc.business.active_research_design.name] ([mc.business.active_research_design.current_research]/[mc.business.active_research_design.research_needed])" style "menu_text_style"
         else:
             text "Current Research: None!" style "menu_text_style"
@@ -2880,7 +2824,7 @@ screen serum_production_select_ui:
         xalign 0.1
         xsize 1200
         null height 40 
-        if not mc.business.serum_production_target == None:
+        if mc.business.serum_production_target != None:
             text "Currently Producing: [mc.business.serum_production_target.name] - $[mc.business.serum_production_target.value]/dose (Current Progress: [mc.business.production_points]/[mc.business.serum_production_target.production_cost])" style "menu_text_style" size 25
         else:
             text "Currently Producing: Nothing!" style "menu_text_style"
@@ -3104,7 +3048,7 @@ screen map_manager():
             add Vren_Line([int(place.map_pos[0]*1920),int(place.map_pos[1]*1080)],[int(connected.map_pos[0]*1920),int(connected.map_pos[1]*1080)],4,"#117bff") #Draw a white line between each location 
         
     for place in list_of_places: #Draw the text buttons over the background
-        if not place == mc.location:
+        if place != mc.location:
             frame:
                 background None
                 xysize [171,150] 
@@ -3383,7 +3327,7 @@ label outfit_design_loop:
             
         "Load an old outfit." if mc.designed_wardrobe.get_count() > 0:   
             call screen outfit_select_manager()
-            if not _return == "No Return":
+            if _return != "No Return":
                 call create_outfit(_return) from _call_create_outfit_1
             
         "Delete an old outfit." if mc.designed_wardrobe.get_count() > 0:
@@ -3397,7 +3341,7 @@ label create_outfit(the_outfit):
     else:
         call screen outfit_creator(the_outfit)
     $ new_outfit = _return
-    if not new_outfit == "Not_New": ##Only try and save the outfit if there was actually a new outfit made
+    if new_outfit != "Not_New": ##Only try and save the outfit if there was actually a new outfit made
         $ new_outfit_name = renpy.input ("Please name this outfit.")
         while new_outfit_name is None:
             $ new_outfit_name = renpy.input ("Please name this outfit.")
@@ -3604,7 +3548,7 @@ label talk_person(the_person, repeat_choice = None):
                     call screen outfit_select_manager()
                     show screen main_ui
                     $ the_person.draw_person()
-                    if not _return == "No Return":
+                    if _return != "No Return":
                         $ new_outfit = _return
                         if new_outfit.slut_requirement > the_person.sluttiness:
                             $ the_person.call_clothing_reject()
@@ -3644,7 +3588,7 @@ label talk_person(the_person, repeat_choice = None):
                     the_person.name "Is this better?"
             call talk_person(the_person) from _call_talk_person_1
             
-        "Move her to a new division." if not mc.business.get_employee_title(the_person) == "None" and 0 < time_of_day < 4:
+        "Move her to a new division." if mc.business.get_employee_title(the_person) != "None" and 0 < time_of_day < 4:
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
             $ mc.business.remove_employee(the_person)
@@ -3680,7 +3624,7 @@ label talk_person(the_person, repeat_choice = None):
             
             the_person.name "I'll get started right away!"
             
-        "Fire them!" if not mc.business.get_employee_title(the_person) == "None" and 0 < time_of_day < 4:
+        "Fire them!" if mc.business.get_employee_title(the_person) != "None" and 0 < time_of_day < 4:
             $ repeat_choice = None
             "You tell [the_person.name] to collect their things and leave the building."
             $ mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)
@@ -3949,7 +3893,7 @@ label examine_person(the_person):
     
 label give_serum(the_person):
     call screen serum_inventory_select_ui(mc.inventory)
-    if not _return == "None":
+    if _return != "None":
         $ the_serum = _return
         "You decide to give [the_person.name] a dose of [the_serum.name]."
         $ mc.inventory.change_serum(the_serum,-1)
@@ -4025,7 +3969,7 @@ label interview_action_description:
             $ renpy.scene("Active")
             show screen main_ui
             show screen business_ui
-            if not _return == "None":
+            if _return != "None":
                 $ new_person = _return
                 "You complete the nessesary paperwork and hire [_return.name]. What division do you assign them to?"
                 menu:
@@ -4063,7 +4007,7 @@ label serum_design_action_description:
     call screen serum_design_ui(SerumDesign(),[]) #This will return the final serum design, or None if the player backs out.
     show screen main_ui
     show screen business_ui
-    if not _return == "None":
+    if _return != "None":
         $ serum = _return
         $ name = renpy.input("Please give this serum design a name.")
         $ serum.name = name
@@ -4079,7 +4023,7 @@ label research_select_action_description:
     call screen serum_select_ui
     show screen main_ui
     show screen business_ui
-    if not _return == "None":
+    if _return != "None":
         $mc.business.set_serum_research(_return)
         "You change your research to [_return.name]."
     else:
@@ -4092,7 +4036,7 @@ label production_select_action_description:
     call screen serum_production_select_ui
     show screen main_ui
     show screen business_ui
-    if not _return == "None":
+    if _return != "None":
         $mc.business.change_production(_return)
         "You change your production line over to [_return.name]."
     else:
