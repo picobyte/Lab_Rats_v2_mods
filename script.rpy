@@ -3836,7 +3836,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         elif position_choice == "Strip":
             call strip_menu(the_person) from _call_strip_menu
             python:
-                if len([cloth for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]]) == 1:
+                if the_person.outfit.is_nude():
                     alt_options = [("Leave","Leave")]
                 available_positions = mc.get_available_positions(list_of_positions, the_person)
     return
@@ -3844,8 +3844,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
 label strip_menu(the_person):
     python:
         strip_options = [("Take off " + cloth.name + ".",cloth) for cloth in the_person.outfit.get_unanchored() if not cloth.is_extension]
-        alt_options = [("Go back to fucking her.","Finish")]
-        cloth = renpy.display_menu(strip_options + alt_options, True, "Choice")
+        cloth = renpy.display_menu(strip_options + [("Go back to fucking her.","Finish")], True, "Choice")
         while cloth != "Finish":
 
             test_outfit = copy.deepcopy(the_person.outfit)
@@ -3859,7 +3858,7 @@ label strip_menu(the_person):
                 renpy.say("", "You start to pull off " + the_person.name + "'s " + cloth.name + " when she grabs your hand and stops you.")
                 the_person.call_strip_reject()
 
-            cloth = renpy.display_menu(strip_options + alt_options, True, "Choice")
+            cloth = renpy.display_menu(strip_options + [("Go back to fucking her.","Finish")], True, "Choice")
     return
 
     
