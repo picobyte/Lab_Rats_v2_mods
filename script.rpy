@@ -33,32 +33,14 @@ init -2 python:
     def copy_cursor_pos():
         pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
 
-    class PeopleContainer(renpy.store.object):
-        def __init__(self, name, people):
+    class Division(renpy.store.object):
+        def __init__(self, name, people, room, employment_title=None):
             self.name = name
             self.people = people
-
-        def add_person(self,the_person):
-            self.people.append(the_person)
-
-        def remove_person(self,the_person):
-            self.people.remove(the_person)
-
-        def move_person(self,the_person,the_destination):
-            if not the_person in the_destination.people: # Don't bother moving people who are already there.
-                self.remove_person(the_person)
-                the_destination.add_person(the_person)
-
-        def has_person(self,the_person):
-            return the_person in self.people
-
-    class Division(PeopleContainer):
-        def __init__(self, name, people, room, employment_title=None):
             self.employment_title = employment_title or name
             self.room = room
             self.uniform = None
             self.serum = None
-            super(Division, self).__init__(name, people)
 
         def give_daily_serum(self, inventory):
             if self.serum:
@@ -724,18 +706,23 @@ init -2 python:
                         warning_message = self.name + " " + self.last_name + " (" +mc.business.get_employee_title(self) + ") " + " is unhappy with her job and is considering quitting."
                         if warning_message not in mc.business.message_list:
                             mc.business.message_list.append(warning_message)
-        
+
+        def move(self, curr, dest):
+            # if this errors, person is not in current. test this before calling!
+            if not curr is dest: # Don't bother moving people who are already there.
+                dest.people.append(curr.people.pop(curr.people.index(self)))
+
         def run_move(self,location): #Move to the apporpriate place for the current time unit, ie. where the player should find us.
               
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
             
             if time_of_day == 0 or time_of_day == 4: #Home time
-                location.move_person(self, downtown) #Move to downtown as proxy for home.
+                self.move(location, downtown) #Move to downtown as proxy for home.
             else:
                 work_destination = mc.business.get_employee_workstation(self)
                 
                 if work_destination is not None: #She works for us, move her to her work station,
-                    location.move_person(self, work_destination)
+                    self.move(location, work_destination)
                     if self.should_wear_uniform():
                         self.wear_uniform()
                 else: #She does not work for us, scatter her somewhere public on the map.
@@ -743,7 +730,7 @@ init -2 python:
                     for potential_location in list_of_places:
                         if potential_location.public:
                             available_locations.append(potential_location)
-                    location.move_person(self, get_random_from_list(available_locations))
+                    self.move(location, get_random_from_list(available_locations))
                     
                 
         def run_day(self): #Called at the end of the day. 
@@ -1194,12 +1181,14 @@ init -2 python:
                 emotion = "default"
             renpy.show(self.name+position+emotion+self.facial_style,at_list=[right,scale_person(height)],layer="Active",what=self.position_dict[position][emotion],tag=self.name+position+emotion)
 
-    class Room(PeopleContainer): #Contains people and objects.
+    class Room(renpy.store.object): #Contains people and objects.
         def __init__(self,name,formalName,connections,background_image,objects,people,actions,public,map_pos):
+            self.name = name
             self.formalName = formalName
             self.connections = connections
             self.background_image = background_image
             self.objects = objects
+            self.people = people
             self.actions = actions #A list of Action objects
             self.public = public #If True, random people can wander here. TODO: Update rooms to include this value.
             self.map_pos = map_pos #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically.
@@ -4345,7 +4334,7 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
             if place.public:
                 random_count = renpy.random.randint(1,max_num_of_random)
                 for x in range(0,random_count):
-                    place.add_person(create_random_person()) #We are using create_random_person instead of make_person because we want premade character bodies to be hirable instead of being eaten up by towns-folk.
+                    place.people.append(create_random_person()) #We are using create_random_person instead of make_person because we want premade character bodies to be hirable instead of being eaten up by towns-folk.
                 
         ##Global Variable Initialization##
         day = 0 ## Game starts on day 0.
