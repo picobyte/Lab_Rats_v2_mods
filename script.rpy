@@ -1750,7 +1750,7 @@ init -2 python:
         the_serum.duration += 2
         
     def aphrodisiac_effect(the_serum):
-        the_serum.research_needed + 60
+        the_serum.research_needed += 60
         the_serum.production_cost += 10
         
         the_serum.value += 25
