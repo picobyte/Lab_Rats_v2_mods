@@ -72,7 +72,7 @@ init -20 python:
     def trade_serum_action_requirement():
         return True
 
-    ef sell_serum_action_requirement():
+    def sell_serum_action_requirement():
         return True
 
     def set_autosell_action_requirement():
