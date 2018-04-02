@@ -33,6 +33,51 @@ init -2 python:
     def copy_cursor_pos():
         pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
 
+    class Room(renpy.store.object): #Contains people and objects.
+        def __init__(self,name,formalName,connections,background_image,objects,people,actions,public,map_pos):
+            self.name = name
+            self.formalName = formalName
+            self.connections = connections
+            self.background_image = background_image
+            self.objects = objects
+            self.people = people
+            self.actions = actions #A list of Action objects
+            self.public = public #If True, random people can wander here. TODO: Update rooms to include this value.
+            self.map_pos = map_pos #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically.
+            super(Room, self).__init__(name, people)
+
+        def link_locations(self,other): #This is a one way connection!
+            self.connections.append(other)
+
+        def link_locations_two_way(self,other): #Link it both ways. Great for adding locations after the fact, when you don't want to modify existing locations.
+            self.link_locations(other)
+            other.link_locations(self)
+
+        def add_object(self,the_object):
+            self.objects.append(the_object)
+
+        def objects_with_trait(self,the_trait):
+            return_list = []
+            for object in self.objects:
+                if object.has_trait(the_trait):
+                    return_list.append(object)
+            return return_list
+
+        def has_object_with_trait(self,the_trait):
+            if the_trait == "None":
+                return True
+            for object in self.objects:
+                if object.has_trait(the_trait):
+                    return True
+            return False
+
+        def valid_actions(self):
+            count = 0
+            for act in self.actions:
+                if act.check_requirement():
+                    count += 1
+            return count
+
     class Division(renpy.store.object):
         def __init__(self, name="Some other company", people=None, room=None, employment_title=None):
             self.name = name
@@ -1180,51 +1225,6 @@ init -2 python:
             if not emotion in self.emotion_set:
                 emotion = "default"
             renpy.show(self.name+position+emotion+self.facial_style,at_list=[right,scale_person(height)],layer="Active",what=self.position_dict[position][emotion],tag=self.name+position+emotion)
-
-    class Room(renpy.store.object): #Contains people and objects.
-        def __init__(self,name,formalName,connections,background_image,objects,people,actions,public,map_pos):
-            self.name = name
-            self.formalName = formalName
-            self.connections = connections
-            self.background_image = background_image
-            self.objects = objects
-            self.people = people
-            self.actions = actions #A list of Action objects
-            self.public = public #If True, random people can wander here. TODO: Update rooms to include this value.
-            self.map_pos = map_pos #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically.
-            super(Room, self).__init__(name, people)
-
-        def link_locations(self,other): #This is a one way connection!
-            self.connections.append(other)
-
-        def link_locations_two_way(self,other): #Link it both ways. Great for adding locations after the fact, when you don't want to modify existing locations.
-            self.link_locations(other)
-            other.link_locations(self)
-
-        def add_object(self,the_object):
-            self.objects.append(the_object)
-
-        def objects_with_trait(self,the_trait):
-            return_list = []
-            for object in self.objects:
-                if object.has_trait(the_trait):
-                    return_list.append(object)
-            return return_list
-
-        def has_object_with_trait(self,the_trait):
-            if the_trait == "None":
-                return True
-            for object in self.objects:
-                if object.has_trait(the_trait):
-                    return True
-            return False
-
-        def valid_actions(self):
-            count = 0
-            for act in self.actions:
-                if act.check_requirement():
-                    count += 1
-            return count
 
     
     class Action(renpy.store.object): #Contains the information about actions that can be taken in a room. Dispayed when you are asked what you want to do somewhere.
