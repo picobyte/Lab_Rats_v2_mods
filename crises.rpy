@@ -28,14 +28,14 @@ init 1 python:
     def in_research_with_other(): #A common requirement check, the PC is in the office (not nessesarily the lab), during work hours, with at least one other person.
         if mc.business.is_open_for_business(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(mc.business.research_team) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
+                if len(mc.business.r_div.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
                         return True
         return False
             
     def in_production_with_other():
         if mc.business.is_open_for_business(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(mc.business.production_team) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
+                if len(mc.business.p_div.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
                         return True
         return False
         
@@ -57,7 +57,7 @@ init 1 python:
     def broken_AC_crisis_requirement():
         if mc.business.is_open_for_business(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(mc.business.production_team) > 0: #Check to see if there's at least one person in the production team at work.
+                if len(mc.business.p_div.people) > 0: #Check to see if there's at least one person in the production team at work.
                     return True
         return False
             
@@ -78,7 +78,7 @@ label broken_AC_crisis_label:
             "You tell everyone in the production lab to take a break for a few hours while the air conditioning is repaired."
             "The unexpected break raises moral and makes the production staff feel more independent."
             python:
-                for person in mc.business.production_team:
+                for person in mc.business.p_div.people:
                     person.change_happiness(5)
                     person.change_obedience_modified(-5)
             "The repair man shows up early and it turns out to be an easy fix. The lab is soon back up and running."
@@ -86,19 +86,19 @@ label broken_AC_crisis_label:
         "It's not that hot, get back to work!":
             "Nobody's happy working in the heat, but exercising your authority will make your production staff more likely to obey in the future."
             python:    
-                for person in mc.business.production_team:
+                for person in mc.business.p_div.people:
                     person.change_happiness(-5)
                     person.change_obedience_modified(5)
             "The repair man shows up early and it turns out to be an easy fix. The lab is soon back up and running."    
                 
         "Tell everyonyone to strip down and keep working.":
-            if len(mc.business.production_team) > 1: #We have more than one person, do a group strip scene.
+            if len(mc.business.p_div.people) > 1: #We have more than one person, do a group strip scene.
                 mc.name "I know it's uncomfortable in here right now, but we're just going to have to make due."
                 mc.name "If anyone feels the need to take something off to get comfortable, I'm lifting the dress code until the air conditioning is fixed."
                 #We're going to use the most slutty girl of the group lead the pack. She'll be the one we pay attention to.
                 python:
                     the_person = None
-                    for girl in mc.business.production_team:
+                    for girl in mc.business.p_div.people:
                         if not the_person:
                             the_person = girl
                         else:
@@ -114,7 +114,7 @@ label broken_AC_crisis_label:
                     the_person.name "Let's do it girls! I can't be the only one who loves an excuse to flash her tits, right?"
                 
             else: #There's just one person here, have them strip down.
-                $ the_person = mc.business.production_team[0] #Get the one person, the crisis requires we have at least 1 person in here so this should always be true.
+                $ the_person = mc.business.p_div.people[0] #Get the one person, the crisis requires we have at least 1 person in here so this should always be true.
                 $ the_person.draw_person()
                 mc.name "[the_person.name], I know it's uncomfortable in here right now, but we're going to have to make due."
                 mc.name "If you feel like it would help to take something off, I'm lifting the dress code until the air condition is fixed."
@@ -190,7 +190,7 @@ label broken_AC_crisis_label:
                 "[the_person.name] fiddles with some of her clothing, then shrugs."
                 the_person.name "I'm not sure I'm comfortable taking any of this off... I'm sure I'll be fine in the heat for a little bit."
             
-            if len(mc.business.production_team) > 1:
+            if len(mc.business.p_div.people) > 1:
                 if removed_something:
                     "The rest of the department follows the lead of [the_person.name], stripping off various amounts of clothing."
                     "The girls laugh and tease each other as they strip down, and they all seem to be more comfortable less clothed."
@@ -208,7 +208,7 @@ label broken_AC_crisis_label:
                     
             if removed_something:
                 python:
-                    for person in mc.business.production_team:
+                    for person in mc.business.p_div.people:
                         person.change_slut_modified(10)
     $renpy.scene("Active")
     return
@@ -290,10 +290,10 @@ label lab_accident_crisis_label():
         return
         
     $ the_serum = mc.business.active_research_design
-    $ the_person = renpy.random.choice(mc.business.research_team)
-    $ the_place = mc.business.r_div
+    $ the_person = renpy.random.choice(mc.business.r_div.people)
+    $ the_place = mc.business.r_div.room
     
-    if mc.location == mc.business.r_div:
+    if mc.location == the_place:
         call change_location(the_place) from _call_lab_accident_1
         "There's a sudden crash and sharp yell of suprise as you're working in the lab."
         $the_person.call_suprised_exclaim()
@@ -338,10 +338,10 @@ label production_accident_crisis_label():
         return
         
     $ the_serum = mc.business.serum_production_target
-    $ the_person = renpy.random.choice(mc.business.production_team)
-    $ the_place = mc.business.p_div
+    $ the_person = renpy.random.choice(mc.business.p_div.people)
+    $ the_place = mc.business.p_div.room
     
-    if mc.location == mc.business.p_div:
+    if mc.location == the_place:
         call change_location(the_place) from _call_production_accident_1
         "There's a sudden crash and sharp yell of suprise as you're working in the lab."
         $the_person.call_suprised_exclaim()
@@ -578,8 +578,8 @@ label quitting_crisis_label(the_person): #The person tries to quit, you have a c
     "Your phone buzzes, grabbing your attention. It's an email from [the_person.name], marked \"Urgent, need to talk\"."
     "You open up the email and read through the body."
     the_person.name "[mc.name], there's something important I need to talk to you about. When can we have a meeting?"
-    $ the_place = mc.business.h_div
-    if mc.location == mc.business.h_div: #If you're arleady in your office just kick back and relax.
+    $ the_place = mc.business.h_div.room
+    if mc.location == the_place: #If you're arleady in your office just kick back and relax.
         call change_location(the_place) from _call_quitting_crisis_1 #Just in case another crisis had interupted us being here.
         "You type up a response."
         mc.name "I'm in my office right now, come over whenever you would like."
@@ -670,8 +670,8 @@ init 1 python:
 label serum_creation_crisis_label(the_serum): # Called every time a new serum is created, test it on a R&D member.
     $ rd_staff = renpy.random.choice(mc.business.r_div.people) #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
     if rd_staff is not None:
-        if mc.location == mc.business.r_div: # The MC is in the lab, just physically get them.
-            $ the_place = mc.business.r_div
+        $ the_place = mc.business.r_div.room
+        if mc.location == the_place: # The MC is in the lab, just physically get them.
             call change_location(the_place) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.
             "There's a tap on your shoulder. You turn and see [rd_staff.name], looking obviously excited."
             $ rd_staff.draw_person(emotion="happy")
@@ -697,7 +697,6 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                 "Visit the lab and test the new serum.":
                     mc.name "I think that would be a good idea. I'll be over in a moment."
                     "You hang up and travel over to the lab. You're greeted by [rd_staff.name] as soon as you're in the door."
-                    $ the_place = mc.business.r_div
                     call change_location(the_place) from _call_serum_creation_2
                     $ rd_staff.draw_person(emotion="happy")
                     $ rd_staff.call_greeting()

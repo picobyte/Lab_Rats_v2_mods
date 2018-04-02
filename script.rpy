@@ -2085,7 +2085,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
             if isinstance(position_choice, Position):
                 the_person.draw_person(position_choice.position_tag)
                 if round == 0 or position_choice != the_position: #We are changing to a new position.
-                    sites = [("do it on the " + obj.name, obj) for obj in mc.location.objects_with_trait(position_choice.requires_location)]
+                    sites = [("do it on the " + obj, obj) for obj in mc.location.objects_with_trait(position_choice.requires_location)]
                     if len(sites) > 1:
                        renpy.say("", "Where do you do it?")
 
