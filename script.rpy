@@ -34,9 +34,9 @@ init -2 python:
         pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
 
     class Division(renpy.store.object):
-        def __init__(self, name, people, room, employment_title=None):
+        def __init__(self, name="Some other company", people=None, room=None, employment_title=None):
             self.name = name
-            self.people = people
+            self.people = people or []
             self.employment_title = employment_title or name
             self.room = room
             self.uniform = None
