@@ -7,7 +7,7 @@ init -30 python:
             self.name = name
             self.requirement = requirement #requirement should be a function that has already been defined. Yay functional programming!
             self.effect = effect
-            self.args = args or [] #stores any arguments that we want passed to the action or requirement when the action is created. Should be a list of variables.
+            self.args = args #stores any arguments that we want passed to the action or requirement when the action is created. Should be a list of variables.
 
         def __cmp__(self,other): ##This and __hash__ are defined so that I can use "if Action in List" and have it find identical actions that are different instances.
             if type(other) is Action:
@@ -20,13 +20,13 @@ init -30 python:
             return hash((self.name,self.requirement,self.effect,self.args))
 
         def check_requirement(self): #Calls the function that was passed to the action when it was created. Currently can only use global variables, will change later to take arbitrary list.
-            return self.requirement(*self.args)
+            return self.requirement()
 
         def call_action(self): #Can only use global variables. args is a list of elements you want to include as arguments. None is default
             if self.args is None:
                 renpy.call(self.effect)
             else:
-                renpy.call(* [self.effect] + self.args)
+                renpy.call(self.effect, self.args)
             renpy.return_statement()
 
     ##Initialization of requirement functions go down here.##
@@ -87,38 +87,43 @@ init -30 python:
     def policy_purchase_requirement():
         return True
 
+#    def can_hr_open_job():
+#        return len(mc.business.h_div.people) > 1
+
     def set_uniform_requirement():
-        return strict_uniform_policy in mc.business.active_policies
+        return "Strict Corporate Uniforms" in mc.business.active_policies
 
     def set_serum_requirement():
-        return daily_serum_dosage_policy in mc.business.active_policies
+        return "Daily Serum Dosage" in mc.business.active_policies
 
     ##Actions##
-    hr_work_action = Action("Spend time orgainizing your business.", "hr_work_action_description", hr_work_action_requirement)
-    research_work_action = Action("Spend time researching in the lab.", "research_work_action_description", research_work_action_requirement)
-    supplies_work_action = Action("Spend time ordering supplies.", "supplies_work_action_description", supplies_work_action_requirement)
-    market_work_action = Action("Spend time shipping doses of serum marked for sale.", "market_work_action_description", market_work_action_requirement)
-    production_work_action = Action("Spend time producing serum in the lab.", "production_work_action_description", production_work_action_requirement)
+    hr_work_action = Action("Spend time orgainizing your business.", hr_work_action_requirement, "hr_work_action_description")
+    research_work_action = Action("Spend time researching in the lab.", research_work_action_requirement, "research_work_action_description")
+    supplies_work_action = Action("Spend time ordering supplies.", supplies_work_action_requirement, "supplies_work_action_description")
+    market_work_action = Action("Spend time shipping doses of serum marked for sale.", market_work_action_requirement, "market_work_action_description")
+    production_work_action = Action("Spend time producing serum in the lab.", production_work_action_requirement, "production_work_action_description")
 
-    interview_action = Action("Hire someone new.", "interview_action_description",  interview_action_requirement)
-    design_serum_action = Action("Create a new serum design.", "serum_design_action_description",  serum_design_action_requirement)
-    pick_research_action = Action("Pick a new research topic.", "research_select_action_description",  research_select_action_requirement)
-    pick_production_action = Action("Change production to a new serum.", "production_select_action_description",  production_select_action_requirement)
-    pick_supply_goal_action = Action("Set the amount of supply you would like to maintain.", "pick_supply_goal_action_description",  pick_supply_goal_action_requirement)
-    move_funds_action = Action("Siphon money into your personal account.", "move_funds_action_description",  move_funds_action_requirement)
-    policy_purhase_action = Action("Purchase new business policies.", "policy_purchase_description",  policy_purchase_requirement)
+    interview_action = Action("Hire someone new.", interview_action_requirement, "interview_action_description")
+    design_serum_action = Action("Create a new serum design.", serum_design_action_requirement, "serum_design_action_description")
+    pick_research_action = Action("Pick a new research topic.", research_select_action_requirement, "research_select_action_description")
+    pick_production_action = Action("Change production to a new serum.", production_select_action_requirement, "production_select_action_description")
+    pick_supply_goal_action = Action("Set the amount of supply you would like to maintain.", pick_supply_goal_action_requirement, "pick_supply_goal_action_description")
+    move_funds_action = Action("Siphon money into your personal account.", move_funds_action_requirement, "move_funds_action_description")
+    policy_purhase_action = Action("Purchase new business policies.", policy_purchase_requirement, "policy_purchase_description")
+    #policy_hire_action = Action("Set job openings.", can_hr_open_job, "set_job_opening_description")
 
-    trade_serum_action = Action("Trade serums between yourself and the business inventory.", "trade_serum_action_description",  trade_serum_action_requirement)
-    sell_serum_action = Action("Mark serum to be sold.", "sell_serum_action_description",  sell_serum_action_requirement)
-    set_autosell_action = Action("Set autosell threshold.", "set_autosell_action_description",  set_autosell_action_requirement)
+    trade_serum_action = Action("Trade serums between yourself and the business inventory.", trade_serum_action_requirement, "trade_serum_action_description")
+    sell_serum_action = Action("Mark serum to be sold.", sell_serum_action_requirement, "sell_serum_action_description")
+    set_autosell_action = Action("Set autosell threshold.", set_autosell_action_requirement, "set_autosell_action_description")
 
-    sleep_action = Action("Go to sleep for the night.", "sleep_action_description", sleep_action_requirement)
-    faq_action = Action("Check the FAQ.", "faq_action_description", faq_action_requirement)
+    sleep_action = Action("Go to sleep for the night.", sleep_action_requirement, "sleep_action_description")
+    faq_action = Action("Check the FAQ.", faq_action_requirement, "faq_action_description")
 
-    set_uniform_action = Action("Set Employee Uniforms", "set_uniform_description", set_uniform_requirement)
-    set_serum_action = Action("Set Daily Serum Doses", "set_serum_description", set_serum_requirement)
+    set_uniform_action = Action("Set Employee Uniforms", set_uniform_requirement, "set_uniform_description")
+    set_serum_action = Action("Set Daily Serum Doses", set_serum_requirement, "set_serum_description")
 
 init:
+    pass
 
 label sleep_action_description:
     "You go to bed after a hard days work."
@@ -161,11 +166,11 @@ label production_work_action_description:
 
 label interview_action_description:
     $ count = 3 #Num of people to generate, by default is 3. Changed with some policies
-    if recruitment_batch_three_policy.is_owned():
+    if "Recruitment Batch Size Improvement Three" in mc.business.active_policies:
         $ count = 10
-    elif recruitment_batch_two_policy.is_owned():
+    elif "Recruitment Batch Size Improvement Two" in mc.business.active_policies:
         $ count = 6
-    elif recruitment_batch_one_policy.is_owned():
+    elif "Recruitment Batch Size Improvement One" in mc.business.active_policies:
         $ count = 4
 
     $ interview_cost = 50
@@ -324,6 +329,9 @@ label move_funds_action_description:
 label policy_purchase_description:
     call screen policy_selection_screen()
     return
+#
+#label set_job_opening_description:
+#    menu:
 
 label set_uniform_description:
     "Which division do you want to set the uniform for?"

@@ -25,27 +25,6 @@ init -1:
 #Doggy positions are taken as 700x1080 images with 600 offset
     
     python:
-        ##NAKED BODIES##
-        white_skin = Clothing("white skin", 1, True, True, "white", ["stand1","stand2","stand3","doggy"], True, False, 0) #ADDED
-        
-        tan_skin = Clothing("tan skin", 1, True, True, "tan", ["stand1","stand2","stand3","doggy"], True, False, 0) #ADDED
-        
-        black_skin = Clothing("black skin", 1, True, True, "black", ["stand1","stand2","stand3","doggy"], True, False, 0) #ADDED
-        
-        ##HAIR STYLES##
-        hair_styles = []
-        
-        short_hair = Hair_Style("short", "Short_Hair")
-        hair_styles.append(short_hair)
-        
-        side_hair = Hair_Style("side combed", "Side_Hair")
-        hair_styles.append(side_hair)
-        
-        ponytail_hair = Hair_Style("ponytail", "Ponytail")
-        hair_styles.append(ponytail_hair)
-        
-        twintail_hair = Hair_Style("twin ponytail", "Twintail")
-        hair_styles.append(twintail_hair)
         
         ##CLOTHING##
         

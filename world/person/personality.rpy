@@ -1,34 +1,108 @@
-﻿init -1:
-    python:
-        #Default personality is a well rounded personaity, without any strong tendencies. Default "Lily" personality.
-        relaxed_personality = Personality(
-            "Relaxed", "relaxed_greetings", 
-            "relaxed_sex_responses","relaxed_climax_responses",
-            "relaxed_clothing_accept","relaxed_clothing_reject","relaxed_clothing_review","relaxed_strip_reject",
-            "relaxed_sex_accept","relaxed_sex_obedience_accept","relaxed_sex_gentle_reject","relaxed_sex_angry_reject",
-            "relaxed_seduction_response","relaxed_flirt_response",
-            "relaxed_cum_face","relaxed_cum_mouth",
-            "relaxed_suprised_exclaim"
-            )
-        
-        reserved_personality = Personality(
-            "Reserved", "reserved_greetings", 
-            "reserved_sex_responses","reserved_climax_responses",
-            "reserved_clothing_accept","reserved_clothing_reject","reserved_clothing_review","reserved_strip_reject",
-            "reserved_sex_accept","reserved_sex_obedience_accept","reserved_sex_gentle_reject","reserved_sex_angry_reject",
-            "reserved_seduction_response","reserved_flirt_response",
-            "reserved_cum_face","reserved_cum_mouth",
-            "reserved_suprised_exclaim"
-            )
-        
-        list_of_personalities = [relaxed_personality,reserved_personality]
-        
-        def get_random_personality():
-            return get_random_from_list(list_of_personalities)
+﻿init -17 python:
+    class Personality(renpy.store.object): #How the character responds to various actions
+        def __init__(self,type,greeting_label,sex_response_label,climax_response_label,clothing_accept_label, clothing_reject_label, clothing_review_label, strip_reject_label, sex_accept_label, sex_obedience_accept_label, sex_gentle_reject_label,
+            sex_angry_reject_label, seduction_response_label, flirt_response_label, cum_face_label, cum_mouth_label, suprised_exclaim_label): ##TODO: Add more stats when we know what they should be.
+            self.type = type
+            self.greeting_label = greeting_label
+            self.sex_response_label = sex_response_label
+            self.climax_response_label = climax_response_label
+            self.clothing_accept_label = clothing_accept_label
+            self.clothing_reject_label = clothing_reject_label
+            self.clothing_review_label = clothing_review_label
+            self.strip_reject_label = strip_reject_label
+            self.sex_accept_label = sex_accept_label
+            self.sex_obedience_accept_label = sex_obedience_accept_label
+            self.sex_gentle_reject_label = sex_gentle_reject_label
+            self.sex_angry_reject_label = sex_angry_reject_label
+            self.seduction_response_label = seduction_response_label
+            self.flirt_response_label = flirt_response_label
+            self.cum_face_label = cum_face_label
+            self.cum_mouth_label = cum_mouth_label
+            self.suprised_exclaim_label = suprised_exclaim_label
+
+
+        def get_greeting(self, the_person):
+            renpy.call(self.greeting_label, the_person)
+
+        def get_sex_response(self, the_person):
+            renpy.call(self.sex_response_label, the_person)
+
+        def get_climax_response(self, the_person):
+            renpy.call(self.climax_response_label, the_person)
+
+        def get_clothing_accept(self, the_person):
+            renpy.call(self.clothing_accept_label, the_person)
+
+        def get_clothing_reject(self, the_person):
+            renpy.call(self.clothing_reject_label, the_person)
+
+        def get_clothing_review(self, the_person):
+            renpy.call(self.clothing_review_label, the_person)
+
+        def get_strip_reject(self, the_person):
+            renpy.call(self.strip_reject_label, the_person)
+
+        def get_sex_accept_response(self, the_person):
+            renpy.call(self.sex_accept_label, the_person)
+
+        def get_sex_obedience_accept_response(self, the_person, amount):
+            renpy.call(self.sex_obedience_accept_label, the_person, amount)
+
+        def get_sex_gentle_reject(self, the_person):
+            renpy.call(self.sex_gentle_reject_label, the_person)
+
+        def get_sex_angry_reject(self, the_person, amount):
+            renpy.call(self.sex_angry_reject_label, the_person, amount)
+
+        def get_seduction_response(self, the_person):
+            renpy.call(self.seduction_response_label, the_person)
+
+        def get_flirt_response(self, the_person):
+            renpy.call(self.flirt_response_label, the_person)
+
+        def get_cum_face(self, the_person):
+            renpy.call(self.cum_face_label, the_person)
+
+        def get_cum_mouth(self, the_person):
+            renpy.call(self.cum_mouth_label, the_person)
+
+        def get_suprised_exclaim(self, the_person):
+            renpy.call(self.suprised_exclaim_label, the_person)
+
+
+    #Default personality is a well rounded personaity, without any strong tendencies. Default "Lily" personality.
+    # FIXME: these could be dicts.
+    relaxed_personality = Personality(
+        "Relaxed", "relaxed_greetings", 
+        "relaxed_sex_responses","relaxed_climax_responses",
+        "relaxed_clothing_accept","relaxed_clothing_reject","relaxed_clothing_review","relaxed_strip_reject",
+        "relaxed_sex_accept","relaxed_sex_obedience_accept","relaxed_sex_gentle_reject","relaxed_sex_angry_reject",
+        "relaxed_seduction_response","relaxed_flirt_response",
+        "relaxed_cum_face","relaxed_cum_mouth",
+        "relaxed_suprised_exclaim"
+        )
+    
+    reserved_personality = Personality(
+        "Reserved", "reserved_greetings", 
+        "reserved_sex_responses","reserved_climax_responses",
+        "reserved_clothing_accept","reserved_clothing_reject","reserved_clothing_review","reserved_strip_reject",
+        "reserved_sex_accept","reserved_sex_obedience_accept","reserved_sex_gentle_reject","reserved_sex_angry_reject",
+        "reserved_seduction_response","reserved_flirt_response",
+        "reserved_cum_face","reserved_cum_mouth",
+        "reserved_suprised_exclaim"
+        )
+    
+    list_of_personalities = [relaxed_personality,reserved_personality]
+    
+    def get_random_personality():
+        return renpy.random.choice(list_of_personalities)
 
 ###############################
 ##### Relaxed Personality #####
 ###############################
+init:
+    pass
+
 label relaxed_greetings(the_person):
     if the_person.sluttiness > 60:
         if the_person.obedience > 130:

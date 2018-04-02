@@ -226,7 +226,7 @@ label special_training_crisis_label():
     if not mc.business.get_employee_count() > 0:
         return #We must have had someone quit or be fired, so we no longer can get a random person.
         
-    $ the_person = get_random_from_list(mc.business.get_employee_list())
+    $ the_person = renpy.random.choice(mc.business.get_employee_list())
     show screen person_info_ui(the_person)
     hide screen business_ui
     "You get an email from [the_person.name]."
@@ -290,7 +290,7 @@ label lab_accident_crisis_label():
         return
         
     $ the_serum = mc.business.active_research_design
-    $ the_person = get_random_from_list(mc.business.research_team)
+    $ the_person = renpy.random.choice(mc.business.research_team)
     $ the_place = mc.business.r_div
     
     if mc.location == mc.business.r_div:
@@ -312,7 +312,7 @@ label lab_accident_crisis_label():
     hide screen business_ui
     "You get to [the_person.name]'s lab bench. There's a shattered test tube still on it and a pool of coloured liquid."
     mc.name "What happened?"
-    $ techno = get_random_from_list(technobabble_list)
+    $ techno = renpy.random.choice(technobabble_list)
     the_person.name "I was trying to [techno] and went to move the sample. It slipped out of my hand and when I tried to grab it..."
     "She turns her palm up to you. It's covered in the same coloured liquid, and there's a small cut."
     the_person.name "I'm not sure what the uptake is like with this new design. I think everything will be fine, but would you mind hanging around for a few minutes?."
@@ -338,7 +338,7 @@ label production_accident_crisis_label():
         return
         
     $ the_serum = mc.business.serum_production_target
-    $ the_person = get_random_from_list(mc.business.production_team)
+    $ the_person = renpy.random.choice(mc.business.production_team)
     $ the_place = mc.business.p_div
     
     if mc.location == mc.business.p_div:
@@ -360,7 +360,7 @@ label production_accident_crisis_label():
     hide screen business_ui
     "You get to [the_person.name]'s lab bench. There's a collection of shattered test tubes still on it and a pool of coloured liquid."
     mc.name "What happened?"
-    $ techno = get_random_from_list(technobabble_list)
+    $ techno = renpy.random.choice(technobabble_list)
     the_person.name "I was trying to [techno]like I normally do and went to move the batch. It slipped out of my hand and when I tried to grab it..."
     "She turns her palm up to you. It's covered in the same coloured liquid, and there's a small cut."
     the_person.name "I'm not sure what the uptake is like with this new design. I think everything will be fine, but would you mind hanging around for a few minutes?."
@@ -378,7 +378,7 @@ init 1 python:
     
         
 label water_spill_crisis_label():
-    $ the_person = get_random_from_list(mc.business.get_employee_list())
+    $ the_person = renpy.random.choice(mc.business.get_employee_list())
     $ the_place = mc.business.get_employee_workstation(the_person)
     $ ordered_top = the_person.outfit.get_upper_ordered()
     if len(ordered_top) == 0:
@@ -499,7 +499,7 @@ label home_fuck_crisis_label():
         for person in mc.business.get_employee_list():
             if person.sluttiness >= 15:
                 meets_sluttiness_list.append(person)
-    $ the_person = get_random_from_list(meets_sluttiness_list)
+    $ the_person = renpy.random.choice(meets_sluttiness_list)
     
     "Some time late in the night, you're awoken by the buzz of your phone getting a text. You roll over and ignore it."
     "A few minutes later your doorbell goes off several times in quick succession."
@@ -668,7 +668,7 @@ init 1 python:
         return True #Always true, this will always happen right after a serum is created, regardless of the time.
     
 label serum_creation_crisis_label(the_serum): # Called every time a new serum is created, test it on a R&D member.
-    $ rd_staff = get_random_from_list(mc.business.r_div.people) #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
+    $ rd_staff = renpy.random.choice(mc.business.r_div.people) #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
     if rd_staff is not None:
         if mc.location == mc.business.r_div: # The MC is in the lab, just physically get them.
             $ the_place = mc.business.r_div
@@ -713,7 +713,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                     
         ## Test the serum out on someone.
         "[rd_staff.name] brings you to her work bench, where a centrifuge is spinning down."
-        $ technobabble = get_random_from_list(technobabble_list)
+        $ technobabble = renpy.random.choice(technobabble_list)
         rd_staff.name "Perfect, it's just finishing now. I had this flash of inspiration and realised all I needed to do was [technobabble]."
         "[rd_staff.name] opens the centrifuge lid and takes out a small glass vial. She holds it up to the light and nods approvingly, then hands it to you."
         rd_staff.name "We should test it before sending the design off to production, don't you think?"
