@@ -1,4 +1,4 @@
-init -20 python:
+init -30 python:
     # Rooms have actions
 
     class Action(renpy.store.object): #Contains the information about actions that can be taken in a room. Dispayed when you are asked what you want to do somewhere.
