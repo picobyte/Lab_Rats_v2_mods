@@ -145,9 +145,10 @@ init -2 python:
             self.serum_production_target = None
             self.inventory = SerumInventory([])
             self.sale_inventory = SerumInventory([])
-            
-            self.policy_list = [] #This is a list of Policy objects.
-            
+
+            self.available_policies = set() # available: it can be bought
+            self.active_policies = set()
+
             self.message_list = [] #This list of strings is shown at the end of each day on the business update screen. Cleared each day.
             self.counted_message_list = {} #This is a dict holding the count of each message stored in it. Used when you want to have a message that is counted and the total shown at the end of the day.
             self.production_potential = 0 #How many production points the team was capable of
@@ -272,7 +273,8 @@ init -2 python:
         def sale_progress(self,cha,focus,skill):
             
             serum_value_multiplier = 1.00 #For use with value boosting policies. Multipliers are multiplicative.
-            if mc.business.m_div.uniform and male_focused_marketing_policy.is_owned(): #If there is a uniform and we have the policy to increase value based on that we change the multilier.
+            if mc.business.m_div.uniform and male_focused_marketing_policy in mc.business.active_policies:
+                #If there is a uniform and we have the policy to increase value based on that we change the multilier.
                 sluttiness_multiplier = (mc.business.m_div.uniform.slut_requirement/100.0) + 1
                 serum_value_multiplier = serum_value_multiplier * (sluttiness_multiplier)
             
@@ -382,6 +384,30 @@ init -2 python:
                 the_message = div.give_daily_serum(self.inventory)
                 if the_message:
                     self.message_list.append(the_message)
+
+        def purchase_policy(self, policy):
+            self.funds -= policy.cost
+            self.available_policies.remove(policy)
+            self.active_policies.add(policy)
+
+        def get_max_outfits_to_change(self):
+
+            if maximal_arousal_uniform_policy in self.active_policies:
+                return 999 #ie. no limit at all.
+            elif corporate_enforced_nudity_policy in self.active_policies:
+                return 80
+            elif minimal_coverage_uniform_policy in self.active_policies:
+                return 60
+            elif reduced_coverage_uniform_policy in self.active_policies:
+                return 40
+            elif casual_uniform_policy in self.active_policies:
+                return 25
+            elif relaxed_uniform_policy in self.active_policies:
+                return 15
+            elif strict_uniform_policy in self.active_policies:
+                return 5
+            else:
+                return 0
 
     class SerumDesign(renpy.store.object):
         def __init__(self):
@@ -1148,10 +1174,10 @@ init -2 python:
         skill_cap = 5
         stat_cap = 5
         
-        if recruitment_skill_improvement_policy.is_owned():
+        if recruitment_skill_improvement_policy in mc.business.active_policies:
             skill_cap += 2
             
-        if recruitment_stat_improvement_policy.is_owned():
+        if recruitment_stat_improvement_policy in mc.business.active_policies:
             stat_cap += 2
         
         skill_array = [renpy.random.randint(1,skill_cap),renpy.random.randint(1,skill_cap),renpy.random.randint(1,skill_cap),renpy.random.randint(1,skill_cap),renpy.random.randint(1,skill_cap)]
@@ -1159,15 +1185,15 @@ init -2 python:
         sex_array = [renpy.random.randint(0,5),renpy.random.randint(0,5),renpy.random.randint(0,5),renpy.random.randint(0,5)]
         
         start_suggest = 0
-        if recruitment_suggest_improvment_policy.is_owned():
+        if recruitment_suggest_improvment_policy in mc.business.active_policies:
             start_suggest += 10
         
         start_obedience = renpy.random.randint(-10,10)
-        if recruitment_obedience_improvement_policy.is_owned():
+        if recruitment_obedience_improvement_policy in mc.business.active_policies:
             start_obedience += 10
         
         start_sluttiness = renpy.random.randint(0,10)
-        if recruitment_slut_improvement_policy.is_owned():
+        if recruitment_slut_improvement_policy in mc.business.active_policies:
             start_sluttiness += 20        
         
         return Person(name,last_name,age,body_type,tits,height,body_images,emotion_images,hair_colour,hair_style,skin,eyes,job,default_wardrobe,personality,stat_array,skill_array,sex_list=sex_array,sluttiness=start_sluttiness,obedience=start_obedience,suggest=start_suggest)
@@ -1227,26 +1253,6 @@ init -2 python:
             renpy.show(self.name+position+emotion+self.facial_style,at_list=[right,scale_person(height)],layer="Active",what=self.position_dict[position][emotion],tag=self.name+position+emotion)
 
 
-    class Policy(renpy.store.object): # An upgrade that can be purchased by the character for their business.
-        def __init__(self,name,desc,requirement,cost):
-            self.name = name #A short name for the policy.
-            self.desc = desc #A text description of the policy.
-            self.requirement = requirement #a function that is run to see if the PC can purchase this policy.
-            self.cost = cost #Cost in dollars.
-            
-        def __cmp__(self,other): #
-            if type(other) is Policy:
-                if self.name == other.name and self.desc == other.desc and self.cost == other.cost:
-                    return 0
-
-            return -1 if self.__hash__() < other.__hash__() else 1 #Use hash values to break ties.
-                    
-        def __hash__(self):
-            return hash((self.name,self.desc,self.cost))
-            
-        def is_owned(self):                
-            return self in mc.business.policy_list
-        
     class Object(renpy.store.object): #Contains a list of traits for the object which decides how it can be used.
         def __init__(self,name,traits):
             self.traits = traits
@@ -1713,72 +1719,7 @@ init -2 python:
                 return the_person.outfit.tits_available()
             else:
                 return True ##If you don't have one of the requirements listed above just let it happen.
-                
-    ##Initialization of requirement functions go down here. Can also be moved to init -1 eventually##
-                
-    def sleep_action_requirement():
-        return time_of_day == 4
-            
-    def faq_action_requirement():
-        return True
-            
-    def hr_work_action_requirement():
-        return time_of_day < 4
-            
-    def research_work_action_requirement():
-        if time_of_day < 4:
-            return mc.business.active_research_design != None
-        else:
-            return False
-            
-    def supplies_work_action_requirement():
-        return time_of_day < 4
-            
-    def market_work_action_requirement():
-        return time_of_day < 4
-            
-    def production_work_action_requirement():
-        if time_of_day < 4:
-            return mc.business.serum_production_target != None
-        else:
-            return False
-            
-    def interview_action_requirement():
-        return time_of_day < 4
-            
-    def serum_design_action_requirement():
-        return time_of_day < 4
-            
-    def research_select_action_requirement():
-        return True
-            
-    def production_select_action_requirement():
-        return True
-        
-    def trade_serum_action_requirement():
-        return True
-        
-    def sell_serum_action_requirement():
-        return True
-    
-    def set_autosell_action_requirement():
-        return mc.business.serum_production_target is not None
-        
-    def pick_supply_goal_action_requirement():
-        return True
-        
-    def move_funds_action_requirement():
-        return True
-        
-    def policy_purchase_requirement():
-        return True
-        
-    def set_uniform_requirement():
-        return strict_uniform_policy.is_owned()
-        
-    def set_serum_requirement():
-        return daily_serum_dosage_policy.is_owned()
-            
+
     ##Serum effect functions##
     def improved_serum_production(the_serum):
         the_serum.research_needed += 50
@@ -2955,12 +2896,7 @@ screen map_manager():
             focus_mask "gui/button/choice_idle_background.png"
             action Return(mc.location)
         textbutton "Return" align [0.5,0.5] text_style "return_button_style"
-        
-init -2 python:
-    def purchase_policy(the_policy):
-        mc.business.funds -= the_policy.cost
-        mc.business.policy_list.append(the_policy)
-        
+
 init -2 screen policy_selection_screen():
     add "Paper_Background.png"
     modal True
@@ -2968,32 +2904,31 @@ init -2 screen policy_selection_screen():
     vbox:
         xalign 0.1
         yalign 0.1
-        for policy in policies_list:
-            if policy.is_owned():
+        for policy in mc.business.active_policies:
+            textbutton policy.name +" - $" +str(policy.cost):
+                tooltip policy.desc
+                action NullAction()
+                style "textbutton_style"
+                text_style "textbutton_text_style"
+                background "#59853f"
+                hover_background "#78b156"
+                sensitive True
+        for policy in mc.business.available_policies:
+            if policy.requirement() and (policy.cost < mc.business.funds or policy.cost == mc.business.funds):
                 textbutton policy.name +" - $" +str(policy.cost):
                     tooltip policy.desc
-                    action NullAction()
                     style "textbutton_style"
                     text_style "textbutton_text_style"
-                    background "#59853f"
-                    hover_background "#78b156"
-                    sensitive True
+                    action Function(mc.business.purchase_policy,policy)
+                    sensitive policy.requirement() and (policy.cost < mc.business.funds or policy.cost == mc.business.funds)
             else:
-                if policy.requirement() and (policy.cost < mc.business.funds or policy.cost == mc.business.funds):
-                    textbutton policy.name +" - $" +str(policy.cost):
-                        tooltip policy.desc
-                        style "textbutton_style"
-                        text_style "textbutton_text_style"
-                        action Function(purchase_policy,policy)
-                        sensitive policy.requirement() and (policy.cost < mc.business.funds or policy.cost == mc.business.funds)
-                else:
-                    textbutton policy.name +" - $" +str(policy.cost):
-                        tooltip policy.desc
-                        style "textbutton_style"
-                        text_style "textbutton_text_style"
-                        background "#666666"
-                        action NullAction()
-                        sensitive True
+                textbutton policy.name +" - $" +str(policy.cost):
+                    tooltip policy.desc
+                    style "textbutton_style"
+                    text_style "textbutton_text_style"
+                    background "#666666"
+                    action NullAction()
+                    sensitive True
                 
 
     if tooltip:
@@ -3480,7 +3415,7 @@ label talk_person(the_person, repeat_choice = None):
             $ repeat_choice = None
             call examine_person(the_person) from _call_examine_person
             call talk_person(the_person) from _call_talk_person_2
-        "Give her a dose of serum." if mc.inventory.get_any_serum_count() > 0 and mandatory_serum_testing_policy.is_owned():
+        "Give her a dose of serum." if mc.inventory.get_any_serum_count() > 0 and mandatory_serum_testing_policy in mc.business.active_policies:
             $ repeat_choice = "give her a dose of serum"
             call give_her_a_dose_of_serum
         "Seduce her.":
@@ -3733,276 +3668,6 @@ label give_serum(the_person):
     else:
         "You decide not to give [the_person.name] anything right now."
     return
-    
-label sleep_action_description:
-    "You go to bed after a hard days work."
-    call advance_time from _call_advance_time
-    return
-    
-label faq_action_description:
-    call faq_loop from _call_faq_loop_2
-    return
-    
-label hr_work_action_description:
-    $ mc.business.player_hr()
-    call advance_time from _call_advance_time_1
-    "You settle in and spend a few hours filling out paperwork."
-    return
-    
-label research_work_action_description:
-    $ mc.business.player_research()
-    call advance_time from _call_advance_time_2
-    "You spend a few hours in the lab, experimenting with different chemicals and techniques."
-    return
-    
-label supplies_work_action_description:
-    $ mc.business.player_buy_supplies()
-    call advance_time from _call_advance_time_3
-    "You spend a few hours securing new supplies for the lab, spending some of it's available funds to do so."
-    return
-    
-label market_work_action_description:
-    $ mc.business.player_market()
-    call advance_time from _call_advance_time_4    
-    "You spend a few hours making phone calls to your clients and shipping out orders that have been marked for sale."
-    return
-    
-label production_work_action_description:
-    $ mc.business.player_production()
-    call advance_time from _call_advance_time_5
-    "You spend a few hours in the lab, synthesizing serum from the it's raw chemical precursors."
-    return
-    
-label interview_action_description:
-    $ count = 3 #Num of people to generate, by default is 3. Changed with some policies
-    if recruitment_batch_three_policy.is_owned():
-        $ count = 10
-    elif recruitment_batch_two_policy.is_owned():
-        $ count = 6
-    elif recruitment_batch_one_policy.is_owned():
-        $ count = 4
-    
-    $ interview_cost = 50
-    "Bringing in [count] people for an interview will cost $[interview_cost]. Do you want to spend time interviewing potential employees?"
-    menu:
-        "Yes, I'll pay the cost. -$[interview_cost]":
-            $ mc.business.funds += -interview_cost #T
-            $ renpy.scene("Active")
-            hide screen main_ui
-            hide screen business_ui
-            python:
-                candidates = []
-                
-                for x in range(0,count+1): #NOTE: count is given +1 because the screen tries to pre-calculate the result of button presses. This leads to index out-of-bounds, unless we pad it with an extra character (who will not be reached).
-                    candidates.append(make_person())
-                show_candidate(candidates[0]) #Show the first candidate, updates are taken care of by actions within the screen.
-                
-            call screen interview_ui(candidates,count)
-            $ renpy.scene("Active")
-            show screen main_ui
-            show screen business_ui
-            if _return != "None":
-                $ new_person = _return
-                "You complete the nessesary paperwork and hire [_return.name]. What division do you assign them to?"
-                python:
-                    mc.business.remove_employee(new_person)
-                    selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
-                    mc.business.add_employee(new_person, selected_div)
-            else:
-                "You decide against hiring anyone new for now."
-            call advance_time from _call_advance_time_6
-        "Nevermind.":
-            $ temp = 0 #NOTE: just here so that this isn't technically an empty block.
-    return
-    
-label serum_design_action_description:
-    $counter = len(list_of_traits)
-    hide screen main_ui
-    hide screen business_ui
-    call screen serum_design_ui(SerumDesign(),[]) #This will return the final serum design, or None if the player backs out.
-    show screen main_ui
-    show screen business_ui
-    if _return != "None":
-        $ serum = _return
-        $ name = renpy.input("Please give this serum design a name.")
-        $ serum.name = name
-        $ mc.business.add_serum_design(serum)
-        call advance_time from _call_advance_time_7
-    else:
-        "You decide not to spend any time designing a new serum type."
-    return
-    
-label research_select_action_description:
-    hide screen main_ui
-    hide screen business_ui
-    call screen serum_select_ui
-    show screen main_ui
-    show screen business_ui
-    if _return != "None":
-        $mc.business.set_serum_research(_return)
-        "You change your research to [_return.name]."
-    else:
-        "You decide to leave your labs current research topic as it is."
-    return
-    
-label production_select_action_description:
-    hide screen main_ui
-    hide screen business_ui
-    call screen serum_production_select_ui
-    show screen main_ui
-    show screen business_ui
-    if _return != "None":
-        $mc.business.change_production(_return)
-        "You change your production line over to [_return.name]."
-    else:
-        "You decide not to change the way your production line is set up."
-    return
-    
-label trade_serum_action_description:
-    "You step into the stock room to check what you currently have produced."
-    hide screen main_ui
-    hide screen business_ui
-    $ renpy.block_rollback()
-    call screen serum_trade_ui(mc.inventory,mc.business.inventory)
-    $ renpy.block_rollback()
-    show screen main_ui
-    show screen business_ui
-    return
-    
-label sell_serum_action_description:
-    "You look through your stock of serum, marking some to be sold by your marketing team."
-    hide screen main_ui
-    hide screen business_ui
-    $ renpy.block_rollback()
-    call screen serum_trade_ui(mc.business.inventory,mc.business.sale_inventory,"Production Stockpile","Sales Stockpile")
-    $ renpy.block_rollback()
-    show screen main_ui
-    show screen business_ui
-    return
-    
-label set_autosell_action_description:
-    $ amount = renpy.input("How many units of " + mc.business.serum_production_target.name + " would you like to keep in stock? Extra will automatically be moved to the sales department.")
-    $ amount = amount.strip()
-    while not (amount.isdigit() and int(amount) >= 0):
-        $ amount = renpy.input("Please put in positive integer value.")
-    $ amount = int(amount)
-    
-    $ mc.business.auto_sell_threshold = amount
-    "Extra doses of the serum [mc.business.serum_production_target.name] will be automatically moved to the sales department now."
-    return
-    
-    
-label pick_supply_goal_action_description:
-    $ amount = renpy.input("How many units of serum supply would you like your supply procurement team to keep stocked?")
-    $ amount = amount.strip()
-    
-    while not amount.isdigit():
-        $ amount = renpy.input("Please put in an integer value.")
-        
-    $ amount = int(amount)
-    $ mc.business.supply_goal = amount
-    if amount <= 0:
-        "You tell your team to keep [amount] units of serum supply stocked. They question your sanity, but otherwise continue with their work. Perhaps you should use a positive number."
-    else:
-        "You tell your team to keep [amount] units of serum supply stocked."
-    
-    return
-    
-label move_funds_action_description:
-    menu:
-        "Move funds from the company to yourself." if mc.business.funds>0:
-            $ amount = renpy.input("How much would you like to withdraw from the company bank account? (Currently has $[mc.business.funds])")
-            $ amount.strip()
-            while (not amount.isdigit() or int(amount) > mc.business.funds):
-                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.business.funds])")
-                $ amount.strip()
-                
-            $ mc.business.funds -= int(amount)
-            $ mc.money += int(amount)
-            return
-            
-        "Move funds from yourself into the company." if mc.money>0:
-            $ amount = renpy.input("How much would you like to deposit into the company account? (You currently have $[mc.money])")
-            $ amount.strip()
-            while (not amount.isdigit() or int(amount) > mc.money):
-                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.money])")
-                $ amount.strip()
-                
-            $ mc.business.funds += int(amount)
-            $ mc.money -= int(amount)
-            return
-            
-        "Do nothing.":
-            return
-            
-label policy_purchase_description:
-    call screen policy_selection_screen()
-    return
-            
-label set_uniform_description:
-    "Which division do you want to set the uniform for?"
-    python:
-        tuple_list = [("All", "All")]
-        for div in mc.business.division:
-            tuple_list.append((div.name, div))
-
-        selected_div = renpy.display_menu(tuple_list,True,"Choice")
-    $ selected_div = None
-
-    if maximal_arousal_uniform_policy.is_owned():
-        $slut_limit = 999 #ie. no limit at all.
-    elif corporate_enforced_nudity_policy.is_owned():
-        $slut_limit = 80
-    elif minimal_coverage_uniform_policy.is_owned():
-        $slut_limit = 60
-    elif reduced_coverage_uniform_policy.is_owned():
-        $slut_limit = 40
-    elif casual_uniform_policy.is_owned():
-        $slut_limit = 25
-    elif relaxed_uniform_policy.is_owned():
-        $slut_limit = 15
-    elif strict_uniform_policy.is_owned():
-        $slut_limit = 5
-    else:
-        $slut_limit = 0
-
-    call screen outfit_select_manager(slut_limit)
-    $ selected_outfit = _return
-
-    python:
-        if selected_outfit != "No Return":
-            if isinstnace(selected_div, Division):
-                div.uniform = selected_outfit
-            else:
-                for div in mc.business.division:
-                    div.uniform = selected_outfit
-    return
-
-label set_serum_description:
-    "Which divisions would you like to set a daily serum for?"
-    python:
-        tuple_list = [("All", "All")]
-        for div in mc.business.division:
-            tuple_list.append((div.name, div))
-
-        selected_div = renpy.display_menu(tuple_list,True,"Choice")
-    menu:
-        "Pick a new serum.":
-            call screen serum_inventory_select_ui(mc.business.inventory)
-            $ selected_serum = _return
-
-        "Clear existing serum.":
-            $ selected_serum = None
-
-    python:
-        if selected_serum != "None": #IF we didn't select an actual serum, just return and don't chagne anything.
-            if isinstnace(selected_div, Division):
-                selected_div.serum = selected_serum
-            else:
-                for div in mc.business.division:
-                    div.serum = selected_serum
-    return
-    
 label advance_time:
     # 1) Turns are processed _before_ the time is advanced.
     # 1a) crises are processed if they are triggered.
@@ -4080,7 +3745,7 @@ label advance_time:
     else:
         $ time_of_day += 1 ##Otherwise, just run the end of day code.
         
-    if time_of_day == 1 and daily_serum_dosage_policy.is_owned(): #It is the start of the work day, give everyone their daily dose of serum
+    if time_of_day == 1 and daily_serum_dosage_policy in mc.business.active_policies: #It is the start of the work day, give everyone their daily dose of serum
         $ mc.business.give_daily_serum()
         
     python:    
@@ -4156,32 +3821,7 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         list_of_traits.append(obedience_enhancer)
         
         list_of_places = [] #By having this in an init block it may be set to null each time the game is reloaded, because the initialization stuff below is only called once.
-        
-        ##Actions##
-        hr_work_action = Action("Spend time orgainizing your business.",hr_work_action_requirement,"hr_work_action_description")
-        research_work_action = Action("Spend time researching in the lab.",research_work_action_requirement,"research_work_action_description")
-        supplies_work_action = Action("Spend time ordering supplies.",supplies_work_action_requirement,"supplies_work_action_description")
-        market_work_action = Action("Spend time shipping doses of serum marked for sale.",market_work_action_requirement,"market_work_action_description")
-        production_work_action = Action("Spend time producing serum in the lab.",production_work_action_requirement,"production_work_action_description")
-        
-        interview_action = Action("Hire someone new.", interview_action_requirement,"interview_action_description")
-        design_serum_action = Action("Create a new serum design.", serum_design_action_requirement,"serum_design_action_description")
-        pick_research_action = Action("Pick a new research topic.", research_select_action_requirement,"research_select_action_description")
-        pick_production_action = Action("Change production to a new serum.", production_select_action_requirement,"production_select_action_description")
-        pick_supply_goal_action = Action("Set the amount of supply you would like to maintain.", pick_supply_goal_action_requirement,"pick_supply_goal_action_description")
-        move_funds_action = Action("Siphon money into your personal account.", move_funds_action_requirement,"move_funds_action_description")
-        policy_purhase_action = Action("Purchase new business policies.", policy_purchase_requirement,"policy_purchase_description")
-        
-        trade_serum_action = Action("Trade serums between yourself and the business inventory.", trade_serum_action_requirement, "trade_serum_action_description")
-        sell_serum_action = Action("Mark serum to be sold.", sell_serum_action_requirement, "sell_serum_action_description")
-        set_autosell_action = Action("Set autosell threshold.", set_autosell_action_requirement, "set_autosell_action_description")
-        
-        sleep_action = Action("Go to sleep for the night.",sleep_action_requirement,"sleep_action_description")
-        faq_action = Action("Check the FAQ.",faq_action_requirement,"faq_action_description")
-        
-        set_uniform_action = Action("Set Employee Uniforms",set_uniform_requirement,"set_uniform_description")
-        set_serum_action = Action("Set Daily Serum Doses",set_serum_requirement,"set_serum_description")
-        
+
         ##PC's Home##
         bedroom = Room("bedroom","Bedroom",[],house_background,[],[],[sleep_action,faq_action],False,[0.1,0.5])
         kitchen = Room("kitchen", "Kitchen",[],house_background,[],[],[],False,[0.1,0.7])
