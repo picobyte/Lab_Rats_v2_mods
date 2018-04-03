@@ -34,7 +34,7 @@ init -30 python:
         return time_of_day == 4
 
     def faq_action_requirement():
-        return True
+        return preferences.show_faq
 
     def hr_work_action_requirement():
         return time_of_day < 4

@@ -37,6 +37,26 @@ init python:
 
 label create_test_variables(character_name,business_name,stat_array,skill_array,_sex_array): #Gets all of the variables ready. TODO: Move some of this stuff to an init block?
     python:
+        preferences.main_character_name = character_name
+        preferences.main_character_business_name = business_name
+
+        preferences.main_character_cha = stat_array[0]
+        preferences.main_character_int = stat_array[1]
+        preferences.main_character_foc = stat_array[2]
+
+        preferences.main_character_h_skill = skill_array[0]
+        preferences.main_character_m_skill = skill_array[1]
+        preferences.main_character_r_skill = skill_array[2]
+        preferences.main_character_p_skill = skill_array[3]
+        preferences.main_character_s_skill = skill_array[4]
+
+        preferences.main_character_F_skill = _sex_array[0]
+        preferences.main_character_O_skill = _sex_array[1]
+        preferences.main_character_V_skill = _sex_array[2]
+        preferences.main_character_A_skill = _sex_array[3]
+
+        preferences.main_character_points = 0
+
         bliss = Status_Effect("Bliss", "Giddy with happiness. Raises happiness over time, but lowers obedience.", bliss_function)
         growing_breasts = Status_Effect("Growing Breasts", "Day by day her breasts are getting bigger.", growing_breasts_function)
         shrinking_breasts = Status_Effect("Shrinking Breasts", "Day by day her breasts are getting smaller.", shrinking_breasts_function)

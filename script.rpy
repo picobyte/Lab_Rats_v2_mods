@@ -487,8 +487,9 @@ init -2 style outfit_style: ##The text style used for text inside of the outfit 
     hover_color "#ffffff"
     
 init -2:
-    default name = "Input Your Name"
-    default b_name = "Input Your Company Name"
+    default name = preferences.main_character_name
+    default b_name = preferences.main_character_business_name
+
     python:
         def name_func(new_name):
             store.name = new_name
@@ -498,25 +499,25 @@ init -2:
     
 screen character_create_screen():
 
-    default cha = 0
-    default int = 0
-    default foc = 0
+    default cha = preferences.main_character_cha
+    default int = preferences.main_character_int
+    default foc = preferences.main_character_foc
     
-    default h_skill = 0
-    default m_skill = 0
-    default r_skill = 0
-    default p_skill = 0
-    default s_skill = 0
+    default h_skill = preferences.main_character_h_skill
+    default m_skill = preferences.main_character_m_skill
+    default r_skill = preferences.main_character_r_skill
+    default p_skill = preferences.main_character_p_skill
+    default s_skill = preferences.main_character_s_skill
     
-    default F_skill = 0
-    default O_skill = 0
-    default V_skill = 0
-    default A_skill = 0
+    default F_skill = preferences.main_character_F_skill
+    default O_skill = preferences.main_character_O_skill
+    default V_skill = preferences.main_character_V_skill
+    default A_skill = preferences.main_character_A_skill
     
     
     default name_select = 0
     
-    default character_points = 25
+    default character_points = preferences.main_character_points
     
     imagebutton auto "/gui/Text_Entry_Bar_%s.png" action SetScreenVariable("name_select",1) pos (320,120) xanchor 0.5 yanchor 0.5
     imagebutton auto "/gui/Text_Entry_Bar_%s.png" action SetScreenVariable("name_select",2) pos (1600,120) xanchor 0.5 yanchor 0.5
@@ -1577,21 +1578,31 @@ screen float_up_screen (text_array, style_array): #text_array is a list of the t
 
 label start:
     scene bg paper_menu_background with fade
-    "Lab Rats 2 contains adult content. If you are not over 18 or your contries equivalent age you should not view this content."
-    menu:
-        "I am over 18.":
-            "Excellent, let's continue then."
-            
-        "I am not over 18.":
-            $renpy.full_restart()
+    if preferences.show_adult_content is False:
+        "Lab Rats 2 contains adult content. If you are not over 18 or your contries equivalent age you should not view this content."
+        menu:
+            "I am over 18.":
+                "Excellent, let's continue then."
+
+            "I am not over 18.":
+                $renpy.full_restart()
+
+            "I am over 18 and never ask again!":
+                $ preferences.show_adult_content = True
 
     "Vren" "v0.3 represents an early iteration of Lab Rats 2. Expect to run into limited content, unexplained features, and unbalanced game mechanics."
-    "Vren" "Would you like to view the FAQ?"
-    menu:
-        "View the FAQ.":
-            call faq_loop from _call_faq_loop
-        "Get on with the game!":
-            "You can access the FAQ from your bedroom at any time."
+    if preferences.show_faq is True:
+        "Vren" "Would you like to view the FAQ?"
+        menu:
+            "View the FAQ.":
+                call faq_loop from _call_faq_loop
+
+            "Get on with the game!":
+                "You can access the FAQ from your bedroom at any time."
+
+            "Get on with the game and don't ask again!":
+                $ preferences.show_faq = False
+
     $ renpy.block_rollback() 
     call screen character_create_screen()
     $ renpy.block_rollback()

@@ -122,6 +122,30 @@ default preferences.text_cps = 0
 
 default preferences.afm_time = 15
 
+# When set in game, store these
+
+default preferences.show_adult_content = False
+default preferences.show_faq = True
+
+default preferences.main_character_cha = 0
+default preferences.main_character_int = 0
+default preferences.main_character_foc = 0
+
+default preferences.main_character_h_skill = 0
+default preferences.main_character_m_skill = 0
+default preferences.main_character_r_skill = 0
+default preferences.main_character_p_skill = 0
+default preferences.main_character_s_skill = 0
+
+default preferences.main_character_F_skill = 0
+default preferences.main_character_O_skill = 0
+default preferences.main_character_V_skill = 0
+default preferences.main_character_A_skill = 0
+
+default preferences.main_character_points = 25
+
+default preferences.main_character_name = "Input Your Name"
+default preferences.main_character_business_name = "Input Your Company Name"
 
 ## Save directory ##############################################################
 ##
