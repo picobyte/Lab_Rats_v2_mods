@@ -716,13 +716,13 @@ screen end_of_day_update():
             xsize 1500
             ysize 200
             text "Daily Statistics:" style "textbutton_text_style" size 20
-            text "     Current Efficency Modifier: %d%" % mc.business.team_effectiveness style "textbutton_text_style"
+            text "     Current Efficency Modifier: %d" % mc.business.team_effectiveness style "textbutton_text_style"
             text "     Production Potential: %d" % mc.business.production_potential style "textbutton_text_style"
             text "     Supplies Procured: %d Units" % mc.business.supplies_purchased style "textbutton_text_style"
             text "     Production Used: %d" % mc.business.production_used style "textbutton_text_style"
             text "     Research Produced: %d" % mc.business.research_produced style "textbutton_text_style"
             text "     Sales Made: $%d" % mc.business.sales_made style "textbutton_text_style"
-            text "     Daily Salary Paid: $" + str(mc.business.calculate_salary_cost()) style "textbutton_text_style"
+            text "     Daily Salary Paid: $%d" % mc.business.calculate_salary_cost() style "textbutton_text_style"
     
     frame:
         background "#1a45a1aa"
@@ -737,11 +737,13 @@ screen end_of_day_update():
             ysize 350
             vbox:
                 text "Highlights:" style "textbutton_text_style" size 20
-                for item in mc.business.message_list:
-                    text "     %s" % item style "textbutton_text_style"
-                
                 for item, count in mc.business.counted_message_list.iteritems():
-                    text "     %s x %d" % (item, count) style "textbutton_text_style"
+                    if count > 0:
+                        text "     %s x %d" % (item, count) style "textbutton_text_style"
+                    elif isinstance(basestring, item):
+                        text "     %s" % item style "textbutton_text_style"
+                    elif isinstance(item, tuple) and isinstance(item[0], Person):
+                        text "     %s (%s) %s" % (item[0].name, item[0].job.employment_title, item[1]) style "textbutton_text_style"
     
     frame:
         background None
@@ -2308,7 +2310,8 @@ label advance_time:
         
     python:    
         for (people,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.
-            people.run_move(place)
+            if people in place.people: # not when just quit crisis
+                people.run_move(place)
         
     return
 

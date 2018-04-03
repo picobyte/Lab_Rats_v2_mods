@@ -121,9 +121,7 @@ init -14 python:
                             mc.business.mandatory_crises_list.append(potential_quit_action)
 
                     else: #She's not quitting, but we'll let the player know she's unhappy TODO: Only present this message with a certain research/policy.
-                        warning_message = self.name + " " + self.last_name + " (" +mc.business.get_employee_title(self) + ") " + " is unhappy with her job and is considering quitting."
-                        if warning_message not in mc.business.message_list:
-                            mc.business.message_list.append(warning_message)
+                        mc.business.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
 
         def move(self, curr, dest):
             # if this errors, person is not in current. test this before calling!
@@ -144,11 +142,8 @@ init -14 python:
                     if self.should_wear_uniform():
                         self.wear_uniform()
                 else: #She does not work for us, scatter her somewhere public on the map.
-                    available_locations = [] #Check to see where is public (or where you are white listed) and move to one of those locations randomly
-                    for potential_location in list_of_places:
-                        if potential_location.public:
-                            available_locations.append(potential_location)
-                    self.move(location, renpy.random.choice(available_locations))
+                    #Check to see where is public (or where you are white listed) and move to one of those locations randomly
+                    self.move(location, renpy.random.choice([loc for loc in list_of_places if loc.public]))
 
 
         def run_day(self): #Called at the end of the day.
