@@ -79,56 +79,56 @@ init -2 python:
             show_array = []
             style_array = []
             if self.suggest_raise > 0:
-                show_array.append("+" + str(self.suggest_raise) + " Suggestability\n")
+                show_array.append("+%d Suggestability\n" % self.suggest_raise)
                 style_array.append("float_text_blue")
             elif self.suggest_raise < 0:
-                show_string.append("-" + str(self.suggest_raise) + " Suggestability\n")
+                show_string.append("-%d Suggestability\n" % self.suggest_raise)
                 style_array.append("float_text_blue")
             
             if self.happiness_raise > 0:
-                show_array.append("+" + str(self.happiness_raise) + " Happiness\n")
+                show_array.append("+%d Happiness\n" % self.happiness_raise)
                 style_array.append("float_text_blue")
             elif self.suggest_raise < 0:
-                show_string.append("-" + str(self.happiness_raise) + " Happiness\n")
+                show_string.append("-%d Happiness\n" % self.happiness_raise)
                 style_array.append("float_text_blue")
                 
             if self.slut_raise > 0:
-                show_array.append("+" + str(self.slut_raise) + " Sluttiness\n")
+                show_array.append("+%d Sluttiness\n" % self.slut_raise)
                 style_array.append("float_text_blue")
             elif self.slut_raise < 0:
-                show_string.append("-" + str(self.slut_raise) + " Sluttiness\n")
+                show_string.append("-%d Sluttiness\n" % self.slut_raise)
                 style_array.append("float_text_blue")
                 
             if self.obedience_raise > 0:
-                show_array.append("+" + str(self.obedience_raise) + " Obedience\n")
+                show_array.append("+%d Obedience\n" % self.obedience_raise)
                 style_array.append("float_text_blue")
             elif self.obedience_raise < 0:
-                show_string.append("-" + str(self.obedience_raise) + " Obedience\n")
+                show_string.append("-%d Obedience\n" % self.obedience_raise)
                 style_array.append("float_text_blue")
                 
             if self.cha_raise > 0:
-                show_array.append("+" + str(self.cha_raise) + " Charisma\n")
+                show_array.append("+%d Charisma\n" % self.cha_raise)
                 style_array.append("float_text_blue")
             elif self.cha_raise < 0:
-                show_array.append("-" + str(self.cha_raise) + " Charisma\n")
+                show_array.append("-%d Charisma\n" % self.cha_raise)
                 style_array.append("float_text_blue")
                 
             if self.int_raise > 0:
-                show_array.append("+" + str(self.int_raise) + " Intelligence\n")
+                show_array.append("+%d Intelligence\n" % self.int_raise)
                 style_array.append("float_text_blue")
             elif self.int_raise < 0:
-                show_array.append("-" + str(self.int_raise) + " Intelligence\n")
+                show_array.append("-%d Intelligence\n" % self.int_raise)
                 style_array.append("float_text_blue")
                 
             if self.foc_raise > 0:
-                show_array.append("+" + str(self.foc_raise) + " Focus\n")
+                show_array.append("+%d Focus\n" % self.foc_raise)
                 style_array.append("float_text_blue")
             elif self.foc_raise < 0:
-                show_array.append("-" + str(self.foc_raise) + " Focus\n")
+                show_array.append("-%d Focus\n" % self.foc_raise)
                 style_array.append("float_text_blue")
                 
             for effect in self.status_effects:
-                show_array.append("+ " + str(effect.name))
+                show_array.append("+ %s" % effect.name)
                 style_array.append("float_text_blue")
             
             renpy.show_screen("float_up_screen",show_array,style_array)
@@ -716,13 +716,13 @@ screen end_of_day_update():
             xsize 1500
             ysize 200
             text "Daily Statistics:" style "textbutton_text_style" size 20
-            text "     " + "Current Efficency Modifier: " + str(mc.business.team_effectiveness) + "%" style "textbutton_text_style"
-            text "     " + "Production Potential: " + str(mc.business.production_potential) style "textbutton_text_style"
-            text "     " + "Supplies Procured: " + str(mc.business.supplies_purchased) + " Units" style "textbutton_text_style"
-            text "     " + "Production Used: " + str(mc.business.production_used) style "textbutton_text_style"
-            text "     " + "Research Produced: " + str(mc.business.research_produced) style "textbutton_text_style"
-            text "     " + "Sales Made: $" + str(mc.business.sales_made) style "textbutton_text_style"
-            text "     " + "Daily Salary Paid: $" + str(mc.business.calculate_salary_cost()) style "textbutton_text_style"
+            text "     Current Efficency Modifier: %d%" % mc.business.team_effectiveness style "textbutton_text_style"
+            text "     Production Potential: %d" % mc.business.production_potential style "textbutton_text_style"
+            text "     Supplies Procured: %d Units" % mc.business.supplies_purchased style "textbutton_text_style"
+            text "     Production Used: %d" % mc.business.production_used style "textbutton_text_style"
+            text "     Research Produced: %d" % mc.business.research_produced style "textbutton_text_style"
+            text "     Sales Made: $%d" % mc.business.sales_made style "textbutton_text_style"
+            text "     Daily Salary Paid: $" + str(mc.business.calculate_salary_cost()) style "textbutton_text_style"
     
     frame:
         background "#1a45a1aa"
@@ -738,10 +738,10 @@ screen end_of_day_update():
             vbox:
                 text "Highlights:" style "textbutton_text_style" size 20
                 for item in mc.business.message_list:
-                    text "     " + item style "textbutton_text_style"
+                    text "     %s" % item style "textbutton_text_style"
                 
-                for item in mc.business.counted_message_list:
-                    text "     " + item + " x " + str(int(mc.business.counted_message_list[item])) style "textbutton_text_style"
+                for item, count in mc.business.counted_message_list.iteritems():
+                    text "     %s x %d" % (item, count) style "textbutton_text_style"
     
     frame:
         background None
@@ -757,31 +757,18 @@ screen end_of_day_update():
         
 screen employee_overview():
     add "Paper_Background.png"
-    default division_select = "None"
-    default division_name = "None"
-    $ showing_team = []
+    default div = mc.business.r_div
     modal True
     hbox:
         yalign 0.05
         xalign 0.05
-        textbutton "Research" action SetScreenVariable("division_select",mc.business.r_div.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Production" action SetScreenVariable("division_select",mc.business.p_div.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Supply" action SetScreenVariable("division_select",mc.business.s_div.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Marketing" action SetScreenVariable("division_select",mc.business.m_div.name) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Human Resources" action SetScreenVariable("division_select",mc.business.h_div.name) style "textbutton_style" text_style "textbutton_text_style"
-    
-    python:
-        for div in mc.business.division:
-            if division_select == div.name or mc.location.name == div.room.name:
-                showing_team = div.people
-                division_name = div.name
-                if division_select == div.name:
-                    break
-        if division_name == "None":
-            showing_team = []
-    
-    
-    text "Position: " + division_name style "menu_text_style" size 20 yalign 0.18 xalign 0.02 xanchor 0.0
+        textbutton "Research" action SetScreenVariable("div",mc.business.r_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Production" action SetScreenVariable("div",mc.business.p_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Supply" action SetScreenVariable("div",mc.business.s_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Marketing" action SetScreenVariable("div",mc.business.m_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Human Resources" action SetScreenVariable("div",mc.business.h_div) style "textbutton_style" text_style "textbutton_text_style"
+
+    text "Position: %s" % div.name style "menu_text_style" size 20 yalign 0.18 xalign 0.02 xanchor 0.0
     frame:
         yalign 0.2
         xalign 0.5
@@ -792,7 +779,7 @@ screen employee_overview():
             area (1,0,1800,600)
             viewport id "Positions_list":
                 draggable True mousewheel True
-                grid 14 len(showing_team)+1:
+                grid 14 len(div.people)+1:
                     text "Name" style "menu_text_style"
                     text "Salary" style "menu_text_style"
                     text "Happiness" style "menu_text_style"
@@ -808,10 +795,10 @@ screen employee_overview():
                     text "Marketing " style "menu_text_style"
                     text "HR" style "menu_text_style"
 
-                    for person in showing_team:
+                    for person in div.people:
                         textbutton person.name + "\n" + person.last_name style "textbutton_style" text_style "menu_text_style" action Show("person_info_detailed",None,person)
 #                        text person.name + "\n" + person.last_name style "menu_text_style"
-                        text "$" + str(person.salary) + "/day" style "menu_text_style"
+                        text "$%d/day" % person.salary style "menu_text_style"
                         text str(int(person.happiness)) style "menu_text_style"
                         text str(int(person.obedience)) style "menu_text_style"
                         text str(int(person.sluttiness)) style "menu_text_style"
@@ -945,19 +932,19 @@ screen mc_character_sheet(): #TODO: Impliment a level up system for the main cha
             xsize 600
             xanchor -0.5
             text "Main Stats" style "menu_text_style" size 25 xalign 0.5
-            text "Charisma: " + str(mc.charisma) style "menu_text_style" xalign 0.5
-            text "Intelligence: " + str(mc.int) style "menu_text_style" xalign 0.5
-            text "Focus: " + str(mc.focus) style "menu_text_style" xalign 0.5
+            text "Charisma: %d" % mc.charisma style "menu_text_style" xalign 0.5
+            text "Intelligence: %d" % mc.int style "menu_text_style" xalign 0.5
+            text "Focus: %d" % mc.focus style "menu_text_style" xalign 0.5
             
         vbox:
             xsize 600
             xalign 0.5
             text "Work Skills" style "menu_text_style" size 25 xalign 0.5
-            text "Human Resources: " + str(mc.hr_skill) style "menu_text_style" xalign 0.5
-            text "Marketing: " + str(mc.market_skill) style "menu_text_style" xalign 0.5
-            text "Research and Development: " + str(mc.research_skill) style "menu_text_style" xalign 0.5
-            text "Production: " + str(mc.production_skill) style "menu_text_style" xalign 0.5
-            text "Supply Procurement: " + str(mc.supply_skill) style "menu_text_style" xalign 0.5
+            text "Human Resources: %d" % mc.hr_skill style "menu_text_style" xalign 0.5
+            text "Marketing: %d" % mc.market_skill style "menu_text_style" xalign 0.5
+            text "Research and Development: %d" % mc.research_skill style "menu_text_style" xalign 0.5
+            text "Production: %d" % mc.production_skill style "menu_text_style" xalign 0.5
+            text "Supply Procurement: %d" % mc.supply_skill style "menu_text_style" xalign 0.5
             
         vbox:
             xsize 600
@@ -1318,7 +1305,7 @@ screen outfit_creator(starting_outfit): ##Pass a completely blank outfit instanc
         
         vbox:
             text "Outfit Stats" style "menu_text_style"
-            text "Sluttiness Required: " + str(demo_outfit.slut_requirement) style "menu_text_style"
+            text "Sluttiness Required: %d" % demo_outfit.slut_requirement style "menu_text_style"
             text "Tits Visible: " + str(demo_outfit.tits_visible()) style "menu_text_style"
             text "Tits Usable: " + str(demo_outfit.tits_available()) style "menu_text_style"
             text "Wearing a Bra: " + str(demo_outfit.wearing_bra()) style "menu_text_style"
