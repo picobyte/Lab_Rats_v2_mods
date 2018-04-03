@@ -346,7 +346,7 @@ label set_uniform_description:
 
     python:
         if _return != "No Return":
-            if isinstance(selected_div, Division):
+            if selected_div in mc.business.division:
                 div.uniform = _return
             else:
                 for div in mc.business.division:
@@ -371,7 +371,7 @@ label set_serum_description:
 
     python:
         if selected_serum != "None": #IF we didn't select an actual serum, just return and don't chagne anything.
-            if isinstance(selected_div, Division):
+            if selected_div in mc.business.division:
                 selected_div.serum = selected_serum
             else:
                 for div in mc.business.division:

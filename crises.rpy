@@ -379,7 +379,6 @@ init 1 python:
         
 label water_spill_crisis_label():
     $ the_person = renpy.random.choice(mc.business.get_employee_list())
-    $ the_place = mc.business.get_employee_workstation(the_person)
     $ ordered_top = the_person.outfit.get_upper_ordered()
     if len(ordered_top) == 0:
         return #She's not wearing a top, we can't exactly spill water on nothing!
@@ -569,7 +568,7 @@ init 1 python:
             return False
             
 label quitting_crisis_label(the_person): #The person tries to quit, you have a chance to keep her around for a hefty raise (Or by fucking her, if her sluttiness is high enough).
-    if mc.business.get_employee_workstation(the_person) is None:
+    if not mc.business.is_employee(the_person):
         return #They're already not employed now, just return and go about your business.
     
     if the_person.get_job_happiness_score() >= 0:

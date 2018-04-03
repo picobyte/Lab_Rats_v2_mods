@@ -24,7 +24,7 @@ init -16 python:
         list_of_skins = [("white", 3), ("black", 1), ("tan", 1)] # TODO make weigths configureable as preference for user.
         list_of_tits = [("AA",5), ("A",15), ("B",30), ("C",30), ("D",15), ("DD",10), ("DDD",5), ("E",2), ("F",1), ("FF",1)]
 
-        list_of_jobs = [Division(employment_title=n) for n in ["scientist", "secretary", "PR representative", "sales person"]]
+        list_of_jobs = ["scientist", "secretary", "PR representative", "sales person"]
 
         technobabble_list = [ "optimize the electromagnetic pathways", "correct for the nanowave signature", "de-scramble the thermal injector",
                              "crosslink the long chain polycarbons", "carbonate the ethyl groups", "oxdize the functional group",

@@ -27,7 +27,7 @@ init -25 python:
             self.connections = connections
             self.background_image = background_image
             self.objects = objects # dict with string object and counts, traits defined in object_traits
-            self.people = people
+            self.people = set(people)
             self.actions = actions #A list of Action objects
             self.public = public #If True, random people can wander here. TODO: Update rooms to include this value.
             self.map_pos = map_pos #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically.

@@ -1,16 +1,16 @@
 init -23 python:
     class Division(renpy.store.object):
-        def __init__(self, name="Some other company", people=None, room=None, employment_title=None):
+        def __init__(self, name="Freelancer", people=None, room=None, jobs=None):
             self.name = name
-            self.people = people or []
-            self.employment_title = employment_title or name
+            self.people = set(people or []) # may be away, test room.people for non-absensent
+            self.jobs = set(jobs or [name])
             self.room = room
-            self.uniform = None
             self.serum = None
+            self.uniform = None
 
         def give_daily_serum(self, inventory):
             if self.serum:
-                for person in self.people:
+                for person in self.room.people:
                     if inventory.get_serum_count(self.serum) > 0:
                         inventory.change_serum(self.serum,-1)
                         person.give_serum(copy.copy(self.serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
@@ -18,6 +18,11 @@ init -23 python:
                         return "Stockpile ran out of %s to give to the %s division." % (self.serum.name, self.name.lower())
 
     class Business(renpy.store.object):
+        def __init__(self, name, division):
+            self.name = name
+            self.division = set(division)
+
+    class MyCorp(Business):
         # main jobs to start with:
         # 1) buying raw supplies.
         # 2) researching new serums.
@@ -27,12 +32,6 @@ init -23 python:
         # 5) Packaging and selling serums that have been produced.
         # 6) General secretary work. Starts at none needed, grows as your company does (requires an "HR", eventually). Maybe a general % effectivness rating.
         def __init__(self, name, m_room, p_room, rd_room, s_room, h_room, lobby):
-            self.name = name
-            self.funds = 1000 #Your starting wealth.
-
-            self.bankrupt_days = 0 #How many days you've been bankrupt. If it hits the max value you lose.
-            self.max_bankrupt_days = 3 #How many days you can be negative without loosing the game. Can be increased through research.
-
             # m_div etc: The phsyical locations of all of the teams, so you can move to different offices in the future.
 
             # Increases company marketability. Raises max price serum can be sold for, and max volumn that can be sold.
@@ -42,19 +41,24 @@ init -23 python:
             self.p_div = Division("Production", [], p_room)
 
             # Researches new serums that the player designs, does theoretical research into future designs, or improves old serums slightly over time
-            self.r_div = Division("Research and Development", [], rd_room, "Researcher")
+            self.r_div = Division("Research and Development", [], rd_room, ["Researcher"])
 
             # Buys the raw supplies used by the other departments.
-            self.s_div = Division("Supply Procurement", [], s_room, "Supply")
+            self.s_div = Division("Supply Procurement", [], s_room, ["Supply"])
 
             # Manages everyone else and improves effectiveness. Needed as company grows.
             self.h_div = Division("Human Resources", [], h_room)
+            super(MyCorp, self).__init__(name, [self.m_div, self.p_div, self.r_div, self.s_div, self.h_div])
+
+            self.funds = 1000 #Your starting wealth.
+
+            self.bankrupt_days = 0 #How many days you've been bankrupt. If it hits the max value you lose.
+            self.max_bankrupt_days = 3 #How many days you can be negative without loosing the game. Can be increased through research.
+
 
             #update lobby name, once business exists
             lobby.name = self.name + " " + lobby.name
             lobby.formalName = self.name + " " + lobby.formalName
-
-            self.division = [self.m_div, self.p_div, self.r_div, self.s_div, self.h_div]
 
             self.supply_count = 0
             self.supply_goal = 250
@@ -88,12 +92,12 @@ init -23 python:
             #Compute efficency drop
             for div in self.division:
                 for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
-                    if person.job is div:
+                    if person.job is div.jobs:
                         self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 
             #Compute effiency rise from HR
             for person in self.h_div.room.people:
-                if person.job is self.h_div:
+                if person.job is self.h_div.jobs:
                     self.hr_progress(person.charisma,person.int,person.hr_skill)
 
             if self.team_effectiveness < 50:
@@ -104,19 +108,19 @@ init -23 python:
 
             #Compute other deparement effects
             for person in self.s_div.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
-                if person.job is self.s_div:
+                if person.job is self.s_div.jobs:
                     self.supply_purchase(person.focus,person.charisma,person.supply_skill)
 
             for person in self.r_div.room.people:
-                if person.job is self.r_div:
+                if person.job is self.r_div.jobs:
                     self.research_progress(person.int,person.focus,person.research_skill)
 
             for person in self.p_div.room.people:
-                if person.job is self.p_div:
+                if person.job is self.p_div.jobs:
                     self.production_progress(person.focus,person.int,person.production_skill)
 
             for person in self.m_div.room.people:
-                if person.job is self.m_div:
+                if person.job is self.m_div.jobs:
                     self.sale_progress(person.charisma,person.focus,person.market_skill)
 
         def run_day(self): #Run at the end of the day.
@@ -132,9 +136,9 @@ init -23 python:
             else:
                 return False
 
-        def get_uniform(self,title): #Takes a division (a room) and returns the correct uniform for that division, if one exists. If it is None, returns false.
+        def get_uniform(self, job): #Takes a division (a room) and returns the correct uniform for that division, if one exists. If it is None, returns false.
             for div in self.division:
-                if title == div.employment_title:
+                if job in div.jobs:
                     return div.uniform
 
         def clear_messages(self): #clear all messages for the day.
@@ -257,11 +261,11 @@ init -23 python:
         def hr_progress(self,cha,int,skill): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
             self.team_effectiveness += (3*cha) + (int) + (2*skill) + 10
 
-        def add_employee(self, new_person, division, to_room_as_well=True):
-            division.people.append(new_person)
-            new_person.job = division
+        def add_employee(self, new_person, division, job=None, to_room_as_well=True):
+            division.people.add(new_person)
+            new_person.job = job or renpy.random.sample(division.jobs, 1)[0]
             if to_room_as_well:
-                division.room.people.append(new_person)
+                division.room.people.add(new_person)
 
         def remove_employee(self, the_person):
             for div in self.division:
@@ -270,6 +274,8 @@ init -23 python:
                     if the_person in div.room.people:
                         div.room.people.remove(the_person)
                     break
+        def is_employee(self, person):
+            return any(person in div.people for div in self.division)
 
         def get_employee_list(self):
             return [people for div in self.division for people in div.people]
@@ -287,14 +293,8 @@ init -23 python:
         def get_employee_title(self, the_person):
             for div in self.division:
                 if the_person in div.people:
-                    return div.employment_title
+                    return the_person.job
             return "None"
-
-        def get_employee_workstation(self, the_person): #Returns the location a girl should be working at, or "None" if the girl does not work for you
-            for div in self.division:
-                if the_person in div.people:
-                    return div.room
-            return None
 
         def give_daily_serum(self):
             for div in self.division:

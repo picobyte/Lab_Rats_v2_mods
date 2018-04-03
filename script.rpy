@@ -744,7 +744,7 @@ screen end_of_day_update():
                     elif isinstance(item, basestring):
                         text "     %s" % item style "textbutton_text_style"
                     elif isinstance(item, tuple) and isinstance(item[0], Person):
-                        text "     %s (%s) %s" % (item[0].name, item[0].job.employment_title, item[1]) style "textbutton_text_style"
+                        text "     %s (%s) %s" % (item[0].name, item[0].job, item[1]) style "textbutton_text_style"
     
     frame:
         background None
@@ -1828,6 +1828,7 @@ label talk_person(the_person, repeat_choice = None):
 
         "Chat about something.":
             $ repeat_choice = None
+            $ is_employee = mc.business.is_employee(the_person)
             menu:
                 "Compliment her outfit.":
                     $ repeat_choice = "compliment her outfit"
@@ -1835,14 +1836,14 @@ label talk_person(the_person, repeat_choice = None):
                 "Flirt with her.":
                     $ repeat_choice = "flirt with her"
                     call flirt_with_her  from chat_flirt
-                "Compliment her recent work." if mc.business.get_employee_workstation(the_person):
+                "Compliment her recent work." if is_employee:
                     $ repeat_choice = "compliment her recent work"
                     call compliment_her_recent_work  from chat_compliment_work
-                "Insult her recent work." if mc.business.get_employee_workstation(the_person):
+                "Insult her recent work." if is_employee:
                     $ repeat_choice = "insult her recent work"
                     call insult_her_recent_work  from chat_insult
 
-                "Offer a cash bonus." if  mc.business.get_employee_workstation(the_person) and 0 < time_of_day < 4:
+                "Offer a cash bonus." if is_employee and 0 < time_of_day < 4:
                     mc.name "So [the_person.name], you've been putting in a lot of good work at the lab lately and I wanted to make sure you were rewarded properly for that."
                     "You pull out your wallet and start to pull out a few bills."
                     $weeks_wages = the_person.salary*5
@@ -1968,7 +1969,7 @@ label talk_person(the_person, repeat_choice = None):
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
             $ selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
-            if selected_div != the_person.job:
+            if the_person.job not in selected_div.jobs:
                 $ mc.business.remove_employee(the_person)
                 $ mc.business.add_employee(the_person, selected_div)
                 the_person.name "I'll get started right away!"
@@ -2291,7 +2292,7 @@ label advance_time:
     hide screen person_info_ui
     show screen business_ui
     
-    if time_of_day == 4: ##First, determine if we're going into the next chunk of time. If we are, advance the day and run all of the end of day code.
+    if time_of_day == 4: ##First, determine /if we're going into the next chunk of time. If we are, advance the day and run all of the end of day code.
         $ time_of_day = 0
         $ day += 1
         python:
@@ -2321,8 +2322,7 @@ label advance_time:
         
     python:    
         for (people,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.
-            if people in place.people: # not when just quit crisis
-                people.run_move(place)
+            people.run_move(place)
         
     return
 

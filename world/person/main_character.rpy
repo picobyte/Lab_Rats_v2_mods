@@ -122,7 +122,7 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
         list_of_traits.append(obedience_enhancer)
 
         ##PC starts in his bedroom##
-        main_business = Business(business_name, m_room, p_room, rd_room, office, office, lobby)
+        main_business = MyCorp(business_name, m_room, p_room, rd_room, office, office, lobby)
         mc = MainCharacter(bedroom,character_name,main_business,stat_array,skill_array,_sex_array)
 
         list_of_places = [] #By having this in an init block it may be set to null each time the game is reloaded, because the initialization stuff below is only called once.
@@ -187,7 +187,7 @@ label create_test_variables(character_name,business_name,stat_array,skill_array,
             if place.public:
                 random_count = renpy.random.randint(1,max_num_of_random)
                 for x in range(0,random_count):
-                    place.people.append(create_random_person()) #We are using create_random_person instead of make_person because we want premade character bodies to be hirable instead of being eaten up by towns-folk.
+                    place.people.add(create_random_person()) #We are using create_random_person instead of make_person because we want premade character bodies to be hirable instead of being eaten up by towns-folk.
 
         ##Global Variable Initialization##
         day = 0 ## Game starts on day 0.

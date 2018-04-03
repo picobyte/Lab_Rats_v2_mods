@@ -111,7 +111,7 @@ init -14 python:
 
             #Now we want to see if she's unhappy enough to quit. We will tally her "happy points", a negative number means a chance to quit.
 
-            if mc.business.get_employee_workstation(self) is not None: #Only let people who work for us quit their job.
+            if any(self in div.people for div in mc.business.division): #Only let people who work for us quit their job.
                 happy_points = self.get_job_happiness_score()
                 if happy_points < 0: #We have a chance of quitting.
                     chance_to_quit = happy_points * -2 #there is a %2*unhappiness chance that the girl will quit.
@@ -124,9 +124,9 @@ init -14 python:
                         mc.business.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
 
         def move(self, curr, dest):
-            # if this errors, person is not in current. test this before calling!
-            if not curr is dest: # Don't bother moving people who are already there.
-                dest.people.append(curr.people.pop(curr.people.index(self)))
+            if not curr is dest and self in curr.people: # Don't bother moving people who are already there.
+                curr.people.remove(self)
+                dest.people.add(self)
 
         def run_move(self,location): #Move to the apporpriate place for the current time unit, ie. where the player should find us.
 
@@ -134,13 +134,14 @@ init -14 python:
 
             if time_of_day == 0 or time_of_day == 4: #Home time
                 self.move(location, downtown) #Move to downtown as proxy for home.
-            else:
-                work_destination = mc.business.get_employee_workstation(self)
 
-                if work_destination is not None: #She works for us, move her to her work station,
-                    self.move(location, work_destination)
-                    if self.should_wear_uniform():
-                        self.wear_uniform()
+            else:
+                for div in mc.business.division:
+                    if self in div.people:  #She works for us, move her to her work station,
+                        self.move(location, div.room)
+                        if self.should_wear_uniform():
+                            self.wear_uniform()
+                        break
                 else: #She does not work for us, scatter her somewhere public on the map.
                     #Check to see where is public (or where you are white listed) and move to one of those locations randomly
                     self.move(location, renpy.random.choice([loc for loc in list_of_places if loc.public]))
@@ -359,16 +360,15 @@ init -14 python:
 
         def should_wear_uniform(self):
             #Check to see if we are: 1) Employed by the PC. 2) At work right now. 3) there is a uniform set for our department.
-            employment_title = mc.business.get_employee_title(self)
-            if employment_title != "None":
-                if mc.business.is_open_for_business(): #We should be at work right now, so if there is a uniform we should wear it.
-                    if mc.business.get_uniform(employment_title) is not None:
-                        return True
+            if mc.business.is_open_for_business(): #We should be at work right now, so if there is a uniform we should wear it.
+                for div in mc.business.division:
+                    if self in div.people:
+                        return mc.business.get_uniform(self.job)
 
             return False #If we fail to meet any of the above conditions we should return false.
 
         def wear_uniform(self): #Puts the girl into her uniform, if it exists.
-            the_uniform = mc.business.get_uniform(mc.business.get_employee_title(self)) #Get the uniform for her department.
+            the_uniform = mc.business.get_uniform(self.job) #Get the uniform for her department.
             self.outfit = copy.deepcopy(the_uniform) #We already know we work for the mc if we should be wearing a uniform. Take a deep copy so strips don't leave us naked.
 
         def get_job_happiness_score(self):
