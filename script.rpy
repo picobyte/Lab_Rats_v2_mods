@@ -738,10 +738,10 @@ screen end_of_day_update():
             ysize 350
             vbox:
                 text "Highlights:" style "textbutton_text_style" size 20
-                for item, count in mc.business.counted_message_list.iteritems():
+                for item, count in mc.business.message_list.iteritems():
                     if count > 0:
                         text "     %s x %d" % (item, count) style "textbutton_text_style"
-                    elif isinstance(basestring, item):
+                    elif isinstance(item, basestring):
                         text "     %s" % item style "textbutton_text_style"
                     elif isinstance(item, tuple) and isinstance(item[0], Person):
                         text "     %s (%s) %s" % (item[0].name, item[0].job.employment_title, item[1]) style "textbutton_text_style"
