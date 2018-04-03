@@ -1203,8 +1203,8 @@ screen serum_production_select_ui:
 screen serum_inventory_select_ui(the_inventory): #Used to let the player select a serum from an inventory.
     add "Science_Menu_Background.png"
     vbox:
-        for serum in the_inventory.serums_held:
-            textbutton serum[0].name + "(" + str(serum[1]) + ")" action [Hide("serum_tooltip"),Return(serum[0])] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum[0]) unhovered Hide("serum_tooltip")
+        for serum, count in the_inventory.serums_held.iteritems():
+            textbutton "%s (%d)" % (serum, count) action [Hide("serum_tooltip"),Return(serum[0])] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum[0]) unhovered Hide("serum_tooltip")
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
             
         
@@ -1344,7 +1344,7 @@ screen outfit_delete_manager(the_wardrobe): ##Allows removal of outfits from pla
     default preview_outfit = None
     vbox:
         for outfit in the_wardrobe.get_outfit_list():
-            textbutton "Delete "+outfit.name+ " (Sluttiness " +str(outfit.slut_requirement) +")" action Function(the_wardrobe.remove_outfit,outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
+            textbutton "Delete %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Function(the_wardrobe.remove_outfit,outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
         
         textbutton "Return" action Return() style "textbutton_style" text_style "textbutton_text_style"
         
@@ -1366,7 +1366,7 @@ screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the player
     default preview_outfit = None
     vbox:
         for outfit in mc.designed_wardrobe.get_outfit_list():
-            textbutton "Load "+outfit.name+ " (Sluttiness " +str(outfit.slut_requirement) +")" action Return(copy.deepcopy(outfit)) sensitive (outfit.slut_requirement <= slut_limit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
+            textbutton "Load %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(copy.deepcopy(outfit)) sensitive (outfit.slut_requirement <= slut_limit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
             
         textbutton "Return" action Return("No Return") style "textbutton_style" text_style "textbutton_text_style"
         
@@ -1386,7 +1386,7 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
     default preview_outfit = None
     vbox:
         for outfit in the_wardrobe.get_outfit_list():
-            textbutton "Wear "+outfit.name+ " (Sluttiness " +str(outfit.slut_requirement) +")" action Return(outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
+            textbutton "Wear %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
         
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
         
@@ -1421,7 +1421,7 @@ screen map_manager():
                     focus_mask "gui/LR2_Hex_Button_idle.png"
                     action Function(mc.change_location,place) 
                     sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
-                text place.formalName + "\n(" + str(len(place.people)) + ")" anchor [0.5,0.5] style "map_text_style"
+                text place.formalName + "\n(%d)" % len(place.people) anchor [0.5,0.5] style "map_text_style"
 
         else:
             frame:
@@ -1436,7 +1436,7 @@ screen map_manager():
                     focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
                     action Function(mc.change_location,place) 
                     sensitive False 
-                text place.formalName + "\n(" + str(len(place.people)) + ")" anchor [0.5,0.5] style "map_text_style" 
+                text place.formalName + "\n(%d)" % len(place.people) anchor [0.5,0.5] style "map_text_style" 
     
     frame:
         background None
