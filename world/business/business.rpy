@@ -87,13 +87,13 @@ init -23 python:
 
             #Compute efficency drop
             for div in self.division:
-                for person in div.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
-                    if person in div.room.people:
+                for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
+                    if person.job is div:
                         self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 
             #Compute effiency rise from HR
-            for person in self.m_div.people:
-                if person in div.room.people:
+            for person in self.h_div.room.people:
+                if person.job is self.h_div:
                     self.hr_progress(person.charisma,person.int,person.hr_skill)
 
             if self.team_effectiveness < 50:
@@ -103,20 +103,20 @@ init -23 python:
                 self.team_effectiveness = self.effectiveness_cap
 
             #Compute other deparement effects
-            for person in self.s_div.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
-                if person in div.room.people:
+            for person in self.s_div.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
+                if person.job is self.s_div:
                     self.supply_purchase(person.focus,person.charisma,person.supply_skill)
 
-            for person in self.r_div.people:
-                if person in div.room.people:
+            for person in self.r_div.room.people:
+                if person.job is self.r_div:
                     self.research_progress(person.int,person.focus,person.research_skill)
 
-            for person in self.p_div.people:
-                if person in div.room.people:
+            for person in self.p_div.room.people:
+                if person.job is self.p_div:
                     self.production_progress(person.focus,person.int,person.production_skill)
 
-            for person in self.m_div.people:
-                if person in div.room.people:
+            for person in self.m_div.room.people:
+                if person.job is self.m_div:
                     self.sale_progress(person.charisma,person.focus,person.market_skill)
 
         def run_day(self): #Run at the end of the day.
