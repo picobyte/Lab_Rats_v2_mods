@@ -26,5 +26,6 @@ init -22 python:
                 if image_set == None:
                     image_set = self.red["stand1"]
 
-            shader_image = ShaderDisplayable(shader.MODE_2D, image_set.filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":[1,1,1,1]}) #TODO: This should take a colour parameter and colour the hair in game.
+            shader_image = im.Recolor(image_set.filename,255,255,255,255)
+            #shader_image = ShaderDisplayable(shader.MODE_2D, image_set.filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":[1,1,1,1]}) #TODO: This should take a colour parameter and colour the hair in game.
             renpy.show(self.name,at_list=[right,scale_person(height)],layer="Active",what=shader_image,tag=self.name)

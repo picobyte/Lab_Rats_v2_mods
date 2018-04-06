@@ -65,7 +65,8 @@ init -24 python:
                 else:
                     the_image = image_set.images[body_type+"_AA"] #We get the image set with no breast sizes because they are not needed.
 
-                shader_image = ShaderDisplayable(shader.MODE_2D, the_image.filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":self.colour})
+                shader_image = im.Recolor(the_image.filename,int(self.colour[0]*255),int(self.colour[1]*255),int(self.colour[2]*255),int(self.colour[3]*255))
+                # shader_image = ShaderDisplayable(shader.MODE_2D, the_image.filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":self.colour})
                 renpy.show(body_name + tit_name,at_list=[right,scale_person(height)],layer="Active",what=shader_image,tag=body_name+tit_name)
 
     class Clothing_Images(renpy.store.object): # Stores a set of images for a single piece of cloting in a single position. The position is stored when it is put into the clothing object dict.

@@ -335,6 +335,7 @@ screen navigation():
     if main_menu: # This is used if we are on the main menu at the start of the game.
         add "images/LR2_Title.png"
         frame: #Central main menu button
+            background None
             xsize 500
             ysize 125
             anchor (0.5,0.5)
@@ -346,6 +347,7 @@ screen navigation():
             text "New Game" align (0.5,0.5) xanchor 0.5
             
         frame: #Bottom Left Patreon button
+            background None
             xsize 500
             ysize 125
             anchor (0.5,0.5)
@@ -356,7 +358,8 @@ screen navigation():
                 focus_mask "gui/button/choice_idle_background.png"
             text "About" align (0.5,0.5) xanchor 0.5
         
-        frame: #Bottom Right about button 
+        frame: #Bottom Right about button
+            background None
             xsize 500
             ysize 125
             anchor (0.5,0.5)
@@ -368,6 +371,7 @@ screen navigation():
             image "Patreon_Link_Image_idle.png" align (0.5,0.5) anchor(0.5,0.5)
             
         frame: #Load top left button
+            background None
             xsize 500
             ysize 125
             anchor (0.5,0.5)
@@ -379,6 +383,7 @@ screen navigation():
             text "Load Game" align (0.5,0.5) xanchor 0.5
             
         frame: #Preferences top right button
+            background None
             xsize 500
             ysize 125
             anchor (0.5,0.5)
@@ -390,6 +395,7 @@ screen navigation():
             text "Preferences" align (0.5,0.5) xanchor 0.5
             
         frame: #Quit middle buttom button
+            background None
             xsize 500
             ysize 125
             anchor (0.5,0.5)
