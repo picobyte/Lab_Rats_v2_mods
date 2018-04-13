@@ -4,7 +4,7 @@ init -23 python:
             self.name = name
             self.people = set(people or []) # may be away, test room.people for non-absensent
             self.jobs = set(jobs or [name])
-            self.room = room
+            self.room = world[room]
             self.serum = None
             self.uniform = None
 
@@ -31,34 +31,30 @@ init -23 python:
         # 4) Working in marketing. Increases volumn you can sell, and max price you can sell for.
         # 5) Packaging and selling serums that have been produced.
         # 6) General secretary work. Starts at none needed, grows as your company does (requires an "HR", eventually). Maybe a general % effectivness rating.
-        def __init__(self, name, m_room, p_room, rd_room, s_room, h_room, lobby):
+        def __init__(self):
             # m_div etc: The phsyical locations of all of the teams, so you can move to different offices in the future.
+            name = persistent.company_name
 
             # Increases company marketability. Raises max price serum can be sold for, and max volumn that can be sold.
-            self.m_div = Division("Marketing", [], m_room)
+            self.m_div = Division("Marketing", [], "m_room")
 
             # Physically makes the serum and sends it off to be sold.
-            self.p_div = Division("Production", [], p_room)
+            self.p_div = Division("Production", [], "p_room")
 
             # Researches new serums that the player designs, does theoretical research into future designs, or improves old serums slightly over time
-            self.r_div = Division("Research and Development", [], rd_room, ["Researcher"])
+            self.r_div = Division("Research and Development", [], "rd_room", ["Researcher"])
 
             # Buys the raw supplies used by the other departments.
-            self.s_div = Division("Supply Procurement", [], s_room, ["Supply"])
+            self.s_div = Division("Supply Procurement", [], "office", ["Supply"])
 
             # Manages everyone else and improves effectiveness. Needed as company grows.
-            self.h_div = Division("Human Resources", [], h_room)
+            self.h_div = Division("Human Resources", [], "office")
             super(MyCorp, self).__init__(name, [self.m_div, self.p_div, self.r_div, self.s_div, self.h_div])
 
             self.funds = 1000 #Your starting wealth.
 
             self.bankrupt_days = 0 #How many days you've been bankrupt. If it hits the max value you lose.
             self.max_bankrupt_days = 3 #How many days you can be negative without loosing the game. Can be increased through research.
-
-
-            #update lobby name, once business exists
-            lobby.name = self.name + " " + lobby.name
-            lobby.formalName = self.name + " " + lobby.formalName
 
             self.supply_count = 0
             self.supply_goal = 250
@@ -68,6 +64,7 @@ init -23 python:
             self.team_effectiveness = 100 #Ranges from 50 (Chaotic, everyone functions at 50% speed) to 200 (masterfully organized). Normal levels are 100, special traits needed to raise it higher.
             self.effectiveness_cap = 100 #Max cap, can be raised.
 
+            self.serum_traits = default_serum_traits
             self.serum_designs = []
             self.active_research_design = None #
 
@@ -92,12 +89,12 @@ init -23 python:
             #Compute efficency drop
             for div in self.division:
                 for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
-                    if person.job is div.jobs:
+                    if person.job in div.jobs:
                         self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 
             #Compute effiency rise from HR
             for person in self.h_div.room.people:
-                if person.job is self.h_div.jobs:
+                if person.job in self.h_div.jobs:
                     self.hr_progress(person.charisma,person.int,person.hr_skill)
 
             if self.team_effectiveness < 50:
@@ -108,19 +105,19 @@ init -23 python:
 
             #Compute other deparement effects
             for person in self.s_div.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
-                if person.job is self.s_div.jobs:
+                if person.job in self.s_div.jobs:
                     self.supply_purchase(person.focus,person.charisma,person.supply_skill)
 
             for person in self.r_div.room.people:
-                if person.job is self.r_div.jobs:
+                if person.job in self.r_div.jobs:
                     self.research_progress(person.int,person.focus,person.research_skill)
 
             for person in self.p_div.room.people:
-                if person.job is self.p_div.jobs:
+                if person.job in self.p_div.jobs:
                     self.production_progress(person.focus,person.int,person.production_skill)
 
             for person in self.m_div.room.people:
-                if person.job is self.m_div.jobs:
+                if person.job in self.m_div.jobs:
                     self.sale_progress(person.charisma,person.focus,person.market_skill)
 
         def run_day(self): #Run at the end of the day.
@@ -155,20 +152,32 @@ init -23 python:
                 daily_cost += person.salary
             return daily_cost
 
-        def add_serum_design(self,the_serum):
-            self.serum_designs.append(the_serum)
+        def add_serum_design(self,serum):
+            while not "name" in serum:
+                name = renpy.input("Please give this serum design a name.")
+                if not name or name in self.serum_designs:
+                    renpy.say("", "That name is already registered. Please use another.")
+                else:
+                    serum["name"] = name
+            self.serum_designs.append(serum)
 
-        def set_serum_research(self,new_research):
-            self.active_research_design = new_research
+        def set_serum_research(self,name):
+            self.active_research_design = name
+
+        def is_reasearching_drug(self):
+            return self.active_research_design and "value" in self.active_research_design
 
         def research_progress(self,int,focus,skill):
-            research_amount = __builtin__.round(((3*int) + (focus) + (2*skill) + 10) * (self.team_effectiveness))/100
+            research_amount = __builtin__.round(((3*int) + focus + (2*skill) + 10) * self.team_effectiveness)/100
             self.research_produced += research_amount
-            if self.active_research_design != None:
-                if self.active_research_design.add_research(research_amount): #Returns true if the research is completed by this amount'
-                    if type(self.active_research_design) is SerumDesign:
-                        self.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",self.active_research_design)) #Create a serum finished crisis, it will trigger at the end of the round
-                    self.message_list["Finished researching: " + self.active_research_design.name] = 0
+            if self.active_research_design:
+                design = self.active_research_design
+                design["research done"] += research_amount
+
+                if design["research done"] >= design["research required"]: #Returns true if the research is completed by this amount'
+                    if "value" in design: # its a drug
+                        self.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",design)) #Create a serum finished crisis, it will trigger at the end of the round
+                    self.message_list["Finished researching: %s" % design["name"]] = 0
                     self.active_research_design = None
 
         def player_research(self):
@@ -284,11 +293,11 @@ init -23 python:
             return sum([len(div.people) for div in self.division])
 
         def get_max_employee_slut(self):
-            max = -1 #Set to -1 for an empty business, all calls should require at least sluttiness 0
+            maximum = -1 #Set to -1 for an empty business, all calls should require at least sluttiness 0
             for person in self.get_employee_list():
-                if person.sluttiness > max:
-                    max = person.sluttiness
-            return max
+                if person.sluttiness > maximum:
+                    maximum = person.sluttiness
+            return maximum
 
         def get_employee_title(self, the_person):
             for div in self.division:

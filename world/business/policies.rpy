@@ -77,12 +77,12 @@
         "Recruitment Skill Improvement": {
             "desc": "Restricting your recruitment search to university and college graduates improves their skill across all disiplines. " +
             "Raises all skill caps when hiring new employees by two.",
-            "cost": 800, "req": set(), "effect": {"skill_cap": 2}
+            "cost": 800, "req": set(), "effect": {"Work Skills": 2}
         },
         "Recruitment Stat Improvment": {
             "desc": "A wide range of networking connections can put you in touch with the best and brightest in the industry. " +
             "Raises all statistic caps when hiring new employees by two.",
-            "cost": 1500, "req": set(["Recruitment Skill Improvement"]), "effect": {"stat_cap": 2}
+            "cost": 1500, "req": set(["Recruitment Skill Improvement"]), "effect": {"Main Stats": 2}
         },
         "High Suggestibility Recruits": {
             "desc": "You change your focus to hiring younger, more impressionable employees. New employees will all have a starting suggestibility of 10.",
@@ -102,18 +102,18 @@
         #### SEX SKILLS IMPROVEMENT POLICIES ####
         "Foreplay Skill Improvement": {
             "desc": "Investigate social connections of working employees to find potential employees that are hot and outgoing.",
-            "cost": 1000, "req": set(), "effect": {"foreplay_cap": 2}
+            "cost": 1000, "req": set(), "effect": {"Foreplay": 2}
         },
         "Oral Skill Improvement": {
             "desc": "Require some of your working employees to scout, off duty, for potential recruits that are very proficient with their mouths.",
-            "cost": 2000, "req": set(["Foreplay Skill Improvement", "Mandatory Serum Testing"]), "effect": {"oral_cap": 3}
+            "cost": 2000, "req": set(["Foreplay Skill Improvement", "Mandatory Serum Testing"]), "effect": {"Oral": 3}
         },
         "Vaginal Skill Improvement": {
             "desc": "Send your scouts to bars and sauna's to find employees that have a lot of sexual experience.",
-            "cost": 5000, "req": set(["Oral Skill Improvement", "Daily Serum Dosage"]), "effect": {"vaginal_cap": 4}
+            "cost": 5000, "req": set(["Oral Skill Improvement", "Daily Serum Dosage"]), "effect": {"Vaginal": 4}
         },
         "Anal Skill Improvement": {
             "desc": "Require your personel to work off-duty in the porn industry, to find recruits that will work for your business near the back door.",
-            "cost": 10000, "req": set(["Vaginal Skill Improvement", "Daily Serum Dosage", "Corporate Enforced Nudity"]), "effect": {"anal_cap": 5}
+            "cost": 10000, "req": set(["Vaginal Skill Improvement", "Daily Serum Dosage", "Corporate Enforced Nudity"]), "effect": {"Anal": 5}
         }
     }

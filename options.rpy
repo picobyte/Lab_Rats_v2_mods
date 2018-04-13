@@ -127,25 +127,15 @@ default preferences.afm_time = 15
 default preferences.show_adult_content = False
 default preferences.show_faq = True
 
-default preferences.main_character_cha = 0
-default preferences.main_character_int = 0
-default preferences.main_character_foc = 0
+default persistent.character_points = 25
+default persistent.company_name = "Input Your Company Name"
 
-default preferences.main_character_h_skill = 0
-default preferences.main_character_m_skill = 0
-default preferences.main_character_r_skill = 0
-default preferences.main_character_p_skill = 0
-default preferences.main_character_s_skill = 0
-
-default preferences.main_character_F_skill = 0
-default preferences.main_character_O_skill = 0
-default preferences.main_character_V_skill = 0
-default preferences.main_character_A_skill = 0
-
-default preferences.main_character_points = 25
-
-default preferences.main_character_name = "Input Your Name"
-default preferences.main_character_business_name = "Input Your Company Name"
+default persistent.character = {
+    "name": "Input Your Name",
+    "charisma": 0, "int": 0, "focus": 0,
+    "hr_skill": 0, "market_skill": 0, "research_skill": 0, "production_skill": 0, "supply_skill": 0,
+    "foreplay": 0, "oral": 0, "vaginal": 0, "anal": 0,
+}
 
 ## Save directory ##############################################################
 ##

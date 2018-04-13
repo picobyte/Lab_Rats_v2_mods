@@ -24,11 +24,10 @@ init -14 python:
         job = job or renpy.random.choice(Person.list_of_jobs)
         personality = personality or renpy.random.choice(Person.list_of_personalities)
 
-        mods = {"skill_cap": 5, "stat_cap": 5, "suggest": 0,
-                  "foreplay_cap": 5, "oral_cap": 5, "vaginal_cap": 5, "anal_cap": 5,
-                  "obedience": renpy.random.randint(-10,10), "sluttiness": renpy.random.randint(0,10)}
+        mods = {"Work Skills": 5, "Main Stats": 5, "Foreplay": 5, "Oral": 5, "Vaginal": 5, "Anal": 5,
+                "suggest": 0, "obedience": renpy.random.randint(-10,10), "sluttiness": renpy.random.randint(0,10)}
 
-        if business:
+        if business: # no policies when for premade NPC list is made
             for pol in business.active_policies:
                 if "effect" in pol:
                     for k, v in pol["effect"].iteritems():
@@ -46,11 +45,15 @@ init -14 python:
 
         def __init__(self,name,last_name,age,body_type,tits,height,body_images,expression_images,hair_colour,hair_style,skin,eyes,job,wardrobe,personality,mods):
 
-            skill_list = [renpy.random.randint(1,mods["skill_cap"]) for i in range(5)]
-            stat_list = [renpy.random.randint(1,mods["stat_cap"]) for i in range(3)]
-            sex_list = [renpy.random.randint(0,mods[n]) for n in ["foreplay_cap", "oral_cap", "vaginal_cap", "anal_cap"]]
+            stats = {"name": name}
+            for stat_name, params in Person.stats:
+                for long, short in params:
+                    if stat_name in mods:
+                        stats[short] = renpy.random.randint(1,mods[stat_name])
+                    else:
+                        stats[short] = renpy.random.randint(1,mods[long])
 
-            super(NPC, self).__init__(name, stat_list,skill_list, sex_list)
+            super(NPC, self).__init__(**stats)
 
             ## Personality stuff, name, ect. Non-physical stuff.
             #TODO: Add ability to "discover" this stuff, you don't know it by default.
@@ -96,18 +99,37 @@ init -14 python:
             self.wardrobe.trim_wardrobe(self.sluttiness)
             self.outfit = self.wardrobe.pick_random_outfit()
 
+        def add_traits(self, traits, add=True, visually=False):
+            show_array = []
+            style_array = []
+            for trait in traits:
+                for param, value in trait["effect"].iteritems():
+                    if hasattr(self, param):
+                        setattr(self, param, getattr(self, param) + value if add else -value)
+                        if visually:
+                            show_array.append("%s%d %s\n" % self.suggest_raise, "+" if param > 0 else "_", param)
+                            style_array.append("float_text_blue")
+            if show_array:
+                renpy.show_screen("float_up_screen",show_array,style_array)
+
+
+        def recover(self, duration):
+            remaining_effects = []
+
+            for serum in self.serum_effects: #Compute the effects of all of the serum that the girl is under.
+                serum['duration'] -= duration
+                if serum['duration'] <= 0:
+                    self.add_traits(mc.business.serum_designs[serum["name"]]["traits"], add=False)
+                else:
+                    remaining_effects.append(serum)
+
+            return remaining_effects
+
         def run_turn(self):
             for effect in set(self.status_effects): #Compute the effects of all of the status effects we are under. Duplicates are not repeated! They are kept in place for overlapping effects.
                 effect.function(self)
 
-            remove_list = []
-            for serum in self.serum_effects: #Compute the effects of all of the serum that the girl is under.
-                if serum.increment_time(1): #Returns true if the serum effect is suppose to expire in this time, otherwise returns false. Always updates duration counter when called.
-                    serum.remove_serum(self)
-                    remove_list.append(serum) #Use a holder "remove" list to avoid modifying list while iterating.
-
-            for serum in remove_list:
-                self.serum_effects.remove(serum)
+            self.serum_effects = self.recover(1)
 
             #Now we want to see if she's unhappy enough to quit. We will tally her "happy points", a negative number means a chance to quit.
 
@@ -133,7 +155,7 @@ init -14 python:
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
 
             if time_of_day == 0 or time_of_day == 4: #Home time
-                self.move(location, downtown) #Move to downtown as proxy for home.
+                self.move(location, world["downtown"]) #Move to downtown as proxy for home.
 
             else:
                 for div in mc.business.division:
@@ -144,19 +166,12 @@ init -14 python:
                         break
                 else: #She does not work for us, scatter her somewhere public on the map.
                     #Check to see where is public (or where you are white listed) and move to one of those locations randomly
-                    self.move(location, renpy.random.choice([loc for loc in list_of_places if loc.public]))
+                    self.move(location, renpy.random.choice([loc for name, loc in world.iteritems() if loc.public]))
 
 
         def run_day(self): #Called at the end of the day.
             self.outfit = self.wardrobe.pick_random_outfit() #Put on a new outfit for the day!
-            remove_list = []
-            for serum in self.serum_effects:
-                if serum.increment_time(2): #Night is 3 segments, but 1 is allready called when run_turn is called.
-                    serum.remove_serum(self)
-                    remove_list.append(serum)
-
-            for serum in remove_list:
-                self.serum_effects.remove(serum)
+            self.serum_effects = self.recover(2) #Night is 3 segments, but 1 is allready called when run_turn is called.
 
         def draw_person(self,position = None,emotion = None): #Draw the person, standing as default if they aren't standing in any other position.
             renpy.scene("Active")
@@ -231,8 +246,8 @@ init -14 python:
         def call_for_arouse(self, mc, the_position):
 
             # The same calculation but for the guy
-            mc.change_arousal(the_position.guy_arousal + (the_position.guy_arousal * self.sex_skills[the_position.skill_tag] * 0.1))
-            change_amount = the_position.girl_arousal + (the_position.girl_arousal * mc.sex_skills[the_position.skill_tag] * 0.1)
+            mc.change_arousal(the_position.guy_arousal + (the_position.guy_arousal * getattr(self, the_position.skill_tag) * 0.1))
+            change_amount = the_position.girl_arousal + (the_position.girl_arousal * getattr(mc, the_position.skill_tag) * 0.1)
             renpy.show_screen("float_up_screen", ["+[change_amount] Arousal"], ["float_text_red"])
             self.change_arousal(change_amount) #The girls arousal gain is the base gain + 10% per the characters skill in that category.
 
@@ -283,9 +298,9 @@ init -14 python:
         def set_outfit(self,new_outfit):
             self.outfit = new_outfit
 
-        def give_serum(self,the_serum_design): ##Make sure you are passing a copy of the serum, not a reference.
-            self.serum_effects.append(the_serum_design)
-            the_serum_design.apply_serum(self)
+        def give_serum(self,design): ##Make sure you are passing a copy of the serum, not a reference.
+            self.serum_effects.append({"name" : design['name'], "duration": design["duration"]})
+            self.add_traits(design["traits"], visually=True)
 
         def add_status_effects(self,effects):
             for effect in effects:

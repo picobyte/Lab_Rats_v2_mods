@@ -207,17 +207,13 @@ label interview_action_description:
     return
 
 label serum_design_action_description:
-    $counter = len(list_of_traits)
     hide screen main_ui
     hide screen business_ui
-    call screen serum_design_ui(SerumDesign(),[]) #This will return the final serum design, or None if the player backs out.
+    call screen serum_design_ui() #This will return the final serum design, or None if the player backs out.
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $ serum = _return
-        $ name = renpy.input("Please give this serum design a name.")
-        $ serum.name = name
-        $ mc.business.add_serum_design(serum)
+        $ mc.business.add_serum_design(_return)
         call advance_time from _call_advance_time_7
     else:
         "You decide not to spend any time designing a new serum type."
@@ -231,7 +227,7 @@ label research_select_action_description:
     show screen business_ui
     if _return != "None":
         $mc.business.set_serum_research(_return)
-        "You change your research to [_return.name]."
+        $renpy.say("", "You change your research to %s." % _return["name"])
     else:
         "You decide to leave your labs current research topic as it is."
     return
@@ -244,7 +240,7 @@ label production_select_action_description:
     show screen business_ui
     if _return != "None":
         $mc.business.change_production(_return)
-        "You change your production line over to [_return.name]."
+        $renpy.say("", "You change your production line over to %s." % _return["name"])
     else:
         "You decide not to change the way your production line is set up."
     return

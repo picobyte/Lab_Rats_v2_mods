@@ -33,136 +33,6 @@ init -2 python:
     def copy_cursor_pos():
         pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
 
-
-    class SerumDesign(renpy.store.object):
-        def __init__(self):
-            self.name = ""
-            self.traits = []
-            
-            self.researched = False
-            self.obsolete = False #TODO: serums can be marked as obsolete so they do not show up on menus in the future.
-            self.current_research = 0
-            self.research_needed = 50 #Default for a serum with no special effects. "Grey" serum.
-            
-            self.value = 10 #Value in $ for each dose when sold.
-            self.production_cost = 10 #Amount of production points that must be produced to manufacture the serum.
-            
-            self.duration = 1 #Number of segments the serum lasts for. Night counts as 3 segments. Default is 1.
-            self.duration_counter = 0 #How many segments have we been on for so far.
-            
-            self.suggest_raise = 10 #Raises sugestability of the girl for the duration.
-            self.happiness_raise = 0 #Changes happinesss for the duration.
-            self.slut_raise = 0 #Changes slut for the duration.
-            self.obedience_raise = 0 #changes obedience for the duration.
-            
-            self.cha_raise = 0 #raises cha for the duration
-            self.int_raise = 0
-            self.foc_raise = 0
-            
-            self.status_effects = [] #This array will hold pointers to Status_Effect objects, whose functions are called each cycle of the serum.
-            
-        def reset(self): #Resets the serum to the default serum values.
-            self.__init__()
-        
-        def apply_serum(self, the_target): #Applies all of the effects of the serum to the target. Called when it is first given to them.
-            the_target.change_suggest(self.suggest_raise)
-            the_target.change_happiness(self.happiness_raise)
-            the_target.change_slut(self.slut_raise)
-            the_target.change_obedience(self.obedience_raise)
-            
-            the_target.change_cha(self.cha_raise)
-            the_target.change_int(self.int_raise)
-            the_target.change_focus(self.foc_raise)
-            
-            the_target.add_status_effects(self.status_effects) #Hand them a list of effects
-            
-            show_array = []
-            style_array = []
-            if self.suggest_raise > 0:
-                show_array.append("+%d Suggestability\n" % self.suggest_raise)
-                style_array.append("float_text_blue")
-            elif self.suggest_raise < 0:
-                show_string.append("-%d Suggestability\n" % self.suggest_raise)
-                style_array.append("float_text_blue")
-            
-            if self.happiness_raise > 0:
-                show_array.append("+%d Happiness\n" % self.happiness_raise)
-                style_array.append("float_text_blue")
-            elif self.suggest_raise < 0:
-                show_string.append("-%d Happiness\n" % self.happiness_raise)
-                style_array.append("float_text_blue")
-                
-            if self.slut_raise > 0:
-                show_array.append("+%d Sluttiness\n" % self.slut_raise)
-                style_array.append("float_text_blue")
-            elif self.slut_raise < 0:
-                show_string.append("-%d Sluttiness\n" % self.slut_raise)
-                style_array.append("float_text_blue")
-                
-            if self.obedience_raise > 0:
-                show_array.append("+%d Obedience\n" % self.obedience_raise)
-                style_array.append("float_text_blue")
-            elif self.obedience_raise < 0:
-                show_string.append("-%d Obedience\n" % self.obedience_raise)
-                style_array.append("float_text_blue")
-                
-            if self.cha_raise > 0:
-                show_array.append("+%d Charisma\n" % self.cha_raise)
-                style_array.append("float_text_blue")
-            elif self.cha_raise < 0:
-                show_array.append("-%d Charisma\n" % self.cha_raise)
-                style_array.append("float_text_blue")
-                
-            if self.int_raise > 0:
-                show_array.append("+%d Intelligence\n" % self.int_raise)
-                style_array.append("float_text_blue")
-            elif self.int_raise < 0:
-                show_array.append("-%d Intelligence\n" % self.int_raise)
-                style_array.append("float_text_blue")
-                
-            if self.foc_raise > 0:
-                show_array.append("+%d Focus\n" % self.foc_raise)
-                style_array.append("float_text_blue")
-            elif self.foc_raise < 0:
-                show_array.append("-%d Focus\n" % self.foc_raise)
-                style_array.append("float_text_blue")
-                
-            for effect in self.status_effects:
-                show_array.append("+ %s" % effect.name)
-                style_array.append("float_text_blue")
-            
-            renpy.show_screen("float_up_screen",show_array,style_array)
-            
-        def remove_serum(self, the_target): #Removes all of the effects of the serum from the target. Called when the serum expires.
-            the_target.change_suggest(-self.suggest_raise)
-            the_target.change_happiness(-self.happiness_raise)
-            the_target.change_slut(-self.slut_raise)
-            the_target.change_obedience(-self.obedience_raise)
-            
-            the_target.change_cha(-self.cha_raise)
-            the_target.change_int(-self.int_raise)
-            the_target.change_focus(-self.foc_raise)
-            
-            the_target.remove_status_effects(self.status_effects) #Remove the list of effects we gave them before.
-            
-        def increment_time(self,amount): #Increases the counter, removes effects if duration is over.
-            self.duration_counter += amount
-            if self.duration_counter >= self.duration:
-                return True #Returns true when it has expired
-            else:
-                return False #Returns false when there is more time to go
-                
-        def add_research(self, amount): #Returns true if "amount" research completes the research
-            self.current_research += amount
-            if self.current_research >= self.research_needed:
-                self.researched = True
-                return True
-            else:
-                return False
-                
-        def set_traits(self,traits_list): #Called when a design is finalized. No calculations are performed with this list, but they can be used as a record for what went into this serum.
-            self.traits = traits_list
-            
     class SerumInventory(renpy.store.object): #A bag class that lets businesses and people hold onto different types of serums, and move them around.
         def __init__(self,starting_list):
             self.serums_held = starting_list ##Starting list is a list of tuples, going [SerumDesign,count]. Count should be possitive.
@@ -198,37 +68,8 @@ init -2 python:
             for design in self.serums_held:
                 return_values.append(design[0])
             return return_values
-            
-                
-    class SerumTrait(renpy.store.object):
-        def __init__(self,name,desc,effect,status_effects=[],requires=[],start_researched=False,research_needed=0): #effect is a function that takes a serumDesign as a parameter and modifies it based on whatever effect this trait has.
-            self.name = name
-            self.desc = desc
-            self.effect = effect #A list of default effects to be applied.
-            self.status_effects = status_effects #A list of Status_Effect objects that are applied by this serum to a person, with a function to be called each tick.
-            self.requires = requires #A list of other traits that must be researched before this. TODO: Impliment theoretical research.
-            self.researched = start_researched
-            self.research_needed = research_needed
-            self.current_research = 0
-            
-        def total_effect(self,design):
-            self.effect(design)
-            
-        def add_research(self, amount):
-            self.current_research += amount
-            if self.current_research >= self.research_needed:
-                self.researched = True
-                return True
-            else:
-                return False
-                
-        def has_required(self):
-            has_prereqs = True
-            for trait in self.requires:
-                if not trait.researched:
-                    has_prereqs = False
-            return has_prereqs
-            
+
+
 
     class Position(renpy.store.object):
         def __init__(self,name,slut_requirement,position_tag,requires_location,requires_clothing,skill_tag,girl_arousal,guy_arousal,connections,intro,scenes,outro,transition_default):
@@ -283,125 +124,7 @@ init -2 python:
             else:
                 return True ##If you don't have one of the requirements listed above just let it happen.
 
-    ##Serum effect functions##
-    def improved_serum_production(the_serum):
-        the_serum.research_needed += 50
-        the_serum.production_cost += 10
-        
-        the_serum.value += 20
-        the_serum.suggest_raise += 10
-    
-        
-    def basic_medical_serum_production(the_serum):
-        the_serum.research_needed += 50
-        the_serum.production_cost += 10
-        
-        the_serum.value += 40
-        
-    def obedience_enhancer_effect(the_serum):
-        the_serum.research_needed += 75
-        the_serum.production_cost += 5
-        
-        the_serum.value += 5
-        the_serum.obedience_raise += 10
-        
-    def improved_duration_effect(the_serum):
-        the_serum.research_needed += 75
-        the_serum.production_cost += 15
-        
-        the_serum.value += 10
-        the_serum.duration += 2
-        
-    def aphrodisiac_effect(the_serum):
-        the_serum.research_needed += 60
-        the_serum.production_cost += 10
-        
-        the_serum.value += 25
-        the_serum.slut_raise += 15
-        
-    def advanced_serum_production(the_serum):
-        the_serum.research_needed += 200
-        the_serum.production_cost += 25
-        
-        the_serum.value += 50
-        the_serum.suggest_raise += 30
-        
-    def low_volatility_reagents_effect(the_serum):
-        the_serum.research_needed += 150
-        the_serum.production_cost += 40
-        
-        the_serum.value += 20
-        the_serum.duration += 5
-        
-    def futuristic_serum_production(the_serum):
-        the_serum.research_needed += 500
-        the_serum.production_cost += 50
-        
-        the_serum.value += 200
-        the_serum.suggest_raise += 100
-    
-    def growing_breast_effect(the_serum):
-        the_serum.research_needed += 125
-        the_serum.production_cost += 20
-        
-        the_serum.value += 50
-        
-    def shrinking_breast_effect(the_serum):
-        the_serum.research_needed += 125
-        the_serum.production_cost += 20
-        
-        the_serum.value += 50
-        
-    def focus_enhancement_production(the_serum):
-        the_serum.research_needed += 150
-        the_serum.production_cost += 20
-        
-        the_serum.value += 30
-        
-        the_serum.foc_raise += 2
-        
-    def int_enhancement_production(the_serum):
-        the_serum.research_needed += 150
-        the_serum.production_cost += 20
-        
-        the_serum.value += 30
-        
-        the_serum.int_raise += 2
-        
-    def cha_enhancement_production(the_serum):
-        the_serum.research_needed += 150
-        the_serum.production_cost += 20
-        
-        the_serum.value += 30
-        
-        the_serum.cha_raise += 2
-        
-    def happiness_tick_effect(the_serum):
-        the_serum.research_needed += 100
-        the_serum.production_cost += 20
-        
-        the_serum.value += 100
-        
-    class Status_Effect(renpy.store.object): #Holds the function, name, and description of a status effect all in one playce. Duplicate status effects are not processed.
-        def __init__(self,name,description,function):
-            self.name = name
-            self.description = description
-            self.function = function        
-        
-    ##Status effect functions##
-    def growing_breasts_function(the_person): #The target has a 10% chance for their breast size to increase by one with each time tick.
-        if renpy.random.randint(0,100) < 10:
-            the_person.tits = get_larger_tits(the_person.tits)
-            
-    def shrinking_breasts_function(the_person):
-        if renpy.random.randint(0,100) < 10:
-            the_person.tits = get_smaller_tits(the_person.tits)
-            
-    def bliss_function(the_person):
-        the_person.change_happiness(5)
-        the_person.change_obedience(-5)
-        
-        
+
     ##Creator Defined Displayables, used in custom menues throughout the game##
 
     class Vren_Line(renpy.Displayable):
@@ -485,174 +208,68 @@ init -2 style outfit_style: ##The text style used for text inside of the outfit 
     outlines [(1,"#666666",0,0)]
     insensitive_color "#222222"
     hover_color "#ffffff"
-    
-init -2:
-    default name = preferences.main_character_name
-    default b_name = preferences.main_character_business_name
 
-    python:
-        def name_func(new_name):
-            store.name = new_name
-            
-        def b_name_func(new_name):
-            store.b_name = new_name
-    
+init -2 python:
+    def name_func(name):
+        persistent.character["name"] = name
+
+    def b_name_func(name):
+        persistent.company_name = name
+
+    def mod_char_param(short, points):
+        persistent.character[short] += -1 if points > 0 else 1
+        persistent.character_points += points
+
 screen character_create_screen():
 
-    default cha = preferences.main_character_cha
-    default int = preferences.main_character_int
-    default foc = preferences.main_character_foc
-    
-    default h_skill = preferences.main_character_h_skill
-    default m_skill = preferences.main_character_m_skill
-    default r_skill = preferences.main_character_r_skill
-    default p_skill = preferences.main_character_p_skill
-    default s_skill = preferences.main_character_s_skill
-    
-    default F_skill = preferences.main_character_F_skill
-    default O_skill = preferences.main_character_O_skill
-    default V_skill = preferences.main_character_V_skill
-    default A_skill = preferences.main_character_A_skill
-    
-    
     default name_select = 0
-    
-    default character_points = preferences.main_character_points
-    
+
     imagebutton auto "/gui/Text_Entry_Bar_%s.png" action SetScreenVariable("name_select",1) pos (320,120) xanchor 0.5 yanchor 0.5
     imagebutton auto "/gui/Text_Entry_Bar_%s.png" action SetScreenVariable("name_select",2) pos (1600,120) xanchor 0.5 yanchor 0.5
-    imagebutton auto "/gui/button/choice_%s_background.png" action Return([[cha,int,foc],[h_skill,m_skill,r_skill,p_skill,s_skill],[F_skill,O_skill,V_skill,A_skill]]) pos (300,900) xanchor 0.5 yanchor 0.5 sensitive character_points == 0 and name[0:11] != "Input Your " and b_name[0:11] != "Input Your "
-    
+    imagebutton auto "/gui/button/choice_%s_background.png" action Return() pos (300,900) xanchor 0.5 yanchor 0.5 sensitive persistent.character_points == 0 and persistent.character["name"][0:11] != "Input Your " and persistent.company_name[0:11] != "Input Your "
+
     if name_select == 1:
-        input default name pos(320,120) changed name_func xanchor 0.5 yanchor 0.5 style "menu_text_style" length 25
+        input default persistent.character["name"] pos(320,120) changed name_func xanchor 0.5 yanchor 0.5 style "menu_text_style" length 25
     else:
-        text name pos(320,120) xanchor 0.5 yanchor 0.5 style "menu_text_style"
-        
+        text persistent.character["name"] pos(320,120) xanchor 0.5 yanchor 0.5 style "menu_text_style"
+
     if name_select == 2:
-        input default b_name pos(1600,120) changed b_name_func xanchor 0.5 yanchor 0.5 style "menu_text_style" length 25
+        input default persistent.company_name pos(1600,120) changed b_name_func xanchor 0.5 yanchor 0.5 style "menu_text_style" length 25
     else:
-        text b_name pos(1600,120) xanchor 0.5 yanchor 0.5 style "menu_text_style"
-        
-    if character_points > 0 or name[0:11] == "Input Your " or b_name[0:11] == "Input Your ":
+        text persistent.company_name pos(1600,120) xanchor 0.5 yanchor 0.5 style "menu_text_style"
+
+    if persistent.character_points > 0:
         text "Spend All Character Points to Proceed" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
-    elif name[0:11] == "Input Your ":
-        text "Change your Character Name" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
-    elif b_name[0:11] == "Input Your ":
+    elif persistent.character["name"][0:11] == "Input Your ":
+        text "Change your name" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
+    elif persistent.company_name[0:11] == "Input Your ":
         text "Change your Company Name" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
     else:
         text "Finish Character Creation" style "menu_text_style" anchor(0.5,0.5) pos(300,900)
-    
-    text "Character Points Remaining: [character_points]" style "menu_text_style" xalign 0.5 yalign 0.1 size 30
+
+    text "Character Points Remaining: %d" % persistent.character_points style "menu_text_style" xalign 0.5 yalign 0.1 size 30
     hbox: #Main Stats Section
         yalign 0.7
         xalign 0.5
         xanchor 0.5
-        frame:
-            background "#1a45a1aa"
-            vbox:
-                xsize 550
-                text "Main Stats (3 points/level)" style "menu_text_style" size 25
-                null height 40
-                hbox:
-                    text "Charisma: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("cha",cha-1), SetScreenVariable("character_points", character_points+3)] sensitive cha>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(cha) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("cha",cha+1), SetScreenVariable("character_points", character_points-3)] sensitive character_points>2 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your visual appearance and force of personality. Charisma is the key attribute for selling serums and managing your business." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Intelligence: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("int",int-1), SetScreenVariable("character_points", character_points+3)] sensitive int>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(int) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("int",int+1), SetScreenVariable("character_points", character_points-3)] sensitive character_points>2 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your raw knowledge and ability to think quickly. Intelligence is the key attribute for research and development of serums." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Focus: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("foc",foc-1), SetScreenVariable("character_points", character_points+3)] sensitive foc>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(foc) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("foc",foc+1), SetScreenVariable("character_points", character_points-3)] sensitive character_points>2 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your mental endurance and precision. Focus is the key attribute for production and supply procurement." style "menu_text_style"
-        
-        null width 40
-        frame:
-            background "#1a45a1aa"
-            vbox:
-                xsize 550
-                text "Work Skills (1 point/level)" style "menu_text_style" size 25
-                null height 40
-                hbox:
-                    text "Human Resources: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("h_skill",h_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive h_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(h_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("h_skill",h_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at human resources. Crutial for maintaining an efficent business." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Marketing: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("m_skill",m_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive m_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(m_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("m_skill",m_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at marketing. Higher skill will allow you to ship more doses of serum per day." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Research and Development: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("r_skill",r_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive r_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(r_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("r_skill",r_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at researching new serum traits and designs. Critical for improving your serum inventorm." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Production: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("p_skill",p_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive p_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(p_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("p_skill",p_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at producing serum in the production lab. Produced serums can then be sold for profit or kept for personal use." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Supply Procurement: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("s_skill",s_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive s_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(s_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("s_skill",s_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at obtaining raw supplies for your production division. Without supply, nothing can be created in the lab." style "menu_text_style"
-                null height 30
-        null width 40
-        frame:
-            background "#1a45a1aa"
-            vbox:
-                xsize 550
-                text "Sex Skills (1 point/level)" style "menu_text_style" size 25
-                null height 40
-                hbox:
-                    text "Foreplay: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("F_skill",F_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive F_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(F_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("F_skill",F_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at foreplay, including fingering, kissing, and groping." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Oral: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("O_skill",O_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive O_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(O_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("O_skill",O_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at giving oral to women, as well as being a pleasant recipiant." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Vaginal: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("V_skill",V_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive V_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(V_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("V_skill",V_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at vaginal sex in any position." style "menu_text_style"
-                null height 30
-                hbox:
-                    text "Anal: " style "menu_text_style"
-                    textbutton "<" action [SetScreenVariable("A_skill",A_skill-1), SetScreenVariable("character_points", character_points+1)] sensitive A_skill>0 style "textbutton_style" text_style "textbutton_text_style"
-                    text str(A_skill) style "textbutton_text_style"
-                    textbutton ">" action [SetScreenVariable("A_skill",A_skill+1), SetScreenVariable("character_points", character_points-1)] sensitive character_points>0 style "textbutton_style" text_style "textbutton_text_style"
-                text "     Your skill at anal sex in any position. (NOTE: No content included in this version)." style "menu_text_style"
-                null height 30
+        for name, params in Person.stats:
+            frame:
+                background "#1a45a1aa"
+                vbox:
+                    xsize 550
+                    text "%s (%d points/level)" %(name, MainCharacter.points_per_stat[name]) style "menu_text_style" size 25
+                    null height 10
+                    for param, short in params:
+                        null height 30
+                        hbox:
+                            text "%s: " % param style "menu_text_style"
+                            textbutton "<" action Function(mod_char_param, short, MainCharacter.points_per_stat[name]) sensitive persistent.character[short] > 0 style "textbutton_style" text_style "textbutton_text_style"
+                            text "%d" % persistent.character[short] style "textbutton_text_style"
+                            textbutton ">" action [Function(mod_char_param, short, -MainCharacter.points_per_stat[name]), SensitiveIf(persistent.character_points >= MainCharacter.points_per_stat[name])] style "textbutton_style" text_style "textbutton_text_style"
+                        text "     %s." % Person.stat_desc[param] style "menu_text_style"
+            if name != "":
+                null width 40
 
-    
 screen main_ui: #The UI that shows most of the important information to the screen.
     frame:
         background "Info_Frame_1.png"
@@ -663,12 +280,12 @@ screen main_ui: #The UI that shows most of the important information to the scre
             textbutton "Outfit Manager" action ui.callsinnewcontext("outfit_design_loop") style "textbutton_style" text_style "textbutton_text_style"
             textbutton "Check Inventory" action ui.callsinnewcontext("check_inventory_loop") style "textbutton_style" text_style "textbutton_text_style"
             textbutton "Character Sheet" action Show("mc_character_sheet") style "textbutton_style" text_style "textbutton_text_style"
-            text "Day: " + day_names[day%7] + "([day])" style "menu_text_style"
-            text "Time: " + time_names[time_of_day] style "menu_text_style"
-#            text "Energy: [mc.energy]" style "menu_text_style"
-            text "Arousal: [mc.arousal]/100" style "menu_text_style"
-            text "Cash: $[mc.money]" style "menu_text_style"
-            text "Location: [mc.location.formalName]" style "menu_text_style"
+            text "Day: %s(%d)" % (day_names[day%7], day) style "menu_text_style"
+            text "Time: %s" % time_names[time_of_day] style "menu_text_style"
+#            text "Energy: %d" % mc.energy style "menu_text_style"
+            text "Arousal: %d/100" % mc.arousal style "menu_text_style"
+            text "Cash: $%d" % mc.money style "menu_text_style"
+            text "Location: %s" % mc.location.name.title() style "menu_text_style"
         
 screen business_ui: #Shows some information about your business.
     frame:
@@ -680,20 +297,20 @@ screen business_ui: #Shows some information about your business.
             yanchor 1.0
             yalign 1.0
             text "Company Name: " style "menu_text_style"
-            text "    [mc.business.name]" style "menu_text_style"
-            text "Company Funds: $[mc.business.funds]" style "menu_text_style"
-            text "Daily Salary Cost: $"+ str(mc.business.calculate_salary_cost()) style "menu_text_style"
-            text "Company Efficency: [mc.business.team_effectiveness]%" style "menu_text_style"
-#            text "Company Marketability: [mc.business.marketability]" style "menu_text_style"
-            text "Current Raw Supplies: [mc.business.supply_count] (Target:[mc.business.supply_goal])" style "menu_text_style"
-            if mc.business.active_research_design != None:
+            text "    %s" % mc.business.name style "menu_text_style"
+            text "Company Funds: $%d" % mc.business.funds style "menu_text_style"
+            text "Daily Salary Cost: $%d" % mc.business.calculate_salary_cost() style "menu_text_style"
+            text "Company Efficency: %d%%" % mc.business.team_effectiveness style "menu_text_style"
+#            text "Company Marketability: %d" % mc.business.marketability style "menu_text_style"
+            text "Current Raw Supplies: %d (Target:%d)" % (mc.business.supply_count, mc.business.supply_goal) style "menu_text_style"
+            if mc.business.active_research_design:
                 text "Current Research: " style "menu_text_style"
-                text "    [mc.business.active_research_design.name] ([mc.business.active_research_design.current_research]/[mc.business.active_research_design.research_needed])" style "menu_text_style"
+                text "    %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
             else:
                 text "Current Research: None!" style "menu_text_style" color "#DD0000"
-            if mc.business.serum_production_target != None:
+            if mc.business.serum_production_target:
                 text "Currently Producing: " style "menu_text_style"
-                text "    [mc.business.serum_production_target.name]" style "menu_text_style"
+                text "    %s" % mc.business.serum_production_target["name"] style "menu_text_style"
             else:
                 text "Currently Producing: Nothing!" style "menu_text_style" color "#DD0000"
             textbutton "Review Staff" action Show("employee_overview") style "textbutton_style" text_style "textbutton_text_style"
@@ -761,6 +378,7 @@ screen end_of_day_update():
 screen employee_overview():
     add "Paper_Background.png"
     default div = mc.business.r_div
+    default sp = max(map(lambda p: len(Person.terse_stat[p])*35 if p in Person.terse_stat else len(p)*35, [x[1] for sk, x in Person.stats if sk != "Sex Skills"]))
     modal True
     hbox:
         yalign 0.05
@@ -771,50 +389,56 @@ screen employee_overview():
         textbutton "Marketing" action SetScreenVariable("div",mc.business.m_div) style "textbutton_style" text_style "textbutton_text_style"
         textbutton "Human Resources" action SetScreenVariable("div",mc.business.h_div) style "textbutton_style" text_style "textbutton_text_style"
 
-    text "Position: %s" % div.name style "menu_text_style" size 20 yalign 0.18 xalign 0.02 xanchor 0.0
+    text "Position: %s" % div.name style "menu_text_style" size 20 yalign 0.12 xalign 0.02 xanchor 0.0
     frame:
-        yalign 0.2
+        top_margin 0
+        yalign 0.15
         xalign 0.5
         yanchor 0.0
         background "#1a45a1aa"
         xsize 1800
-        side ("c r"):
-            area (1,0,1800,600)
-            viewport id "Positions_list":
-                draggable True mousewheel True
-                grid 14 len(div.people)+1:
-                    text "Name" style "menu_text_style"
-                    text "Salary" style "menu_text_style"
-                    text "Happiness" style "menu_text_style"
-                    text "Obedience" style "menu_text_style"
-                    text "Sluttiness" style "menu_text_style"
-                    text "Suggest" style "menu_text_style"
-                    text "Charisma" style "menu_text_style"
-                    text "Int" style "menu_text_style"
-                    text "Focus" style "menu_text_style"
-                    text "Research" style "menu_text_style"
-                    text "Production " style "menu_text_style"
-                    text "Supply" style "menu_text_style"
-                    text "Marketing " style "menu_text_style"
-                    text "HR" style "menu_text_style"
+        ysize 700
+        vpgrid id "Positions_list":
+            area (1,1,1800,700)
+            #child_size (100, 100)
+            draggable True mousewheel True
+            cols sum(len(params) for stat_name, params in Person.stats if stat_name != "Sex Skills") + 6
+            xspacing sp
+            yspacing 35
+            #side_yfill True
+            rows len(div.people) + 2
+            #side_xalign 0.5
+            side_yalign 0.0
+            scrollbars "vertical"
+            yminimum 35
+            yalign 0.0
 
-                    for person in div.people:
-                        textbutton person.name + "\n" + person.last_name style "textbutton_style" text_style "menu_text_style" action Show("person_info_detailed",None,person)
-#                        text person.name + "\n" + person.last_name style "menu_text_style"
-                        text "$%d/day" % person.salary style "menu_text_style"
-                        text str(int(person.happiness)) style "menu_text_style"
-                        text str(int(person.obedience)) style "menu_text_style"
-                        text str(int(person.sluttiness)) style "menu_text_style"
-                        text str(int(person.suggestibility)) style "menu_text_style"
-                        text str(int(person.charisma)) style "menu_text_style"
-                        text str(int(person.int)) style "menu_text_style"
-                        text str(int(person.focus)) style "menu_text_style"
-                        text str(int(person.research_skill)) style "menu_text_style"
-                        text str(int(person.production_skill)) style "menu_text_style"
-                        text str(int(person.supply_skill)) style "menu_text_style"
-                        text str(int(person.market_skill)) style "menu_text_style"
-                        text str(int(person.hr_skill)) style "menu_text_style"
-            vbar value YScrollValue("Positions_list") xalign 1.0
+            text "Name" style "menu_text_style"
+            text "Salary" style "menu_text_style"
+            text "Happiness" style "menu_text_style"
+            text "Obedience" style "menu_text_style"
+            text "Sluttiness" style "menu_text_style"
+            text "Suggest" style "menu_text_style"
+            for stat_name, params in Person.stats:
+                if stat_name != "Sex Skills":
+                    for param, short in params:
+                        if param in Person.terse_stat:
+                            text Person.terse_stat[param] style "menu_text_style"
+                        else:
+                            text param style "menu_text_style"
+
+            for person in div.people:
+                textbutton person.name + "\n" + person.last_name style "textbutton_style" text_style "menu_text_style" action Show("person_info_detailed",None,person)
+#               text person.name + "\n" + person.last_name style "menu_text_style"
+                text "$%d/day" % person.salary style "menu_text_style"
+                text str(int(person.happiness)) style "menu_text_style"
+                text str(int(person.obedience)) style "menu_text_style"
+                text str(int(person.sluttiness)) style "menu_text_style"
+                text str(int(person.suggestibility)) style "menu_text_style"
+                for stat_name, params in Person.stats:
+                    if stat_name != "Sex Skills":
+                        for param, short in params:
+                            text str(int(getattr(person, short))) style "menu_text_style"
     frame:
         background None
         anchor [0.5,0.5]
@@ -836,18 +460,18 @@ screen person_info_ui(the_person): #Used to display stats for a person while you
         yalign 1.0
         vbox:
             yalign 1.0
-            text "Name: [the_person.name]" style "menu_text_style"
+            text "Name: %s" % the_person.name style "menu_text_style"
             if mc.business.get_employee_title(the_person) == "None":
                 text "Job: Not employed." style "menu_text_style"
             else:
                 text "Job: " + mc.business.get_employee_title(the_person) style "menu_text_style"
             #text "Height: " + height_to_string(the_person.height) #Showing this here during sex scenes breaks things for some reason, might be use of "height" as a variable name?
-            text "Arousal: [the_person.arousal]/100" style "menu_text_style"
+            text "Arousal: %d/100" % the_person.arousal style "menu_text_style"
             text "***********" style "menu_text_style"
-            text "Happiness: [the_person.happiness]" style "menu_text_style"
-            text "Suggestibility: [the_person.suggestibility]" style "menu_text_style"
-            text "Sluttiness: [the_person.sluttiness]" style "menu_text_style"
-            text "Obedience: [the_person.obedience]" style "menu_text_style"
+            text "Happiness: %d" % the_person.happiness style "menu_text_style"
+            text "Suggestibility: %d" % the_person.suggestibility style "menu_text_style"
+            text "Sluttiness: %d" % the_person.sluttiness style "menu_text_style"
+            text "Obedience: %d" % the_person.obedience style "menu_text_style"
             textbutton "Detailed Information" action Show("person_info_detailed",the_person=the_person) style "textbutton_style" text_style "textbutton_text_style"
             
             
@@ -865,47 +489,36 @@ screen person_info_detailed(the_person):
         yalign 0.1
         vbox:
             xsize 1000
-            text "Name: [the_person.name] [the_person.last_name]" style "menu_text_style" size 25
+            text "Name: %s %s" % (the_person.name, the_person.last_name) style "menu_text_style" size 25
             text "Height: " + str(height_to_string(the_person.height)) style "menu_text_style" #TODO: Figure out why calling height while in a sex scene breaks everything.
-            text "**********" style "menu_text_style"
-            text "Happiness: [the_person.happiness]" style "menu_text_style"
-            text "Suggestibility: [the_person.suggestibility]" style "menu_text_style"
-            text "Sluttiness: [the_person.sluttiness]" style "menu_text_style"
-            text "Obedience: [the_person.obedience]" style "menu_text_style"
-            text "***********" style "menu_text_style"
-            text "Charisma: [the_person.charisma]" style "menu_text_style"
-            text "Intelligence: [the_person.int]" style "menu_text_style"
-            text "Focus: [the_person.focus]" style "menu_text_style"
-            text "***********" style "menu_text_style"
-            text "HR Skill: [the_person.hr_skill]" style "menu_text_style"
-            text "Marketing Skill: [the_person.market_skill]" style "menu_text_style"
-            text "Researching Skill: [the_person.research_skill]" style "menu_text_style"
-            text "Production Skill: [the_person.production_skill]" style "menu_text_style"
-            text "Supply Skill: [the_person.supply_skill]" style "menu_text_style"
-            text "***********" style "menu_text_style"
-            for skill in the_person.sex_skills:
-                text skill + " Skill: " + str(the_person.sex_skills[skill]) style "menu_text_style"
-            
+            for stat_name, params in Person.stats:
+                if stat_name != "Sex Skills":
+                    text "**********" style "menu_text_style"
+                    for param, short in params:
+                        text "%s: %d" % (param, getattr(the_person, short)) style "menu_text_style"
+
             null height 200
             if mc.business.get_employee_title(the_person) != "None":
                 text "Position: " + mc.business.get_employee_title(the_person) style "menu_text_style"
-                text "Current Salary: $[the_person.salary]" style "menu_text_style"
-                text "Base HR Efficency Production (Cha x 3 + Skill x 2 + Int x 1 + 10): [hr_base]" style "menu_text_style"
-                text "Base Marketing Sales Cap (Cha x 3 + Skill x 2 + Focus x 1 + 10): [market_base]" style "menu_text_style"
-                text "Base Research Generation (Int x 3 + Skill x 2 + Focus x 1 + 10): [research_base]" style "menu_text_style"
-                text "Base Production Generation (Focus x 3 + Skill x 2 + Int x 1 + 10): [prod_base]" style "menu_text_style"
-                text "Base Supply Generation (Focus x 3 + Skill x 2 + Cha x 1 + 10): [supply_base]" style "menu_text_style"
-                
+                text "Current Salary: $%d" % the_person.salary style "menu_text_style"
+                text "Base HR Efficency Production (Cha x 3 + Skill x 2 + Int x 1 + 10): %d" % hr_base style "menu_text_style"
+                text "Base Marketing Sales Cap (Cha x 3 + Skill x 2 + Focus x 1 + 10): %d" % market_base style "menu_text_style"
+                text "Base Research Generation (Int x 3 + Skill x 2 + Focus x 1 + 10): %d" % research_base style "menu_text_style"
+                text "Base Production Generation (Focus x 3 + Skill x 2 + Int x 1 + 10): %d" % prod_base style "menu_text_style"
+                text "Base Supply Generation (Focus x 3 + Skill x 2 + Cha x 1 + 10): %d" % supply_base style "menu_text_style"
+
         vbox:
             xsize 800
-            text "Currently Affected By:" style "menu_text_style"
-            for serum in the_person.serum_effects:
-                text serum.name + " : " + str(serum.duration - serum.duration_counter) + " Turns Left" style "menu_text_style"
-            null height 80
-            text "Current Status Effects:" style "menu_text_style"
-            for effect in set(the_person.status_effects):
-                text effect.name style "menu_text_style"
-        
+            if the_person.serum_effects:
+                text "Currently Affected By:" style "menu_text_style"
+                for name, serum in map(lambda x: (x["name"], mc.business.serum_designs[x["name"]]), the_person.serum_effects):
+                    text "%s : %d Turns left" % (name, serum["duration"] - serum["time"]) style "menu_text_style"
+                null height 80
+            if the_person.status_effects:
+                text "Current Status Effects:" style "menu_text_style"
+                for effect in set(the_person.status_effects):
+                    text effect["name"] style "menu_text_style"
+
     frame:
         background None
         anchor [0.5,0.5]
@@ -931,33 +544,13 @@ screen mc_character_sheet(): #TODO: Impliment a level up system for the main cha
         xanchor 0.5
         xalign 0.5
         yalign 0.2
-        vbox:
-            xsize 600
-            xanchor -0.5
-            text "Main Stats" style "menu_text_style" size 25 xalign 0.5
-            text "Charisma: %d" % mc.charisma style "menu_text_style" xalign 0.5
-            text "Intelligence: %d" % mc.int style "menu_text_style" xalign 0.5
-            text "Focus: %d" % mc.focus style "menu_text_style" xalign 0.5
-            
-        vbox:
-            xsize 600
-            xalign 0.5
-            text "Work Skills" style "menu_text_style" size 25 xalign 0.5
-            text "Human Resources: %d" % mc.hr_skill style "menu_text_style" xalign 0.5
-            text "Marketing: %d" % mc.market_skill style "menu_text_style" xalign 0.5
-            text "Research and Development: %d" % mc.research_skill style "menu_text_style" xalign 0.5
-            text "Production: %d" % mc.production_skill style "menu_text_style" xalign 0.5
-            text "Supply Procurement: %d" % mc.supply_skill style "menu_text_style" xalign 0.5
-            
-        vbox:
-            xsize 600
-            xanchor 0.5
-            text "Sex Skills" style "menu_text_style" size 25 xalign 0.5
-            text "Foreplay: " + str(mc.sex_skills["Foreplay"]) style "menu_text_style" xalign 0.5
-            text "Oral: " + str(mc.sex_skills["Oral"]) style "menu_text_style" xalign 0.5
-            text "Vaginal: " + str(mc.sex_skills["Vaginal"]) style "menu_text_style" xalign 0.5
-            text "Anal: " + str(mc.sex_skills["Anal"]) style "menu_text_style" xalign 0.5
-            
+        for stat_name, params in Person.stats:
+            vbox:
+                xsize 600
+                text stat_name style "menu_text_style" size 25 xalign 0.5
+                for param, short in params:
+                    text "%s: %d" % (param, getattr(mc, short)) style "menu_text_style" xalign 0.5
+
     frame:
         background None
         anchor [0.5,0.5]
@@ -980,24 +573,19 @@ screen interview_ui(the_candidates,count):
     hbox:
         vbox:
             xsize 600
-            text "Name: [the_candidate.name]" style "menu_text_style"
-            text "Age: [the_candidate.age]" style "menu_text_style"
-            text "Daily Salary: $[the_candidate.salary]" style "menu_text_style"
-        
+            text "Name: %s" % the_candidate.name style "menu_text_style"
+            text "Age: %d" % the_candidate.age style "menu_text_style"
+            text "Daily Salary: $%d" % the_candidate.salary style "menu_text_style"
+
         vbox:
             xsize 600
-            text "Stats" style "menu_text_style"
-            text "Charisma: [the_candidate.charisma]" style "menu_text_style"
-            text "Intelligence: [the_candidate.int]" style "menu_text_style"
-            text "Focus: [the_candidate.focus]" style "menu_text_style"
-            text "*******" style "menu_text_style"
-            text "Skills" style "menu_text_style"
-            text "Human Resources: [the_candidate.hr_skill]" style "menu_text_style"
-            text "Marketing: [the_candidate.market_skill]" style "menu_text_style"
-            text "Research: [the_candidate.research_skill]" style "menu_text_style"
-            text "Production: [the_candidate.production_skill]" style "menu_text_style"
-            text "Procurement: [the_candidate.supply_skill]" style "menu_text_style"
-            
+            for stat_name, params in Person.stats:
+                if stat_name != "Sex Skills":
+                    for param, short in params:
+                        text "%s: %d" % (param, getattr(the_candidate, short)) style "menu_text_style"
+                    if stat_name != "Work Skills":
+                        text "*******" style "menu_text_style"
+
     hbox:
         xalign 0.0
         yalign 1.0
@@ -1018,23 +606,17 @@ init -2 python: # Some functions used only within screens for modifying variable
     def show_candidate(the_candidate):
         renpy.scene("Active")
         the_candidate.draw_person("stand1")
-    
-    def apply_trait_add_list(the_serum,current_traits,the_trait): #Called by the serum design UI so I can keep a list organized
-        current_traits.append(the_trait)
-        the_trait.effect(the_serum)
-        the_serum.status_effects.extend(the_trait.status_effects)
-        
-    def remove_trait_recalc(the_serum,current_traits,the_trait): #Removes the trait and recalculates the serum based on the other traits still in the list
-        current_traits.remove(the_trait)
-        the_serum.reset()
-        for trait in current_traits:
-            trait.effect(the_serum)
-            the_serum.status_effects.extend(the_trait.status_effects)
-            
-            
-    def set_trait_list(traits,serum):
-        serum.set_traits(traits)
-        
+
+    def add_trait_to_serum(name, trait, serum, add=True):
+        if add: # trait["name"] != name
+            serum["traits"].add(name)
+        else:
+            serum["traits"].remove(name)
+
+        for t in ["trait", "effect"]:
+            for k, v in trait[t].iteritems():
+                serum[k] += v if add else -v
+
 screen show_serum_inventory(the_inventory):
     add "Science_Menu_Background.png"
     vbox:
@@ -1043,83 +625,84 @@ screen show_serum_inventory(the_inventory):
         text "Serums in Inventory" style "menu_text_style" size 25
         for design in the_inventory.serums_held:
             textbutton design[0].name + ": " + str(design[1]) style "textbutton_style" text_style "textbutton_text_style" action NullAction() sensitive True hovered Show("serum_tooltip",None,design[0]) unhovered Hide("serum_tooltip")
-                
+
         textbutton "Return" action Return() style "textbutton_style" text_style "textbutton_text_style"
-            
-screen serum_design_ui(starting_serum,current_traits):
+
+screen serum_design_ui():
     add "Science_Menu_Background.png"
+    default serum = {"charisma": 0, "cupsize": 0, "duration": 1, "focus": 0, "happiness": 0, "int": 0, "obedience": 0, "production": 10, "sluttiness": 0, "suggest": 10, "value": 10, "research required": 50, "research done": 0, "traits": set()}
     hbox:
         xalign 0.01
         ysize 400
         vbox:
             xsize 600
             text "Add a new trait" style "menu_text_style"
-            for trait in list_of_traits:
-                if not trait in current_traits and trait.researched:
-                    textbutton "Add " + trait.name action [Hide("trait_tooltip"),Function(apply_trait_add_list,starting_serum,current_traits,trait)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait,0.3,0.6) unhovered Hide("trait_tooltip")
-            
+            for name, trait in mc.business.serum_traits.iteritems():
+                if name not in serum["traits"] and trait["research done"] >= trait["research required"]:
+                    textbutton "Add %s" % trait["name"] action [Hide("trait_tooltip"),Function(add_trait_to_serum,name, trait, serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait,0.3,0.6) unhovered Hide("trait_tooltip")
+
         vbox:
             xsize 600
             text "Remove a trait" style "menu_text_style"
-            for trait in current_traits:
-                textbutton "Remove " + trait.name action Function(remove_trait_recalc,starting_serum,current_traits,trait) style "textbutton_style" text_style "textbutton_text_style"
-                
+            for name in serum["traits"]:
+                textbutton "Remove %s" % name action Function(add_trait_to_serum, name, mc.business.serum_traits[name], serum, False) style "textbutton_style" text_style "textbutton_text_style"
+
         vbox:
             xsize 600
             text "Current Traits:" style "menu_text_style"
-            for trait in current_traits:
-                text "Trait: " + trait.name style "menu_text_style"
+            for name in serum["traits"]:
+                text "Trait: %s" % name style "menu_text_style"
                 text "*******" style "outfit_style"
-                text "Description: " + trait.desc style "menu_text_style"
+                text "Description: %s" % mc.business.serum_traits[name]["desc"] style "menu_text_style"
                 text " " style "ouftit_style"
-    
+
     hbox:
         ysize 300
         yalign 0.6
         xalign 0.01
         vbox:
             text "Current Serum Statistics:" style "menu_text_style"
-            text "Research Required: [starting_serum.research_needed]" style "menu_text_style"
-            text "Production Cost: [starting_serum.production_cost]" style "menu_text_style"
-            text "Value: [starting_serum.value]" style "menu_text_style"
-            text "Duration (Time Segments): [starting_serum.duration]" style "menu_text_style"
-            text "Suggestion: [starting_serum.suggest_raise]" style "menu_text_style"
-            text "Happiness: [starting_serum.happiness_raise]" style "menu_text_style"
-            text "Sluttiness: [starting_serum.slut_raise]" style "menu_text_style"
-            text "Obedience: [starting_serum.obedience_raise]" style "menu_text_style"
-            text "Charisma Boost: [starting_serum.cha_raise]" style "menu_text_style"
-            text "Intelligence Boost: [starting_serum.int_raise]" style "menu_text_style"
-            text "Focus Boost: [starting_serum.foc_raise]" style "menu_text_style"
-            
+            text "Research Required: %d" % serum["research required"] style "menu_text_style"
+            text "Production Cost: %d" % serum["production"] style "menu_text_style"
+            text "Value: %d" % serum["value"] style "menu_text_style"
+            text "Duration (Time Segments): %d" % serum["duration"] style "menu_text_style"
+            text "Suggestion: %d" % serum["suggest"] style "menu_text_style"
+            text "Happiness: %d" % serum["happiness"] style "menu_text_style"
+            text "Sluttiness: %d" % serum["sluttiness"] style "menu_text_style"
+            text "Obedience: %d" % serum["obedience"] style "menu_text_style"
+            text "Charisma Boost: %d" % serum["charisma"] style "menu_text_style"
+            text "Intelligence Boost: %d" % serum["int"] style "menu_text_style"
+            text "Focus Boost: %d" % serum["focus"] style "menu_text_style"
+
     hbox:
         yalign 0.9
         xalign 0.01
         vbox:
-            textbutton "Create serum design." action [Function(set_trait_list,current_traits,starting_serum),Return(starting_serum)] style "textbutton_style" text_style "textbutton_text_style"
+            textbutton "Create serum design." action Return(serum) style "textbutton_style" text_style "textbutton_text_style"
             textbutton "Quit." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
-            
-screen serum_tooltip(the_serum):
+
+screen serum_tooltip(serum):
     vbox:
         xalign 0.9
         yalign 0.0
         xsize 500
-        text "Research Required: [the_serum.research_needed]" style "menu_text_style"
-        text "Production Cost: [the_serum.production_cost]" style "menu_text_style"
-        text "Value: [the_serum.value]" style "menu_text_style"
-        text "Duration (Time Segments): [the_serum.duration]" style "menu_text_style"
-        text "Suggestion: [the_serum.suggest_raise]" style "menu_text_style"
-        text "Happiness: [the_serum.happiness_raise]" style "menu_text_style"
-        text "Sluttiness: [the_serum.slut_raise]" style "menu_text_style"
-        text "Obedience: [the_serum.obedience_raise]" style "menu_text_style"
-        text "Charisma Boost: [the_serum.cha_raise]" style "menu_text_style"
-        text "Intelligence Boost: [the_serum.int_raise]" style "menu_text_style"
-        text "Focus Boost: [the_serum.foc_raise]" style "menu_text_style" 
+        text "Research Required: %d" % serum["research required"] style "menu_text_style"
+        text "Production Cost: %d" % serum["production"] style "menu_text_style"
+        text "Value: %d" % serum["value"] style "menu_text_style"
+        text "Duration (Time Segments): %d" % serum["duration"] style "menu_text_style"
+        text "Suggestion: %d" % serum["suggest"] style "menu_text_style"
+        text "Happiness: %d" % serum["happiness"] style "menu_text_style"
+        text "Sluttiness: %d" % serum["sluttiness"] style "menu_text_style"
+        text "Obedience: %d" % serum["obedience"] style "menu_text_style"
+        text "Charisma Boost: %d" % serum["charisma"] style "menu_text_style"
+        text "Intelligence Boost: %d" % serum["int"] style "menu_text_style"
+        text "Focus Boost: %d" % serum["focus"] style "menu_text_style"
         text ""
-        if len(the_serum.traits) > 0:
+        if serum["value"] > 10:
             text "*********\n" style "menu_text_style"
-        for trait in the_serum.traits:
-            text "Trait: " + trait.name style "menu_text_style"
-            text trait.desc style "menu_text_style"
+        for name in serum["traits"]:
+            text "Trait: " + name style "menu_text_style"
+            text mc.business.serum_traits[name]["desc"] style "menu_text_style"
             text "\n*********\n" style "menu_text_style"
             
 screen trait_tooltip(the_trait,given_xalign=0.9,given_yalign=0.0):
@@ -1127,10 +710,10 @@ screen trait_tooltip(the_trait,given_xalign=0.9,given_yalign=0.0):
         xalign given_xalign
         yalign given_yalign
         xsize 500
-        text the_trait.name style "menu_text_style"
+        text the_trait["name"] style "menu_text_style"
         text "\n*********\n" style "menu_text_style"
-        text "Research Required: [the_trait.research_needed]" style "menu_text_style"
-        text the_trait.desc style "menu_text_style"
+        text "Research Required: %d" % the_trait["research required"] style "menu_text_style"
+        text the_trait["desc"] style "menu_text_style"
             
             
 screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business"): #Lets you trade serums back and forth between two different inventories. Inventory 1 is assumed to be the players.
@@ -1158,7 +741,7 @@ screen serum_select_ui: #How you select serum and trait research
     add "Science_Menu_Background.png"
     vbox:
         if mc.business.active_research_design != None:
-            text "Current Research: [mc.business.active_research_design.name] ([mc.business.active_research_design.current_research]/[mc.business.active_research_design.research_needed])" style "menu_text_style"
+            text "Current Research: %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
         else:
             text "Current Research: None!" style "menu_text_style"
         
@@ -1166,16 +749,16 @@ screen serum_select_ui: #How you select serum and trait research
             vbox:
                 text "Serum Designs:" style "menu_text_style"
                 for serum in mc.business.serum_designs:
-                    if not serum.researched:
-                        textbutton "Research [serum.name] ([serum.current_research]/[serum.research_needed])" action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
+                    if serum["research done"] < serum["research required"]:
+                        textbutton "Research %(name)s (%(research done)d/%(research required)d)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
              
             null width 40
             
         vbox:
             text "New Traits:" style "menu_text_style"
-            for trait in list_of_traits:
-                if not trait.researched and trait.has_required():
-                    textbutton "Research [trait.name] ([trait.current_research]/[trait.research_needed])" action [Hide("trait_tooltip"),Return(trait)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait) unhovered Hide("trait_tooltip")
+            for name, trait in mc.business.serum_traits.iteritems():
+                if not trait["research done"] >= trait["research required"] and all(t["research done"] >= t["research required"] for t in map(lambda x: mc.business.serum_traits[x], trait["requires"])):
+                    textbutton "%(name)s (%(research done)d/%(research required)d)" % trait action [Hide("trait_tooltip"),Return(trait)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait) unhovered Hide("trait_tooltip")
                     
     textbutton "Do not change research." action Return("None") style "textbutton_style" text_style "textbutton_text_style" yalign 0.995
         
@@ -1186,7 +769,7 @@ screen serum_production_select_ui:
         xsize 1200
         null height 40 
         if mc.business.serum_production_target != None:
-            text "Currently Producing: [mc.business.serum_production_target.name] - $[mc.business.serum_production_target.value]/dose (Current Progress: [mc.business.production_points]/[mc.business.serum_production_target.production_cost])" style "menu_text_style" size 25
+            text "Currently Producing: %(name)s - $%(value)d/dose (Current Progress: %(research done).1f/%(research required).1f)" % mc.business.serum_production_target style "menu_text_style" size 25
         else:
             text "Currently Producing: Nothing!" style "menu_text_style"
         
@@ -1196,8 +779,8 @@ screen serum_production_select_ui:
             xsize 1000
             xalign 0.2
             for serum in mc.business.serum_designs:
-                if serum.researched:
-                    textbutton "Produce [serum.name] (Requires [serum.production_cost] production points per dose. Worth $[serum.value]/dose)" action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
+                if serum["research done"] < serum["research required"]:
+                    textbutton "Produce %(name)s (Requires %(production)d production points per dose. Worth $%(value)d/dose)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Do not change production." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
         
 screen serum_inventory_select_ui(the_inventory): #Used to let the player select a serum from an inventory.
@@ -1420,11 +1003,11 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
                         
 screen map_manager():
     add "Paper_Background.png"
-    for place in list_of_places: #Draw the background
+    for name, place in world.iteritems(): #Draw the background
         for connected in place.connections:
-            add Vren_Line([int(place.map_pos[0]*1920),int(place.map_pos[1]*1080)],[int(connected.map_pos[0]*1920),int(connected.map_pos[1]*1080)],4,"#117bff") #Draw a white line between each location 
+            add Vren_Line([int(place.map_pos[0]*1920),int(place.map_pos[1]*1080)],[int(world[connected].map_pos[0]*1920),int(world[connected].map_pos[1]*1080)],4,"#117bff") #Draw a white line between each location 
         
-    for place in list_of_places: #Draw the text buttons over the background
+    for name, place in world.iteritems(): #Draw the text buttons over the background
         if place != mc.location:
             frame:
                 background None
@@ -1437,7 +1020,7 @@ screen map_manager():
                     focus_mask "gui/LR2_Hex_Button_idle.png"
                     action Function(mc.change_location,place) 
                     sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
-                text place.formalName + "\n(%d)" % len(place.people) anchor [0.5,0.5] style "map_text_style"
+                text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
         else:
             frame:
@@ -1452,7 +1035,7 @@ screen map_manager():
                     focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
                     action Function(mc.change_location,place) 
                     sensitive False 
-                text place.formalName + "\n(%d)" % len(place.people) anchor [0.5,0.5] style "map_text_style" 
+                text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
     
     frame:
         background None
@@ -1623,7 +1206,7 @@ label start:
     call screen character_create_screen()
     $ renpy.block_rollback()
     $ return_arrays = _return #These are the stat, skill, and sex arrays returned from the character creator.
-    call create_test_variables(store.name,store.b_name,return_arrays[0],return_arrays[1],return_arrays[2]) from _call_create_test_variables ##Moving some of this to an init block (init 1 specifically) would let this play better with updates in the future.
+    call create_test_variables() from _call_create_test_variables ##Moving some of this to an init block (init 1 specifically) would let this play better with updates in the future.
             
     "You have recently graduated from university, after completing your degree in chemical engineering. You've moved away from home, closer to the industrial district of the city to be close to any potential engineering jobs."
     "While the job search didn't turn up any paying positions, it did lead you to a bank posting for an old pharmaceutical lab. The bank must have needed money quick, because they were practically giving it away."
@@ -1635,7 +1218,7 @@ label start:
     $ renpy.show
     show screen main_ui
     show screen business_ui
-    $ renpy.show(bedroom.name,what=bedroom.background_image) #show the bedroom background as our starting point.
+    $ renpy.show(mc.location.name,what=mc.location.background_image) #show the bedroom background as our starting point.
     call examine_room(mc.location) from _call_examine_room
     jump game_loop
     
@@ -1799,14 +1382,15 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
         elif choice == "Talk to someone.":
             python:
                 i = 0
+                people = list(mc.location.people)
                 while not isinstance(choice, NPC) and choice != "Back":
-                    tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in mc.location.people[i:i+9]]
+                    tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in people[i:i+9]]
                     if pers_ct > i+10:
                         tuple_list.append(("Someone else", "Someone else"))
                         i += 9
                     elif pers_ct == i+10:
-                        people = mc.location.people[i+9]
-                        tuple_list.append((people.name + " " + people.last_name[0] + ".",people))
+                        p = mc.location.people[i+9]
+                        tuple_list.append((p.name + " " + p.last_name[0] + ".",p))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
 
@@ -1825,7 +1409,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
 label change_location(the_place):
     $ renpy.scene()
     $ renpy.show(the_place.name,what=the_place.background_image)
-#    "You spend some time travelling to [the_place.name]." #TODO: Only show this when there is a significant time use? Otherwise takes up too much time changing between locations.
+#    "You spend some time travelling to %s." % the_place.name #TODO: Only show this when there is a significant time use? Otherwise takes up too much time changing between locations.
     return
 
 label talk_person(the_person, repeat_choice = None):
@@ -1870,7 +1454,7 @@ label talk_person(the_person, repeat_choice = None):
                             mc.name "And I'll absolutely reward you once the next major deal goes through."
                             $ the_person.draw_person(emotion = "sad")
                             $ change_amount = 5-mc.charisma
-                            show screen float_up_screen(["-[change_amount] Happiness"],["float_text_yellow"])
+                            show screen float_up_screen(["-%d Happiness" % change_amount],["float_text_yellow"])
                             $the_person.change_happiness(-change_amount)
                             "[the_person.name] looks visibly disapointed."
                             the_person.name "Right, of course."
@@ -1879,7 +1463,7 @@ label talk_person(the_person, repeat_choice = None):
                             mc.name "Here you go, treat yourself to something nice tonight."
                             $ the_person.draw_person(emotion = "happy")
                             $ change_amount = 1+mc.charisma
-                            show screen float_up_screen(["+[change_amount] Happiness"],["float_text_yellow"])
+                            show screen float_up_screen(["+%d Happiness" % change_amount],["float_text_yellow"])
                             $ the_person.change_happiness(change_amount)
                             $ mc.money -= the_person.salary
                             "[the_person.name] takes the bills from you and smiles."
@@ -1893,7 +1477,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ the_person.change_happiness(change_amount_happiness)
                             $ the_person.change_obedience_modified(change_amount)
                             $ mc.money -= weeks_wages
-                            show screen float_up_screen(["+[change_amount] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
+                            show screen float_up_screen(["+%d Happiness" % change_amount,"+%d Obedience" % change_amount],["float_text_yellow","float_text_grey"])
                             "[the_person.name] takes the bills, then smiles broadly at you."
                             the_person.name "That's very generous of you sir, thank you."
 
@@ -1906,14 +1490,14 @@ label talk_person(the_person, repeat_choice = None):
                             $the_person.change_happiness(change_amount_happiness)
                             $the_person.change_obedience_modified(change_amount)
                             "[the_person.name] takes the bills, momentarily stunned by the amount."
-                            show screen float_up_screen(["+[change_amount] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
+                            show screen float_up_screen(["+%d Happiness" % change_amount,"+%d Obedience" % change_amount],["float_text_yellow","float_text_grey"])
                             if the_person.sluttiness > 40 and the_person.happiness > 100:
                                 the_person.name "Wow... this is amazing sir. I'm sure there's something I can do to pay you back, right?"
                                 "She steps close to you and runs a finger down your chest."
                                 call fuck_person(the_person) from _call_fuck_person_3  #TODO: add a temporary obedience and sluttiness modifier to the function to allow for modifiers during situations like this (and firing her)
                                 #Now that you've had sex, we calculate the change to her stats and move on.
                                 $ change_amount = the_person.change_slut_modified(the_person.arousal) #Change her slut score by her final arousal. This should be _about_ 100 if she climaxed, but you may keep fucking her silly if you can overcome the arousal loss.
-                                show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+                                show screen float_up_screen(["+%d Sluttiness" % change_amount],["float_text_pink"])
                                 $ the_person.reset_arousal()
                                 $ the_person.review_outfit()
                             else:
@@ -1925,7 +1509,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ change_amount_happiness = 10+mc.charisma
                             $ the_person.change_happiness(change_amount_happiness)
                             $ change_amount_obedience = the_person.change_obedience_modified(change_amount)
-                            show screen float_up_screen(["+$[raise_amount]/day Salary","+[change_amount] Happiness","+[change_amount_obedience] Obedience"],["float_text_green","float_text_yellow","float_text_grey"])
+                            show screen float_up_screen(["+$%d/day Salary" % raise_amount,"+%d Happiness" % change_amount,"+%d Obedience" % change_amount_obedience],["float_text_green","float_text_yellow","float_text_grey"])
                             $ the_person.salary += raise_amount
                             the_person.name "Thank you sir, that's very generous of you!"
 
@@ -2036,14 +1620,14 @@ label compliment_her_outfit:
             $ slut_difference = sweet_spot_range
         $ slut_difference = sweet_spot_range - slut_difference #invert the value so we now have 10 - 10 at both extreme ends, 10 - 0 at the middle where it will have the most effect.
         $ change_amount = the_person.change_slut_modified(mc.charisma + 1 + slut_difference) #Increase their sluttiness if they are suggestable right now.
-        show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+        show screen float_up_screen(["+%d Sluttiness" % change_amount],["float_text_pink"])
         the_person.name "Glad you think so, I was on the fence, but it's nice to know that somebody likes it!"
     return
 
 label flirt_with_her:
     mc.name "Hey [the_person.name], you're looking particularly good today. I wish I got to see a little bit more of that fabulous body."
     $ change_amount = the_person.change_slut_modified(mc.charisma + 1)
-    show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+    show screen float_up_screen(["+%d Sluttiness" % change_amount],["float_text_pink"])
     $the_person.call_flirt_response()
     return
 
@@ -2053,7 +1637,7 @@ label compliment_her_recent_work:
     $ change_amount_obedience = the_person.change_obedience_modified(-change_amount)
     $ the_person.change_happiness(change_amount)
     $ the_person.draw_person(emotion = "happy")
-    show screen float_up_screen(["+[change_amount] Happiness","[change_amount_obedience] Obedience"],["float_text_yellow","float_text_grey"])
+    show screen float_up_screen(["+%d Happiness" % change_amount,"%d Obedience" % change_amount_obedience],["float_text_yellow","float_text_grey"])
     the_person.name "Thanks [mc.name], it means a lot to hear that from you. I'll just keep doing what I'm doing I guess."
     return
 
@@ -2064,7 +1648,7 @@ label insult_her_recent_work:
     $ change_amount= the_person.change_obedience_modified(change_amount)
     $ the_person.change_happiness(-change_amount_happiness)
     $ the_person.draw_person(emotion = "sad")
-    show screen float_up_screen(["-[change_amount_happiness] Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
+    show screen float_up_screen(["-%d Happiness" % change_amount_happiness,"+%d Obedience" % change_amount],["float_text_yellow","float_text_grey"])
     the_person.name "Oh... I didn't know there was an issue. I'll try follow your instructions closer then."
     return
 
@@ -2079,7 +1663,7 @@ label seduce_her:
     call fuck_person(the_person) from _call_fuck_person
     #Now that you've had sex, we calculate the change to her stats and move on.
     $ change_amount = the_person.change_slut_modified(the_person.arousal) #Change her slut score by her final arousal. This should be _about_ 100 if she climaxed, but you may keep fucking her silly if you can overcome the arousal loss.
-    show screen float_up_screen(["+[change_amount] Sluttiness"],["float_text_pink"])
+    show screen float_up_screen(["+%d Sluttiness" % change_amount],["float_text_pink"])
     $ the_person.reset_arousal()
     $ the_person.review_outfit()
     return
@@ -2127,7 +1711,8 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
                     tuple_list = [("Keep going some more.",the_position), ("Back off and change positions.","Pull Out")]
                     if (mc.arousal > 80): #Only let you finish if you've got a high enough arousal score. #TODO: Add stat that controls how much control you have over this.
                         tuple_list.append(("Cum!","Finish"))
-                    for position in the_position.connections:
+                    for pos_name in the_position.connections:
+                        position = world[pos_name]
                         if position.requires_location in the_object and position.check_clothing(the_person):
                             tuple_list.append(("Change to " + position.name + ".", position))
                     position_choice = renpy.display_menu(tuple_list + alt_options, True,"Choice")
@@ -2170,7 +1755,7 @@ label strip_menu(the_person):
     
 label examine_room(the_room):
     python:
-        desc = "You are at the [the_room.name]. "
+        desc = "You are at the %s. " % the_room.name
 
         people_here = the_room.people #Format the names of people in the room with you so it looks nice.
         pers_ct = len(people_here)
@@ -2192,6 +1777,7 @@ label examine_room(the_room):
         if conn_ct == 0:
             desc += "There are no exits from here. You're trapped! " #Shouldn't ever happen, hopefully."
         else:
+            connections_here = [world[n] for n in connections_here]
             desc += "From here you can head to "
             if conn_ct == 2:
                 desc += "either the " + connections_here[0].name + " or "
@@ -2266,7 +1852,7 @@ label advance_time:
 
     python: 
         people_to_process = [] #This is a master list of turns of need to process, stored as tuples [character,location]. Used to avoid modifying a list while we iterate over it, and to avoid repeat movements.
-        for place in list_of_places:
+        for name, place in world.iteritems():
             for people in place.people:
                 people_to_process.append([people,place])
                 
@@ -2276,9 +1862,9 @@ label advance_time:
         mc.business.run_turn()
         
     $ count = 0
-    $ max = len(mc.business.mandatory_crises_list)
+    $ maximum = len(mc.business.mandatory_crises_list)
     $ clear_list = []
-    while count < max: #We need to keep this in a renpy loop, because a return call will always return to the end of an entire python block.
+    while count < maximum: #We need to keep this in a renpy loop, because a return call will always return to the end of an entire python block.
         $crisis = mc.business.mandatory_crises_list[count]
         if crisis.check_requirement():
             $ crisis.call_action()
@@ -2323,7 +1909,7 @@ label advance_time:
                 $ renpy.full_restart()
             else:
                 $ days_remaining = mc.business.max_bankrupt_days-mc.business.bankrupt_days
-                $ renpy.say("","Warning! Your company is losing money and unable to pay salaries or purchase necessary supplies! You have [days_remaining] days to restore yourself to positive funds or you will be foreclosed upon!")
+                $ renpy.say("","Warning! Your company is losing money and unable to pay salaries or purchase necessary supplies! You have %d days to restore yourself to positive funds or you will be foreclosed upon!" % days_remaining)
         else:
             $ mc.business.bankrupt_days = 0
             

@@ -48,7 +48,7 @@ init 1 python:
         
     def mc_asleep(): #Returns true if the main character is at home and in bed.
         if time_of_day == 4: #It has to be after work, right when you've gone to bed.
-            if mc.location == bedroom:
+            if mc.location == world["bedroom"]:
                 return True
         return False
     
@@ -275,7 +275,7 @@ label special_training_crisis_label():
 init 1 python:
     def lab_accident_requirement():
         if in_research_with_other():
-            if mc.business.active_research_design and type(mc.business.active_research_design) is SerumDesign:
+            if mc.business.active_research_design and "value" in mc.business.active_research_design:
                 return True
         return False
         
@@ -284,13 +284,11 @@ init 1 python:
     
 label lab_accident_crisis_label():
     ## Some quick checks to make sure the crisis is still valid (for example, a serum being finished before this event can trigger)
-    if not mc.business.active_research_design:
+    if not (mc.business.active_research_design and mc.business.is_reasearching_drug()):
         return
-    if not type(mc.business.active_research_design) is SerumDesign:
-        return
-        
+
     $ the_serum = mc.business.active_research_design
-    $ the_person = renpy.random.choice(mc.business.r_div.people)
+    $ the_person = renpy.random.sample(mc.business.r_div.people, 1)[0]
     $ the_place = mc.business.r_div.room
     
     if mc.location == the_place:
@@ -312,7 +310,7 @@ label lab_accident_crisis_label():
     hide screen business_ui
     "You get to [the_person.name]'s lab bench. There's a shattered test tube still on it and a pool of coloured liquid."
     mc.name "What happened?"
-    $ techno = renpy.random.choice(technobabble_list)
+    $ techno = renpy.random.choice(Person.technobabble_list)
     the_person.name "I was trying to [techno] and went to move the sample. It slipped out of my hand and when I tried to grab it..."
     "She turns her palm up to you. It's covered in the same coloured liquid, and there's a small cut."
     the_person.name "I'm not sure what the uptake is like with this new design. I think everything will be fine, but would you mind hanging around for a few minutes?."
@@ -338,7 +336,7 @@ label production_accident_crisis_label():
         return
         
     $ the_serum = mc.business.serum_production_target
-    $ the_person = renpy.random.choice(mc.business.p_div.people)
+    $ the_person = renpy.random.sample(mc.business.p_div.people, 1)[0]
     $ the_place = mc.business.p_div.room
     
     if mc.location == the_place:
@@ -360,7 +358,7 @@ label production_accident_crisis_label():
     hide screen business_ui
     "You get to [the_person.name]'s lab bench. There's a collection of shattered test tubes still on it and a pool of coloured liquid."
     mc.name "What happened?"
-    $ techno = renpy.random.choice(technobabble_list)
+    $ techno = renpy.random.choice(Person.technobabble_list)
     the_person.name "I was trying to [techno]like I normally do and went to move the batch. It slipped out of my hand and when I tried to grab it..."
     "She turns her palm up to you. It's covered in the same coloured liquid, and there's a small cut."
     the_person.name "I'm not sure what the uptake is like with this new design. I think everything will be fine, but would you mind hanging around for a few minutes?."
@@ -667,14 +665,14 @@ init 1 python:
         return True #Always true, this will always happen right after a serum is created, regardless of the time.
     
 label serum_creation_crisis_label(the_serum): # Called every time a new serum is created, test it on a R&D member.
-    $ rd_staff = renpy.random.choice(mc.business.r_div.people) #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
+    $ rd_staff = renpy.random.sample(mc.business.r_div.people, 1)[0] #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
     if rd_staff is not None:
         $ the_place = mc.business.r_div.room
         if mc.location == the_place: # The MC is in the lab, just physically get them.
             call change_location(the_place) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.
             "There's a tap on your shoulder. You turn and see [rd_staff.name], looking obviously excited."
             $ rd_staff.draw_person(emotion="happy")
-            rd_staff.name "[mc.name], I'm sorry to bother you but I've had a breakthrough! The first test dose of serum \"[the_serum.name]\" is coming out right now!"
+            $ renpy.say(rd_staff.name, "%s, I'm sorry to bother you but I've had a breakthrough! The first test dose of serum \"%s\" is coming out right now!" % (mc.name, the_serum["name"]))
             rd_staff.name "Would you like to come and oversee final testing?"
             menu:
                 "Oversee final testing of the new serum.":
@@ -690,7 +688,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
         else: # The MC is somewhere else, bring them to the lab for this.
             "Your phone buzzes, grabbing your attention. It's a call from the R&D section of your buisness."
             "As soon as you answer you hear the voice of [rd_staff.name]."
-            rd_staff.name "[mc.name], I've had a breakthrough! The first test dose of serum \"[the_serum.name]\" is coming out right now!"
+            $ renpy.say(rd_staff.name, "%s, I've had a breakthrough! The first test dose of serum \"%s\" is coming out right now!" % (mc.name, the_serum["name"]))
             rd_staff.name "Will you be able to come down and take a look?"
             menu:
                 "Visit the lab and test the new serum.":
@@ -711,7 +709,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                     
         ## Test the serum out on someone.
         "[rd_staff.name] brings you to her work bench, where a centrifuge is spinning down."
-        $ technobabble = renpy.random.choice(technobabble_list)
+        $ technobabble = renpy.random.choice(Person.technobabble_list)
         rd_staff.name "Perfect, it's just finishing now. I had this flash of inspiration and realised all I needed to do was [technobabble]."
         "[rd_staff.name] opens the centrifuge lid and takes out a small glass vial. She holds it up to the light and nods approvingly, then hands it to you."
         rd_staff.name "We should test it before sending the design off to production, don't you think?"
@@ -794,6 +792,6 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
         return
                                                                                                                                                                                                
     else: #There's nobody else in the lab, guess you've done all the hard work yourself!
-        "You finish work on your new serum design, dubbing it \"[the_serum.name]\". The lab is empty, so you celebrate by yourself."
+        $renpy.say("", "You finish work on your new serum design, dubbing it \"%s\". The lab is empty, so you celebrate by yourself." % the_serum["name"])
         return
     return #We should always have returned by this point anyways, but just in case we'll catch it here.
