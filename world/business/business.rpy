@@ -8,14 +8,14 @@ init -23 python:
             self.serum = None
             self.uniform = None
 
-        def give_daily_serum(self, inventory):
+        def give_daily_serum(self, inventory, message_list):
             if self.serum:
                 for person in self.room.people:
-                    if inventory.get_serum_count(self.serum) > 0:
-                        inventory.change_serum(self.serum,-1)
-                        person.give_serum(copy.copy(self.serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
-                    else:
-                        return "Stockpile ran out of %s to give to the %s division." % (self.serum.name, self.name.lower())
+                    if inventory.get_serum_count(self.serum) == 0:
+                        message_list["Stockpile ran out of %s to give to the %s division." % (self.serum.name, self.name.lower())] = 0
+                        break
+                    inventory.change_serum(self.serum,-1)
+                    person.give_serum(copy.copy(self.serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
 
     class Business(renpy.store.object):
         def __init__(self, name, division):
@@ -268,12 +268,11 @@ init -23 python:
                 division.room.people.add(new_person)
 
         def remove_employee(self, the_person):
-            for div in self.division:
-                if the_person in div.people:
-                    div.people.remove(the_person)
-                    if the_person in div.room.people:
-                        div.room.people.remove(the_person)
-                    break
+            div = next(div for div in self.division if the_person in div.people)
+            div.people.remove(the_person)
+            if the_person in div.room.people:
+                div.room.people.remove(the_person)
+
         def is_employee(self, person):
             return any(person in div.people for div in self.division)
 
@@ -295,9 +294,7 @@ init -23 python:
 
         def give_daily_serum(self):
             for div in self.division:
-                the_message = div.give_daily_serum(self.inventory)
-                if the_message:
-                    self.message_list[the_message] = 0
+                div.give_daily_serum(self.inventory, self.message_list)
 
         def purchase_policy(self, policy):
             self.funds -= policy.cost
