@@ -223,14 +223,13 @@ init -23 python:
                         self.sale_inventory.change_serum(serum[0],-serum_sale_count)
                         serum_sale_count = 0
                         break
-                    else:
-                        #There are not enough in this single order, remove _all_ of them, add value, go onto next thing.
-                        serum_sale_count += -serum[1] #We were able to sell this number of serum.
-                        value_sold = serum[1] * serum[0].value * serum_value_multiplier
-                        self.funds += value_sold
-                        self.sales_made += value_sold
-                        self.sale_inventory.change_serum(serum[0],-serum[1]) #Should set serum count to 0.
-                        #Don't break, we haven't used up all of the serum count
+                    #There are not enough in this single order, remove _all_ of them, add value, go onto next thing.
+                    serum_sale_count += -serum[1] #We were able to sell this number of serum.
+                    value_sold = serum[1] * serum[0].value * serum_value_multiplier
+                    self.funds += value_sold
+                    self.sales_made += value_sold
+                    self.sale_inventory.change_serum(serum[0],-serum[1]) #Should set serum count to 0.
+                    #Don't break, we haven't used up all of the serum count
 
 
         def production_progress(self,focus,int,skill):
