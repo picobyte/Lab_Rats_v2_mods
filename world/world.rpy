@@ -154,14 +154,6 @@ init python:
             self.day = 0 ## Game starts on day 0.
             self.time_of_day = 0 ## 0 = Early morning, 1 = Morning, 2 = Afternoon, 3 = Evening, 4 = Night
 
-        @property
-        def corp(self):
-            return self.mc.business
-
-        @property
-        def loc(self):
-            return self.mc.location
-
         def __iter__(self): # when iterating over world you get the world locations
             for k in World.locations.keys():
                 yield self.__dict__[k]
@@ -169,6 +161,11 @@ init python:
 
         def is_work_time(self): #Checks to see if employees are currently working
             return (self.day % 7) < 6 and 0 < self.time_of_day < 4 # work hours and give people the weekends off.
+
+        def add_time_is_next_day(self):
+            self.time_of_day = (self.time_of_day + 1) % 4
+            self.day += not self.time_of_day
+            return not self.time_of_day
 
 label create_world():
     python:

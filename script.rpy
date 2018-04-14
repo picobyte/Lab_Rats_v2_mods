@@ -1887,15 +1887,13 @@ label advance_time:
     $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
     hide screen person_info_ui
     show screen business_ui
-    
-    if world.time_of_day == 4: ##First, determine /if we're going into the next chunk of time. If we are, advance the world.day and run all of the end of world.day code.
-        $ world.time_of_day = 0
-        $ world.day += 1
+
+    if world.add_time_is_next_day(): ##First, determine /if we're going into the next chunk of time. If we are, advance the world.day and run all of the end of world.day code.
         python:
             for (people,place) in people_to_process:
                 people.run_day()
         $ mc.business.run_day()
-        
+
         if mc.business.funds < 0:
             $ mc.business.bankrupt_days += 1
             if mc.business.bankrupt_days == mc.business.max_bankrupt_days:
@@ -1906,13 +1904,10 @@ label advance_time:
                 $ renpy.say("","Warning! Your company is losing money and unable to pay salaries or purchase necessary supplies! You have %d world.days to restore yourself to positive funds or you will be foreclosed upon!" % world.days_remaining)
         else:
             $ mc.business.bankrupt_days = 0
-            
+
         call screen end_of_day_update() # We have to keep this outside of a python block, because the renpy.call_screen function does not properly fade out the text bar.
         $ mc.business.clear_messages()
 
-    else:
-        $ world.time_of_day += 1 ##Otherwise, just run the end of world.day code.
-        
     if world.time_of_day == 1 and "Daily Serum Dosage" in mc.business.active_policies: #It is the start of the work world.day, give everyone their daily dose of serum
         $ mc.business.give_daily_serum()
         
