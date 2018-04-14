@@ -227,7 +227,7 @@ init -23 python:
         def production_progress(self,focus,int,skill):
             production_amount = __builtin__.round(((3*focus) + (int) + (2*skill) + 10) * (self.team_effectiveness))/100
             self.production_potential += production_amount
-            production_amount = max(production_amount, self.supply_count)
+            production_amount = min(production_amount, self.supply_count)
             self.production_used += production_amount
 
             if self.serum_production_target != None:
