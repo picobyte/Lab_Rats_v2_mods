@@ -289,10 +289,9 @@ label lab_accident_crisis_label():
 
     $ the_serum = world.mc.business.active_research_design
     $ the_person = renpy.random.sample(world.mc.business.r_div.people, 1)[0]
-    $ the_place = world.mc.business.r_div.room
     
-    if world.mc.location == the_place:
-        call change_location(the_place) from _call_lab_accident_1
+    if world.mc.location == world.rd_room:
+        call change_location(world.rd_room) from _call_lab_accident_1
         "There's a sudden crash and sharp yell of suprise as you're working in the lab."
         $the_person.call_suprised_exclaim()
         the_person.name "[world.mc.name], I think I need you for a moment."
@@ -302,7 +301,7 @@ label lab_accident_crisis_label():
         "Your phone buzzes - it's a text from [the_person.name] on your research team."
         the_person.name "There's been a small accident, can I see you in the lab?"
         "You hurry over to your research and development lab to see what the problem is."
-        call change_location(the_place) from _call_lab_accident_2
+        call change_location(world.rd_room) from _call_lab_accident_2
     
     
     $ the_person.draw_person(emotion = "sad")
@@ -337,10 +336,9 @@ label production_accident_crisis_label():
         
     $ the_serum = world.mc.business.serum_production_target
     $ the_person = renpy.random.sample(world.mc.business.p_div.people, 1)[0]
-    $ the_place = world.mc.business.p_div.room
     
-    if world.mc.location == the_place:
-        call change_location(the_place) from _call_production_accident_1
+    if world.mc.location == world.p_room:
+        call change_location(world.p_room) from _call_production_accident_1
         "There's a sudden crash and sharp yell of suprise as you're working in the lab."
         $the_person.call_suprised_exclaim()
         the_person.name "[world.mc.name], I think I need you for a moment."
@@ -350,7 +348,7 @@ label production_accident_crisis_label():
         "Your phone buzzes - it's a text from [the_person.name] on your production team."
         the_person.name "There's been a small accident, can I see you in the lab?"
         "You hurry over to the production lab to see what the problem is."
-        call change_location(the_place) from _call_production_accident_2
+        call change_location(world.p_room) from _call_production_accident_2
     
     
     $ the_person.draw_person(emotion = "sad")
@@ -575,9 +573,8 @@ label quitting_crisis_label(the_person): #The person tries to quit, you have a c
     "Your phone buzzes, grabbing your attention. It's an email from [the_person.name], marked \"Urgent, need to talk\"."
     "You open up the email and read through the body."
     the_person.name "[world.mc.name], there's something important I need to talk to you about. When can we have a meeting?"
-    $ the_place = world.mc.business.h_div.room
-    if world.mc.location == the_place: #If you're arleady in your office just kick back and relax.
-        call change_location(the_place) from _call_quitting_crisis_1 #Just in case another crisis had interupted us being here.
+    if world.mc.location == world.office: #If you're arleady in your office just kick back and relax.
+        call change_location(world.office) from _call_quitting_crisis_1 #Just in case another crisis had interupted us being here.
         "You type up a response."
         world.mc.name "I'm in my office right now, come over whenever you would like."
         "You organize the papers on your desk while you wait for [the_person.name]. After a few minutes she comes in and closes the door behind her."
@@ -585,7 +582,7 @@ label quitting_crisis_label(the_person): #The person tries to quit, you have a c
         "You type up a response."
         world.mc.name "I'm out of the office right now, but if it's important I can be back in a few minutes."
         the_person.name "It is. See you at your office."
-        call change_location(the_place) from _call_quitting_crisis_2 #Just in case another crisis had interupted us being here.
+        call change_location(world.office) from _call_quitting_crisis_2 #Just in case another crisis had interupted us being here.
         "You travel back to your office. You're just in the door when [the_person.name] comes in and closes the door behind her."
     
     $the_person.draw_person()
@@ -667,9 +664,8 @@ init 1 python:
 label serum_creation_crisis_label(the_serum): # Called every time a new serum is created, test it on a R&D member.
     $ rd_staff = renpy.random.sample(world.mc.business.r_div.people, 1)[0] #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
     if rd_staff is not None:
-        $ the_place = world.mc.business.r_div.room
-        if world.mc.location == the_place: # The MC is in the lab, just physically get them.
-            call change_location(the_place) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.
+        if world.mc.location == world.rd_room: # The MC is in the lab, just physically get them.
+            call change_location(world.rd_room) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.
             "There's a tap on your shoulder. You turn and see [rd_staff.name], looking obviously excited."
             $ rd_staff.draw_person(emotion="happy")
             $ renpy.say(rd_staff.name, "%s, I'm sorry to bother you but I've had a breakthrough! The first test dose of serum \"%s\" is coming out right now!" % (world.mc.name, the_serum["name"]))
@@ -694,7 +690,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                 "Visit the lab and test the new serum.":
                     world.mc.name "I think that would be a good idea. I'll be over in a moment."
                     "You hang up and travel over to the lab. You're greeted by [rd_staff.name] as soon as you're in the door."
-                    call change_location(the_place) from _call_serum_creation_2
+                    call change_location(world.rd_room) from _call_serum_creation_2
                     $ rd_staff.draw_person(emotion="happy")
                     $ rd_staff.call_greeting()
                     world.mc.name "We're set up over here. come this way."
