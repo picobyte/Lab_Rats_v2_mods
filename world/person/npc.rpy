@@ -352,10 +352,7 @@ init -14 python:
         def judge_outfit(self,outfit,temp_sluttiness_boost = 0): #Judge an outfit and determine if it's too slutty or not. Can be used to judge other people's outfits to determine if she thinks they look like a slut.
             # temp_sluttiness can be used in situations (mainly crises) where an outfit is allowed to be temporarily more slutty than a girl is comfortable wearing all the time.
             #Returns true if the outfit is wearable, false otherwise
-            if outfit.slut_requirement > (the_person.effective_sluttiness() + temp_sluttiness_boost): #Arousal is important for judging potential changes to her outfit while being stripped down during sex.
-                return False
-            else:
-                return True
+            return the_person.effective_sluttiness() + temp_sluttiness_boost > outfit.slut_requirement: #Arousal is important for judging potential changes to her outfit while being stripped down during sex.
 
         def should_wear_uniform(self):
             #Check to see if we are: 1) Employed by the PC. 2) At work right now. 3) there is a uniform set for our department.
@@ -396,31 +393,7 @@ init -14 python:
         return create_random_person(business=world.mc.business)
 
     def height_to_string(the_height): #Height is a value between 0.9 and 1.0 which corisponds to 5' 0" and 5' 10"
-        rounded_height = __builtin__.round(the_height,2) #Round height to 2 decimal points.
-        if rounded_height >= 1.00:
-            return "5' 10\""
-        elif rounded_height == 0.99:
-            return "5' 9\""
-        elif rounded_height == 0.98:
-            return "5' 8\""
-        elif rounded_height == 0.97:
-            return "5' 7\""
-        elif rounded_height == 0.96:
-            return "5' 6\""
-        elif rounded_height == 0.95:
-            return "5' 5\""
-        elif rounded_height == 0.94:
-            return "5' 4\""
-        elif rounded_height == 0.93:
-            return "5' 3\""
-        elif rounded_height == 0.92:
-            return "5' 2\""
-        elif rounded_height == 0.91:
-            return "5' 1\""
-        elif rounded_height <= 0.90:
-            return "5' 0\""
-        else:
-            return "Problem, height not found in chart."
+        return "5' %d\"" % max(0, min(10, int(round(the_height * 100, 0)) - 90)) #Round height to 2 decimal points
 
         def get_smaller_tits(self):
             for i in range(len(self.list_of_tits)):
