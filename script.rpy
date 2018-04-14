@@ -1847,17 +1847,14 @@ label advance_time:
     # Note: This will require breaking people's turns into movement and actions.
     # Then: Add research crisis when serum is finished, requiring additional input from the player and giving the chance to test a serum on the R&D staff.
 
-    python: 
+    python:
         people_to_process = [] #This is a master list of turns of need to process, stored as tuples [character,location]. Used to avoid modifying a list while we iterate over it, and to avoid repeat movements.
         for place in world:
             for people in place.people:
                 people_to_process.append([people,place])
-                
-    python:
-        for (people,place) in people_to_process: #Run the results of people spending their turn in their current location.
-            people.run_turn()
+                people.run_turn()
         mc.business.run_turn()
-        
+
     $ count = 0
     $ maximum = len(mc.business.mandatory_crises_list)
     $ clear_list = []
