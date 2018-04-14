@@ -352,7 +352,7 @@ init -14 python:
         def judge_outfit(self,outfit,temp_sluttiness_boost = 0): #Judge an outfit and determine if it's too slutty or not. Can be used to judge other people's outfits to determine if she thinks they look like a slut.
             # temp_sluttiness can be used in situations (mainly crises) where an outfit is allowed to be temporarily more slutty than a girl is comfortable wearing all the time.
             #Returns true if the outfit is wearable, false otherwise
-            return the_person.effective_sluttiness() + temp_sluttiness_boost > outfit.slut_requirement: #Arousal is important for judging potential changes to her outfit while being stripped down during sex.
+            return the_person.effective_sluttiness() + temp_sluttiness_boost > outfit.slut_requirement #Arousal is important for judging potential changes to her outfit while being stripped down during sex.
 
         def should_wear_uniform(self):
             #Check to see if we are: 1) Employed by the PC. 2) At work right now. 3) there is a uniform set for our department.
