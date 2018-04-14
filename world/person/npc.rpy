@@ -166,7 +166,7 @@ init -14 python:
                         break
                 else: #She does not work for us, scatter her somewhere public on the map.
                     #Check to see where is public (or where you are white listed) and move to one of those locations randomly
-                    self.move(location, renpy.random.choice([loc for name, loc in world.iteritems() if loc.public]))
+                    self.move(location, renpy.random.choice([loc for loc in world if loc.public]))
 
 
         def run_day(self): #Called at the end of the world.day.

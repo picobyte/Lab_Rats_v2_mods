@@ -21,9 +21,9 @@ init -25 python:
             "window": set(["Lean"]),
             "chair": set(["Sit","Low"])
         }
-        def __init__(self, public, people=None, **kwargs):
-            self.people = set(create_random_person() for x in range(people if people else 4)) if public else set()
+        def __init__(self, people=4, **kwargs):
             self.__dict__.update(**kwargs)
+            self.people = set(create_random_person() for x in range(people)) if self.public else set()
 
         def objects_with_trait(self, the_trait):
             return [objname for objname in self.scenery.keys() if the_trait in self.object_traits[objname]]

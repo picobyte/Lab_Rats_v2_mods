@@ -1015,7 +1015,7 @@ screen map_manager():
                     anchor [0.5,0.5]
                     auto "gui/LR2_Hex_Button_%s.png"
                     focus_mask "gui/LR2_Hex_Button_idle.png"
-                    action setVariable(world.mc.location, place)
+                    action SetField(world.mc, "location", place)
                     sensitive True #TODO: replace once we want limited travel again with: place in world.mc.location.connections
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
@@ -1030,7 +1030,7 @@ screen map_manager():
                     anchor [0.5,0.5]
                     idle "gui/LR2_Hex_Button_Alt_idle.png"
                     focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
-                    action setVariable(world.mc.location, place)
+                    action SetField(world.mc, "location", place)
                     sensitive False
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
