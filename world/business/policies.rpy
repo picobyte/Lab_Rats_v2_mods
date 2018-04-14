@@ -10,38 +10,38 @@
         "Strict Corporate Uniforms": {
             "desc": "Requiring certain styles of attire in the business world is nothing new. " +
             "Allows you to define a conservative uniform with a sluttiness requirement of 5 or less.",
-            "cost": 500, "req": set()
+            "cost": 500, "req": set(), "max_outfits_to_change": 5
         },
         "Relaxed Corporate Uniforms": {
             "desc": "Corporate dress code is broadened to include more casual apparel. " +
             "Allows you to define a uniform with a sluttiness requirement of 15 or less.",
-            "cost": 1000, "req": set(["Strict Corporate Uniforms"])
+            "cost": 1000, "req": set(["Strict Corporate Uniforms"]), "max_outfits_to_change": 15
         },
         "Casual Corporate Uniforms": {
             "desc": "Corporate dress code is further broadened, while the uniform policy is simultaneously " +
             "refined to dictate more and more intimate details. Allows you to define a uniform with a sluttiness requirement of 25 or less.",
-            "cost": 2000, "req": set(["Relaxed Corporate Uniforms"])
+            "cost": 2000, "req": set(["Relaxed Corporate Uniforms"]), "max_outfits_to_change": 25
         },
         "Reduced Coverage Corporate Uniforms": {
             "desc": "The term \"appropriate coverage\" in the employee manual is redefined to include bare bras " +
             "or panties. Allows you to define a uniform with a sluttiness requirement of 40 or less.",
-            "cost": 5000, "req": set(["Casual Corporate Uniforms"])
+            "cost": 5000, "req": set(["Casual Corporate Uniforms"]), "max_outfits_to_change": 40
         },
         "Minimal Coverage Corporate Uniforms": {
             "desc": "Corporate dress code is broadened further. Uniforms must now only meet a \"minumum coverage\" requirement, " +
             "generally nothing more than a set of bra and panties. Allows you to define a uniform with a sluttiness requirement of 60 or less.",
-            "cost": 10000, "req": set(["Reduced Coverage Corporate Uniforms"])
+            "cost": 10000, "req": set(["Reduced Coverage Corporate Uniforms"]), "max_outfits_to_change": 60
         },
         "Corporate Enforced Nudity": {
             "desc": "Corporate dress code is removed in favour of a \"need to wear\" system. All clothing items that are deemed " +
             "non-essential are subject to employer approval. Conveniently, all clothing is deemed non-essential. " +
             "Allows you to define a uniform with a sluttiness requirement of 80 or less.",
-            "cost": 25000, "req": set(["Minimal Coverage Corporate Uniforms"])
+            "cost": 25000, "req": set(["Minimal Coverage Corporate Uniforms"]), "max_outfits_to_change": 80
         },
         "Maximal Arousal Uniform Policy": {
             "desc": "Visually stimulating uniforms are deemed essential to the workplace. Any and all clothing items " +
             "and accessories are allowed, uniform sluttiness requirement is uncapped.",
-            "cost": 50000, "req": set(["Corporate Enforced Nudity"])
+            "cost": 50000, "req": set(["Corporate Enforced Nudity"]), "max_outfits_to_change": 999 #ie. no limit at all.
         },
         "Male Focused Modeling": {
             "desc": "The adage \"Sex Sells\" is especially true when selling your serum to men. Serum will sell for %1 " +

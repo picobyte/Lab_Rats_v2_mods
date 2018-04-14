@@ -316,22 +316,6 @@ init -23 python:
             self.active_policies.add(policy)
 
         def get_max_outfits_to_change(self):
-
-            if maximal_arousal_uniform_policy in self.active_policies:
-                return 999 #ie. no limit at all.
-            elif corporate_enforced_nudity_policy in self.active_policies:
-                return 80
-            elif minimal_coverage_uniform_policy in self.active_policies:
-                return 60
-            elif reduced_coverage_uniform_policy in self.active_policies:
-                return 40
-            elif casual_uniform_policy in self.active_policies:
-                return 25
-            elif relaxed_uniform_policy in self.active_policies:
-                return 15
-            elif strict_uniform_policy in self.active_policies:
-                return 5
-            else:
-                return 0
+            return max(map(lambda n: policies[n].get("max_outfits_to_change", 0), self.active_policies))
 
 
