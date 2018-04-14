@@ -289,7 +289,7 @@ init -23 python:
             return [people for div in self.division for people in div.people]
 
         def get_employee_count(self):
-            return sum([len(div.people) for div in self.division])
+            return sum(len(div.people) for div in self.division)
 
         def get_max_employee_slut(self):
             maximum = -1 #Set to -1 for an empty business, all calls should require at least sluttiness 0
