@@ -1001,10 +1001,10 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
                         
 screen map_manager():
     add "Paper_Background.png"
-    for place in world.locs: #Draw the background
+    for place in world: #Draw the background
         for connected in map(lambda c: World.locations[c]["map_pos"], place.connections):
             add Vren_Line(place.map_pos, connected, 4,"#117bff") #Draw a white line between each location 
-    for place in world.locs: #Draw the text buttons over the background
+    for place in world: #Draw the text buttons over the background
         if world.mc.location != place:
             frame:
                 background None
@@ -1849,7 +1849,7 @@ label advance_time:
 
     python: 
         people_to_process = [] #This is a master list of turns of need to process, stored as tuples [character,location]. Used to avoid modifying a list while we iterate over it, and to avoid repeat movements.
-        for place in world.locs:
+        for place in world:
             for people in place.people:
                 people_to_process.append([people,place])
                 

@@ -146,11 +146,8 @@ init python:
         def __init__(self, **kwargs):
             self.__dict__.update(**kwargs)
 
-            self.locs = []
             for k, v in World.locations.iteritems():
-                room = Room(**v)
-                self.__dict__[k] = room
-                self.locs.append(room)
+                self.__dict__[k] = Room(**v)
 
             self.lobby.name = persistent.company_name + " " + self.lobby.name
 
@@ -161,6 +158,9 @@ init python:
         def corp(self):
             return self.mc.business
 
+        def __iter__(self): # when iterating over world you get the world locations
+            for k in World.locations.keys():
+                yield self.__dict__[k]
 label create_world():
     python:
         world = World()
