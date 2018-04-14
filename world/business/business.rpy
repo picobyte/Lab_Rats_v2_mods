@@ -122,10 +122,7 @@ init -23 python:
 
         def run_day(self): #Run at the end of the world.day.
             #Pay everyone for the world.day
-            cost = self.calculate_salary_cost()
-            self.funds += -cost
-
-            return
+            self.funds -= self.calculate_salary_cost()
 
         def is_open_for_business(self): #Checks to see if employees are currently working
             if world.time_of_day == 1 or world.time_of_day == 2 or world.time_of_day == 3: #TODO: give people the weekends off.
@@ -187,13 +184,9 @@ init -23 python:
             self.supply_purchase(world.mc.focus,world.mc.charisma,world.mc.supply_skill)
 
         def supply_purchase(self,focus,cha,skill):
-            max_supply = __builtin__.round(((3*focus) + (cha) + (2*skill) + 10) * (self.team_effectiveness))/100
-            if max_supply + self.supply_count > self.supply_goal:
-                max_supply = self.supply_goal - self.supply_count
-                if max_supply <= 0:
-                    return
-
-            self.funds += -max_supply
+            max_supply = __builtin__.round(((3*focus) + cha + (2*skill) + 10) * (self.team_effectiveness))/100
+            max_supply = max(0, min(max_supply, self.supply_goal - self.supply_count))
+            self.funds -= max_supply
             self.supply_count += max_supply
             self.supplies_purchased += max_supply #Used for end of world.day reporting
 
@@ -235,8 +228,7 @@ init -23 python:
         def production_progress(self,focus,int,skill):
             production_amount = __builtin__.round(((3*focus) + (int) + (2*skill) + 10) * (self.team_effectiveness))/100
             self.production_potential += production_amount
-            if production_amount > self.supply_count:
-                production_amount = self.supply_count
+            production_amount = max(production_amount, self.supply_count)
             self.production_used += production_amount
 
             if self.serum_production_target != None:
@@ -267,7 +259,7 @@ init -23 python:
             self.hr_progress(world.mc.charisma,world.mc.int,world.mc.hr_skill)
 
         def hr_progress(self,cha,int,skill): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
-            self.team_effectiveness += (3*cha) + (int) + (2*skill) + 10
+            self.team_effectiveness += (3*cha) + int + (2*skill) + 10
 
         def add_employee(self, new_person, division, job=None, to_room_as_well=True):
             division.people.add(new_person)
@@ -292,11 +284,8 @@ init -23 python:
             return sum(len(div.people) for div in self.division)
 
         def get_max_employee_slut(self):
-            maximum = -1 #Set to -1 for an empty business, all calls should require at least sluttiness 0
-            for person in self.get_employee_list():
-                if person.sluttiness > maximum:
-                    maximum = person.sluttiness
-            return maximum
+            #return -1 for an empty business, all calls should require at least sluttiness 0
+            return max(getattr(_, "sluttiness", -1) for _ in self.get_employee_list())
 
         def get_employee_title(self, the_person):
             for div in self.division:
@@ -315,6 +304,6 @@ init -23 python:
             self.active_policies.add(policy)
 
         def get_max_outfits_to_change(self):
-            return max(map(lambda n: policies[n].get("max_outfits_to_change", 0), self.active_policies))
+            return max(policies[_].get("max_outfits_to_change", 0) for _ in self.active_policies)
 
 

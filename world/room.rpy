@@ -37,9 +37,5 @@ init -25 python:
             return False
 
         def valid_actions(self):
-            count = 0
-            for act in self.actions:
-                if act.check_requirement():
-                    count += 1
-            return count
+            return sum(1 for _ in self.actions if _.check_requirement())
 
