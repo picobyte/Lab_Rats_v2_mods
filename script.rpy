@@ -11,6 +11,7 @@ init -2 python:
     import __builtin__
     import pygame
     import re
+    import itertools
 #    import shader
     
     config.image_cache_size = 12    
@@ -1001,9 +1002,9 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
 
 screen map_manager():
     add "Paper_Background.png"
-    for place in world: #Draw the background
-        for connected in map(lambda c: World.locations[c]["map_pos"], place.connections):
-            add Vren_Line(place.map_pos, connected, 4,"#117bff") #Draw a white line between each location 
+    for place, loc in itertools.combinations(world, 2):
+        if loc.id in place.connections or place.id in loc.connections:
+            add Vren_Line(place.map_pos, loc.map_pos, 4,"#117bff") #Draw a white line between each location
     for place in world: #Draw the text buttons over the background
         if mc.location != place:
             frame:
@@ -1440,7 +1441,7 @@ label talk_person(the_person, repeat_choice = None):
                     $ repeat_choice = "insult her recent work"
                     call insult_her_recent_work  from chat_insult
 
-                "Offer a cash bonus." if is_employee and 0 < world.time_of_day < 4:
+                "Offer a cash bonus." if is_employee and world.is_work_time():
                     mc.name "So [the_person.name], you've been putting in a lot of good work at the lab lately and I wanted to make sure you were rewarded properly for that."
                     "You pull out your wallet and start to pull out a few bills."
                     $weeks_wages = the_person.salary*5
@@ -1562,7 +1563,7 @@ label talk_person(the_person, repeat_choice = None):
                     the_person.name "Is this better?"
             call talk_person(the_person) from _call_talk_person_1
             
-        "Move her to a new division." if mc.business.get_employee_title(the_person) != "None" and 0 < world.time_of_day < 4:
+        "Move her to a new division." if mc.business.get_employee_title(the_person) != "None" and world.is_work_time():
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
             $ selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
@@ -1575,7 +1576,7 @@ label talk_person(the_person, repeat_choice = None):
                 show screen float_up_screen(["-1 Happiness"],["float_text_yellow"])
                 the_person.name "Actually I am already working there."
 
-        "Fire them!" if mc.business.get_employee_title(the_person) != "None" and 0 < world.time_of_day < 4:
+        "Fire them!" if mc.business.get_employee_title(the_person) != "None" and world.is_work_time():
             $ repeat_choice = None
             "You tell [the_person.name] to collect their things and leave the building."
             $ mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)

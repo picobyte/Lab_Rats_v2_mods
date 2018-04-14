@@ -21,9 +21,15 @@ init -25 python:
             "window": set(["Lean"]),
             "chair": set(["Sit","Low"])
         }
-        def __init__(self, people=4, **kwargs):
-            self.__dict__.update(**kwargs)
-            self.people = set(create_random_person() for _ in range(people)) if self.public else set()
+        def __init__(self, roomnr, people=4):
+            self._roomnr = roomnr
+            self.people = set(create_random_person() for _ in range(renpy.random.randint(0, people))) if self.public else set()
+
+        def __getattr__(self, name):
+            i = self.__dict__["_roomnr"]
+            if name in World.locations[i]:
+                return World.locations[i][name]
+            raise AttributeError
 
         def objects_with_trait(self, trait):
             return [_ for _ in self.scenery if trait in self.object_traits[_]]
