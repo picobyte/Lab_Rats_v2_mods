@@ -9,7 +9,7 @@ init 1:
         
 label intro_missionary(the_girl, the_location, the_object, the_round):
     "You run your hands along [the_girl.name]'s hips, feeling the shape of her body."
-    world.mc.name "I want you to lie down for me."
+    mc.name "I want you to lie down for me."
     "She nods and lies down on the [the_object.name], waiting while you unzip your pants and climb on top of her."
     "[the_girl.name] wraps her arms around you and holds you close as you line your cock up with her pussy. She sighs happily into your ear as you slide into her."
     return
@@ -24,7 +24,7 @@ label scene_missionary_1(the_girl, the_location, the_object, the_round):
     return
     
 label scene_missionary_2(the_girl, the_location, the_object, the_round):
-    the_girl.name "Oh fuck... Kiss me [world.mc.name]!"
+    the_girl.name "Oh fuck... Kiss me [mc.name]!"
     "[the_girl.name] puts her arms around your head and neck and pulls you down to her. She closes her eyes and kisses you, sending her tongue out to twirl around yours."
     "You return the kiss, making out with her as you pump your hips back and forth. Her own hips rise and fall to meet yours."
     if the_girl.arousal > 50:
@@ -35,7 +35,7 @@ label scene_missionary_2(the_girl, the_location, the_object, the_round):
     
 label outro_missionary(the_girl, the_location, the_object, the_round):
     "You get to hear every little gasp and moan from [the_girl.name] as you're pressed up against her. Combined with the feeling of fucking her pussy it's not long before you're pushed past the point of no return."
-    world.mc.name "I'm going to cum!"
+    mc.name "I'm going to cum!"
     if the_girl.sluttiness > 120:
         the_girl.name "Go ahead and cum inside me. I want it nice and deep again, get me really fucking pregnant!"
     else:

@@ -280,10 +280,10 @@ screen main_ui: #The UI that shows most of the important information to the scre
             textbutton "Character Sheet" action Show("mc_character_sheet") style "textbutton_style" text_style "textbutton_text_style"
             text "Day: %s(%d)" % (world.day_names[world.day%7], world.day) style "menu_text_style"
             text "Time: %s" % world.time_names[world.time_of_day] style "menu_text_style"
-#            text "Energy: %d" % world.mc.energy style "menu_text_style"
-            text "Arousal: %d/100" % world.mc.arousal style "menu_text_style"
-            text "Cash: $%d" % world.mc.money style "menu_text_style"
-            text "Location: %s" % world.mc.location.name.title() style "menu_text_style"
+#            text "Energy: %d" % mc.energy style "menu_text_style"
+            text "Arousal: %d/100" % mc.arousal style "menu_text_style"
+            text "Cash: $%d" % mc.money style "menu_text_style"
+            text "Location: %s" % mc.location.name.title() style "menu_text_style"
         
 screen business_ui: #Shows some information about your business.
     frame:
@@ -295,20 +295,20 @@ screen business_ui: #Shows some information about your business.
             yanchor 1.0
             yalign 1.0
             text "Company Name: " style "menu_text_style"
-            text "    %s" % world.mc.business.name style "menu_text_style"
-            text "Company Funds: $%d" % world.mc.business.funds style "menu_text_style"
-            text "Daily Salary Cost: $%d" % world.mc.business.calculate_salary_cost() style "menu_text_style"
-            text "Company Efficency: %d%%" % world.mc.business.team_effectiveness style "menu_text_style"
-#            text "Company Marketability: %d" % world.mc.business.marketability style "menu_text_style"
-            text "Current Raw Supplies: %d (Target:%d)" % (world.mc.business.supply_count, world.mc.business.supply_goal) style "menu_text_style"
-            if world.mc.business.active_research_design:
+            text "    %s" % mc.business.name style "menu_text_style"
+            text "Company Funds: $%d" % mc.business.funds style "menu_text_style"
+            text "Daily Salary Cost: $%d" % mc.business.calculate_salary_cost() style "menu_text_style"
+            text "Company Efficency: %d%%" % mc.business.team_effectiveness style "menu_text_style"
+#            text "Company Marketability: %d" % mc.business.marketability style "menu_text_style"
+            text "Current Raw Supplies: %d (Target:%d)" % (mc.business.supply_count, mc.business.supply_goal) style "menu_text_style"
+            if mc.business.active_research_design:
                 text "Current Research: " style "menu_text_style"
-                text "    %(name)s (%(research done).1f/%(research required).1f)" % world.mc.business.active_research_design style "menu_text_style"
+                text "    %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
             else:
                 text "Current Research: None!" style "menu_text_style" color "#DD0000"
-            if world.mc.business.serum_production_target:
+            if mc.business.serum_production_target:
                 text "Currently Producing: " style "menu_text_style"
-                text "    %s" % world.mc.business.serum_production_target["name"] style "menu_text_style"
+                text "    %s" % mc.business.serum_production_target["name"] style "menu_text_style"
             else:
                 text "Currently Producing: Nothing!" style "menu_text_style" color "#DD0000"
             textbutton "Review Staff" action Show("employee_overview") style "textbutton_style" text_style "textbutton_text_style"
@@ -316,7 +316,7 @@ screen business_ui: #Shows some information about your business.
             
 screen end_of_day_update():
     add "Paper_Background.png"
-    text world.mc.business.name:
+    text mc.business.name:
         style "textbutton_text_style"
         xanchor 0.5
         xalign 0.5
@@ -332,13 +332,13 @@ screen end_of_day_update():
             xsize 1500
             ysize 200
             text "Daily Statistics:" style "textbutton_text_style" size 20
-            text "     Current Efficency Modifier: %d" % world.mc.business.team_effectiveness style "textbutton_text_style"
-            text "     Production Potential: %d" % world.mc.business.production_potential style "textbutton_text_style"
-            text "     Supplies Procured: %d Units" % world.mc.business.supplies_purchased style "textbutton_text_style"
-            text "     Production Used: %d" % world.mc.business.production_used style "textbutton_text_style"
-            text "     Research Produced: %d" % world.mc.business.research_produced style "textbutton_text_style"
-            text "     Sales Made: $%d" % world.mc.business.sales_made style "textbutton_text_style"
-            text "     Daily Salary Paid: $%d" % world.mc.business.calculate_salary_cost() style "textbutton_text_style"
+            text "     Current Efficency Modifier: %d" % mc.business.team_effectiveness style "textbutton_text_style"
+            text "     Production Potential: %d" % mc.business.production_potential style "textbutton_text_style"
+            text "     Supplies Procured: %d Units" % mc.business.supplies_purchased style "textbutton_text_style"
+            text "     Production Used: %d" % mc.business.production_used style "textbutton_text_style"
+            text "     Research Produced: %d" % mc.business.research_produced style "textbutton_text_style"
+            text "     Sales Made: $%d" % mc.business.sales_made style "textbutton_text_style"
+            text "     Daily Salary Paid: $%d" % mc.business.calculate_salary_cost() style "textbutton_text_style"
     
     frame:
         background "#1a45a1aa"
@@ -353,7 +353,7 @@ screen end_of_day_update():
             ysize 350
             vbox:
                 text "Highlights:" style "textbutton_text_style" size 20
-                for item, count in world.mc.business.message_list.iteritems():
+                for item, count in mc.business.message_list.iteritems():
                     if count > 0:
                         text "     %s x %d" % (item, count) style "textbutton_text_style"
                     elif isinstance(item, basestring):
@@ -375,17 +375,17 @@ screen end_of_day_update():
         
 screen employee_overview():
     add "Paper_Background.png"
-    default div = world.mc.business.r_div
+    default div = mc.business.r_div
     default sp = max(map(lambda p: len(Person.terse_stat[p])*35 if p in Person.terse_stat else len(p)*35, [x[1] for sk, x in Person.stats if sk != "Sex Skills"]))
     modal True
     hbox:
         yalign 0.05
         xalign 0.05
-        textbutton "Research" action SetScreenVariable("div",world.mc.business.r_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Production" action SetScreenVariable("div",world.mc.business.p_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Supply" action SetScreenVariable("div",world.mc.business.s_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Marketing" action SetScreenVariable("div",world.mc.business.m_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Human Resources" action SetScreenVariable("div",world.mc.business.h_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Research" action SetScreenVariable("div",mc.business.r_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Production" action SetScreenVariable("div",mc.business.p_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Supply" action SetScreenVariable("div",mc.business.s_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Marketing" action SetScreenVariable("div",mc.business.m_div) style "textbutton_style" text_style "textbutton_text_style"
+        textbutton "Human Resources" action SetScreenVariable("div",mc.business.h_div) style "textbutton_style" text_style "textbutton_text_style"
 
     text "Position: %s" % div.name style "menu_text_style" size 20 yalign 0.12 xalign 0.02 xanchor 0.0
     frame:
@@ -459,10 +459,10 @@ screen person_info_ui(the_person): #Used to display stats for a person while you
         vbox:
             yalign 1.0
             text "Name: %s" % the_person.name style "menu_text_style"
-            if world.mc.business.get_employee_title(the_person) == "None":
+            if mc.business.get_employee_title(the_person) == "None":
                 text "Job: Not employed." style "menu_text_style"
             else:
-                text "Job: " + world.mc.business.get_employee_title(the_person) style "menu_text_style"
+                text "Job: " + mc.business.get_employee_title(the_person) style "menu_text_style"
             #text "Height: " + height_to_string(the_person.height) #Showing this here during sex scenes breaks things for some reason, might be use of "height" as a variable name?
             text "Arousal: %d/100" % the_person.arousal style "menu_text_style"
             text "***********" style "menu_text_style"
@@ -496,8 +496,8 @@ screen person_info_detailed(the_person):
                         text "%s: %d" % (param, getattr(the_person, short)) style "menu_text_style"
 
             null height 200
-            if world.mc.business.get_employee_title(the_person) != "None":
-                text "Position: " + world.mc.business.get_employee_title(the_person) style "menu_text_style"
+            if mc.business.get_employee_title(the_person) != "None":
+                text "Position: " + mc.business.get_employee_title(the_person) style "menu_text_style"
                 text "Current Salary: $%d" % the_person.salary style "menu_text_style"
                 text "Base HR Efficency Production (Cha x 3 + Skill x 2 + Int x 1 + 10): %d" % hr_base style "menu_text_style"
                 text "Base Marketing Sales Cap (Cha x 3 + Skill x 2 + Focus x 1 + 10): %d" % market_base style "menu_text_style"
@@ -509,7 +509,7 @@ screen person_info_detailed(the_person):
             xsize 800
             if the_person.serum_effects:
                 text "Currently Affected By:" style "menu_text_style"
-                for name, serum in map(lambda x: (x["name"], world.mc.business.serum_designs[x["name"]]), the_person.serum_effects):
+                for name, serum in map(lambda x: (x["name"], mc.business.serum_designs[x["name"]]), the_person.serum_effects):
                     text "%s : %d Turns left" % (name, serum["duration"] - serum["time"]) style "menu_text_style"
                 null height 80
             if the_person.status_effects:
@@ -535,8 +535,8 @@ screen mc_character_sheet(): #TODO: Impliment a level up system for the main cha
     vbox:
         xalign 0.5
         yalign 0.05
-        text world.mc.name style "menu_text_style" size 40 xanchor 0.5 xalign 0.5
-        text "Owner of: " + world.mc.business.name style "menu_text_style" size 30 xanchor 0.5 xalign 0.5
+        text mc.name style "menu_text_style" size 40 xanchor 0.5 xalign 0.5
+        text "Owner of: " + mc.business.name style "menu_text_style" size 30 xanchor 0.5 xalign 0.5
         
     hbox:
         xanchor 0.5
@@ -635,7 +635,7 @@ screen serum_design_ui():
         vbox:
             xsize 600
             text "Add a new trait" style "menu_text_style"
-            for name, trait in world.mc.business.serum_traits.iteritems():
+            for name, trait in mc.business.serum_traits.iteritems():
                 if name not in serum["traits"] and trait["research done"] >= trait["research required"]:
                     textbutton "Add %s" % trait["name"] action [Hide("trait_tooltip"),Function(add_trait_to_serum,name, trait, serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait,0.3,0.6) unhovered Hide("trait_tooltip")
 
@@ -643,7 +643,7 @@ screen serum_design_ui():
             xsize 600
             text "Remove a trait" style "menu_text_style"
             for name in serum["traits"]:
-                textbutton "Remove %s" % name action Function(add_trait_to_serum, name, world.mc.business.serum_traits[name], serum, False) style "textbutton_style" text_style "textbutton_text_style"
+                textbutton "Remove %s" % name action Function(add_trait_to_serum, name, mc.business.serum_traits[name], serum, False) style "textbutton_style" text_style "textbutton_text_style"
 
         vbox:
             xsize 600
@@ -651,7 +651,7 @@ screen serum_design_ui():
             for name in serum["traits"]:
                 text "Trait: %s" % name style "menu_text_style"
                 text "*******" style "outfit_style"
-                text "Description: %s" % world.mc.business.serum_traits[name]["desc"] style "menu_text_style"
+                text "Description: %s" % mc.business.serum_traits[name]["desc"] style "menu_text_style"
                 text " " style "ouftit_style"
 
     hbox:
@@ -700,7 +700,7 @@ screen serum_tooltip(serum):
             text "*********\n" style "menu_text_style"
         for name in serum["traits"]:
             text "Trait: " + name style "menu_text_style"
-            text world.mc.business.serum_traits[name]["desc"] style "menu_text_style"
+            text mc.business.serum_traits[name]["desc"] style "menu_text_style"
             text "\n*********\n" style "menu_text_style"
             
 screen trait_tooltip(the_trait,given_xalign=0.9,given_yalign=0.0):
@@ -738,15 +738,15 @@ screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business")
 screen serum_select_ui: #How you select serum and trait research
     add "Science_Menu_Background.png"
     vbox:
-        if world.mc.business.active_research_design != None:
-            text "Current Research: %(name)s (%(research done).1f/%(research required).1f)" % world.mc.business.active_research_design style "menu_text_style"
+        if mc.business.active_research_design != None:
+            text "Current Research: %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
         else:
             text "Current Research: None!" style "menu_text_style"
         
         hbox:
             vbox:
                 text "Serum Designs:" style "menu_text_style"
-                for serum in world.mc.business.serum_designs:
+                for serum in mc.business.serum_designs:
                     if serum["research done"] < serum["research required"]:
                         textbutton "Research %(name)s (%(research done)d/%(research required)d)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
              
@@ -754,8 +754,8 @@ screen serum_select_ui: #How you select serum and trait research
             
         vbox:
             text "New Traits:" style "menu_text_style"
-            for name, trait in world.mc.business.serum_traits.iteritems():
-                if not trait["research done"] >= trait["research required"] and all(t["research done"] >= t["research required"] for t in map(lambda x: world.mc.business.serum_traits[x], trait["requires"])):
+            for name, trait in mc.business.serum_traits.iteritems():
+                if not trait["research done"] >= trait["research required"] and all(t["research done"] >= t["research required"] for t in map(lambda x: mc.business.serum_traits[x], trait["requires"])):
                     textbutton "%(name)s (%(research done)d/%(research required)d)" % trait action [Hide("trait_tooltip"),Return(trait)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait) unhovered Hide("trait_tooltip")
                     
     textbutton "Do not change research." action Return("None") style "textbutton_style" text_style "textbutton_text_style" yalign 0.995
@@ -766,8 +766,8 @@ screen serum_production_select_ui:
         xalign 0.1
         xsize 1200
         null height 40 
-        if world.mc.business.serum_production_target != None:
-            text "Currently Producing: %(name)s - $%(value)d/dose (Current Progress: %(research done).1f/%(research required).1f)" % world.mc.business.serum_production_target style "menu_text_style" size 25
+        if mc.business.serum_production_target != None:
+            text "Currently Producing: %(name)s - $%(value)d/dose (Current Progress: %(research done).1f/%(research required).1f)" % mc.business.serum_production_target style "menu_text_style" size 25
         else:
             text "Currently Producing: Nothing!" style "menu_text_style"
         
@@ -776,7 +776,7 @@ screen serum_production_select_ui:
         vbox:
             xsize 1000
             xalign 0.2
-            for serum in world.mc.business.serum_designs:
+            for serum in mc.business.serum_designs:
                 if serum["research done"] < serum["research required"]:
                     textbutton "Produce %(name)s (Requires %(production)d production points per dose. Worth $%(value)d/dose)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Do not change production." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
@@ -954,7 +954,7 @@ screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the player
     
     default preview_outfit = None
     vbox:
-        for outfit in world.mc.designed_wardrobe.get_outfit_list():
+        for outfit in mc.designed_wardrobe.get_outfit_list():
             textbutton "Load %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(copy.deepcopy(outfit)) sensitive (outfit.slut_requirement <= slut_limit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
             
         textbutton "Return" action Return("No Return") style "textbutton_style" text_style "textbutton_text_style"
@@ -1005,7 +1005,7 @@ screen map_manager():
         for connected in map(lambda c: World.locations[c]["map_pos"], place.connections):
             add Vren_Line(place.map_pos, connected, 4,"#117bff") #Draw a white line between each location 
     for place in world: #Draw the text buttons over the background
-        if world.mc.location != place:
+        if mc.location != place:
             frame:
                 background None
                 xysize [171,150] 
@@ -1015,8 +1015,8 @@ screen map_manager():
                     anchor [0.5,0.5]
                     auto "gui/LR2_Hex_Button_%s.png"
                     focus_mask "gui/LR2_Hex_Button_idle.png"
-                    action SetField(world.mc, "location", place)
-                    sensitive True #TODO: replace once we want limited travel again with: place in world.mc.location.connections
+                    action SetField(mc, "location", place)
+                    sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
         else:
@@ -1030,7 +1030,7 @@ screen map_manager():
                     anchor [0.5,0.5]
                     idle "gui/LR2_Hex_Button_Alt_idle.png"
                     focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
-                    action SetField(world.mc, "location", place)
+                    action SetField(mc, "location", place)
                     sensitive False
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
@@ -1043,7 +1043,7 @@ screen map_manager():
             align [0.5,0.5]
             auto "gui/button/choice_%s_background.png"
             focus_mask "gui/button/choice_idle_background.png"
-            action Return(world.mc.location)
+            action Return(mc.location)
         textbutton "Return" align [0.5,0.5] text_style "return_button_style"
 
 init -2 screen policy_selection_screen():
@@ -1054,7 +1054,7 @@ init -2 screen policy_selection_screen():
         xalign 0.1
         yalign 0.1
         for name, policy in sorted(policies.iteritems(), key=lambda(k, policy): policy["cost"]):
-            if name in world.mc.business.active_policies:
+            if name in mc.business.active_policies:
                 textbutton "%s - $%d" % (name, policy["cost"]):
                     tooltip policy["desc"]
                     action NullAction()
@@ -1063,14 +1063,14 @@ init -2 screen policy_selection_screen():
                     background "#59853f"
                     hover_background "#78b156"
                     sensitive True
-            elif policy["req"].issubset(world.mc.business.active_policies) and world.mc.business.funds > policy["cost"]:
+            elif policy["req"].issubset(mc.business.active_policies) and mc.business.funds > policy["cost"]:
                 textbutton "%s - $%d" % (name, policy["cost"]):
                     tooltip policy["desc"]
                     style "textbutton_style"
                     text_style "textbutton_text_style"
-                    action AddToSet(world.mc.business.active_policies, name)
-                    sensitive policy["req"].issubset(world.mc.business.active_policies) and world.mc.business.funds > policy["cost"]
-            elif policy["req"].issubset(world.mc.business.active_policies):
+                    action AddToSet(mc.business.active_policies, name)
+                    sensitive policy["req"].issubset(mc.business.active_policies) and mc.business.funds > policy["cost"]
+            elif policy["req"].issubset(mc.business.active_policies):
                 textbutton "%s - $%d" % (name, policy["cost"]):
                     tooltip policy["desc"]
                     style "textbutton_style"
@@ -1078,7 +1078,7 @@ init -2 screen policy_selection_screen():
                     background "#666666"
                     action NullAction()
                     sensitive True
-            elif all(policies[p]["req"].issubset(world.mc.business.active_policies) for p in policy["req"]):
+            elif all(policies[p]["req"].issubset(mc.business.active_policies) for p in policy["req"]):
                 textbutton "%s - $%d" % (name, policy["cost"]):
                     tooltip policy["desc"]
                     style "textbutton_style"
@@ -1215,8 +1215,8 @@ label start:
     $ renpy.show
     show screen main_ui
     show screen business_ui
-    $ renpy.show(world.mc.location.name,what=world.mc.location.background_image) #show the bedroom background as our starting point.
-    call examine_room(world.mc.location) from _call_examine_room
+    $ renpy.show(mc.location.name,what=mc.location.background_image) #show the bedroom background as our starting point.
+    call examine_room(mc.location) from _call_examine_room
     jump game_loop
     
 label faq_loop:
@@ -1282,15 +1282,15 @@ label faq_loop:
     return
     
 label check_inventory_loop:
-    call screen show_serum_inventory(world.mc.inventory)
+    call screen show_serum_inventory(mc.inventory)
     return
     
 label check_business_inventory_loop:
-    call screen show_serum_inventory(world.mc.business.inventory)
+    call screen show_serum_inventory(mc.business.inventory)
     return
     
 label outfit_design_loop:
-    if world.mc.designed_wardrobe.get_count() == 0:
+    if mc.designed_wardrobe.get_count() == 0:
         call create_outfit(None) from _call_create_outfit
     else:
         menu:
@@ -1303,7 +1303,7 @@ label outfit_design_loop:
                     call create_outfit(_return) from _call_create_outfit_2
 
             "Delete an old outfit.":
-                call screen outfit_delete_manager(world.mc.designed_wardrobe)
+                call screen outfit_delete_manager(mc.designed_wardrobe)
     return
             
     
@@ -1317,37 +1317,37 @@ label create_outfit(the_outfit):
         $ new_outfit_name = renpy.input ("Please name this outfit.")
         while new_outfit_name is None:
             $ new_outfit_name = renpy.input ("Please name this outfit.")
-        if world.mc.designed_wardrobe.has_outfit_with_name(new_outfit_name):
+        if mc.designed_wardrobe.has_outfit_with_name(new_outfit_name):
             "An outfit with this name already exists. Would you like to overwrite it?"
             menu:
                 "Overwrite existing outfit.":
-                    $ world.mc.designed_wardrobe.remove_outfit(world.mc.designed_wardrobe.get_outfit_with_name(new_outfit_name))
-                    $ world.mc.save_design(new_outfit, new_outfit_name)
+                    $ mc.designed_wardrobe.remove_outfit(mc.designed_wardrobe.get_outfit_with_name(new_outfit_name))
+                    $ mc.save_design(new_outfit, new_outfit_name)
                     
                 "Rename outfit.":
                     $ new_outfit_name = renpy.input ("Please input a new name.")
-                    while world.mc.designed_wardrobe.has_outfit_with_name(new_outfit_name):
+                    while mc.designed_wardrobe.has_outfit_with_name(new_outfit_name):
                         $ new_outfit_name = renpy.input ("That name already exists. Please input a new name.")
-                    $ world.mc.save_design(new_outfit, new_outfit_name)
+                    $ mc.save_design(new_outfit, new_outfit_name)
         else:
-            $ world.mc.save_design(new_outfit, new_outfit_name)
+            $ mc.save_design(new_outfit, new_outfit_name)
     return
     
 label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS YOU TAKE
     #"Now, what would you like to do? You can talk to someone, go somewhere else, perform an action, or reexamine the room."
     python:
         tuple_list = [("Go somewhere else.", "Go somewhere else."), ("Examine the area.", "Examine the area.")]
-        act_ct = world.mc.location.valid_actions()
+        act_ct = mc.location.valid_actions()
         if act_ct < 5:
-            for act in world.mc.location.actions:
+            for act in mc.location.actions:
                 if act.check_requirement():
                     tuple_list.append((act.name,act))
         else:
             tuple_list.append(("Do something.", "Do something."))
 
-        pers_ct = len(world.mc.location.people)
+        pers_ct = len(mc.location.people)
         if pers_ct < 5:
-            for people in world.mc.location.people:
+            for people in mc.location.people:
                 tuple_list.append(("Talk to " + people.name + " " + people.last_name[0] + ".",people))
         else:
             tuple_list.append(("Talk to someone.", "Talk to someone."))
@@ -1360,18 +1360,18 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
             call change_location(_return) from _call_change_location #_return is the location returned from the map manager.
 
         elif choice == "Examine the area.":
-            call examine_room(world.mc.location) from _call_examine_room_1
+            call examine_room(mc.location) from _call_examine_room_1
 
         elif choice == "Do something.":
             python:
                 i = 0
                 while not isinstance(choice, Action) and choice != "Back":
-                    tuple_list = [(act.name,act) for act in world.mc.location.actions[i:i+9]]
+                    tuple_list = [(act.name,act) for act in mc.location.actions[i:i+9]]
                     if act_ct > i+10:
                         tuple_list.append(("Something else", "Something else"))
                         i += 9
                     elif act_ct == i+10:
-                        act = world.mc.location.actions[i+9]
+                        act = mc.location.actions[i+9]
                         tuple_list.append((act.name,act))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
@@ -1379,14 +1379,14 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
         elif choice == "Talk to someone.":
             python:
                 i = 0
-                people = list(world.mc.location.people)
+                people = list(mc.location.people)
                 while not isinstance(choice, NPC) and choice != "Back":
                     tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in people[i:i+9]]
                     if pers_ct > i+10:
                         tuple_list.append(("Someone else", "Someone else"))
                         i += 9
                     elif pers_ct == i+10:
-                        p = world.mc.location.people[i+9]
+                        p = mc.location.people[i+9]
                         tuple_list.append((p.name + " " + p.last_name[0] + ".",p))
                     tuple_list.append(("Back", "Back"))
                     choice = renpy.display_menu(tuple_list,True, "Choice")
@@ -1425,7 +1425,7 @@ label talk_person(the_person, repeat_choice = None):
 
         "Chat about something.":
             $ repeat_choice = None
-            $ is_employee = world.mc.business.is_employee(the_person)
+            $ is_employee = mc.business.is_employee(the_person)
             menu:
                 "Compliment her outfit.":
                     $ repeat_choice = "compliment her outfit"
@@ -1441,49 +1441,49 @@ label talk_person(the_person, repeat_choice = None):
                     call insult_her_recent_work  from chat_insult
 
                 "Offer a cash bonus." if is_employee and 0 < world.time_of_day < 4:
-                    world.mc.name "So [the_person.name], you've been putting in a lot of good work at the lab lately and I wanted to make sure you were rewarded properly for that."
+                    mc.name "So [the_person.name], you've been putting in a lot of good work at the lab lately and I wanted to make sure you were rewarded properly for that."
                     "You pull out your wallet and start to pull out a few bills."
                     $weeks_wages = the_person.salary*5
                     $months_wages = the_person.salary*20
                     $raise_amount = int(the_person.salary*0.1)
                     menu:
                         "Give her a pat on the back.":
-                            world.mc.name "And I'll absolutely reward you once the next major deal goes through."
+                            mc.name "And I'll absolutely reward you once the next major deal goes through."
                             $ the_person.draw_person(emotion = "sad")
-                            $ change_amount = 5-world.mc.charisma
+                            $ change_amount = 5-mc.charisma
                             show screen float_up_screen(["-%d Happiness" % change_amount],["float_text_yellow"])
                             $the_person.change_happiness(-change_amount)
                             "[the_person.name] looks visibly disapointed."
                             the_person.name "Right, of course."
 
-                        "Give her a world.days wages. -$[the_person.salary]" if world.mc.money >= the_person.salary:
-                            world.mc.name "Here you go, treat yourself to something nice tonight."
+                        "Give her a world.days wages. -$[the_person.salary]" if mc.money >= the_person.salary:
+                            mc.name "Here you go, treat yourself to something nice tonight."
                             $ the_person.draw_person(emotion = "happy")
-                            $ change_amount = 1+world.mc.charisma
+                            $ change_amount = 1+mc.charisma
                             show screen float_up_screen(["+%d Happiness" % change_amount],["float_text_yellow"])
                             $ the_person.happiness += change_amount
-                            $ world.mc.money -= the_person.salary
+                            $ mc.money -= the_person.salary
                             "[the_person.name] takes the bills from you and smiles."
                             the_person.name "Thank you sir."
 
-                        "Give her a weeks wages. -$[weeks_wages]" if world.mc.money >= weeks_wages:
-                            world.mc.name "Here you go, don't spend it all in once place."
+                        "Give her a weeks wages. -$[weeks_wages]" if mc.money >= weeks_wages:
+                            mc.name "Here you go, don't spend it all in once place."
                             $ the_person.draw_person(emotion = "happy")
-                            $ change_amount = 1+world.mc.charisma
-                            $ change_amount_happiness = 5+world.mc.charisma
+                            $ change_amount = 1+mc.charisma
+                            $ change_amount_happiness = 5+mc.charisma
                             $ the_person.happiness += change_amount_happiness
                             $ the_person.change_obedience_modified(change_amount)
-                            $ world.mc.money -= weeks_wages
+                            $ mc.money -= weeks_wages
                             show screen float_up_screen(["+%d Happiness" % change_amount,"+%d Obedience" % change_amount],["float_text_yellow","float_text_grey"])
                             "[the_person.name] takes the bills, then smiles broadly at you."
                             the_person.name "That's very generous of you sir, thank you."
 
-                        "Give her a months wages. -$[months_wages]" if world.mc.money >= months_wages:
-                            world.mc.name "Here, you're a key part of the team and you deserved to be rewarded as such."
+                        "Give her a months wages. -$[months_wages]" if mc.money >= months_wages:
+                            mc.name "Here, you're a key part of the team and you deserved to be rewarded as such."
                             $ the_person.draw_person(emotion = "happy")
-                            $ change_amount = 5+world.mc.charisma
-                            $ change_amount_happiness = 10+world.mc.charisma
-                            $ world.mc.money -= months_wages
+                            $ change_amount = 5+mc.charisma
+                            $ change_amount_happiness = 10+mc.charisma
+                            $ mc.money -= months_wages
                             $the_person.happiness += change_amount_happiness
                             $the_person.change_obedience_modified(change_amount)
                             "[the_person.name] takes the bills, momentarily stunned by the amount."
@@ -1501,9 +1501,9 @@ label talk_person(the_person, repeat_choice = None):
                                 the_person.name "Wow... this is amazing sir. I'll do everything I can for you and the company!"
 
                         "Give her a permanent 10%% Raise ($[raise_amount]/world.day)":
-                            world.mc.name "[the_person.name], it's criminal that I pay you as little as I do. I'm going to mark you down for a 10%% raise, effective by the end of today."
-                            $ change_amount = 5+world.mc.charisma
-                            $ change_amount_happiness = 10+world.mc.charisma
+                            mc.name "[the_person.name], it's criminal that I pay you as little as I do. I'm going to mark you down for a 10%% raise, effective by the end of today."
+                            $ change_amount = 5+mc.charisma
+                            $ change_amount_happiness = 10+mc.charisma
                             $ the_person.happiness += change_amount_happiness
                             $ change_amount_obedience = the_person.change_obedience_modified(change_amount)
                             show screen float_up_screen(["+$%d/world.day Salary" % raise_amount,"+%d Happiness" % change_amount,"+%d Obedience" % change_amount_obedience],["float_text_green","float_text_yellow","float_text_grey"])
@@ -1516,7 +1516,7 @@ label talk_person(the_person, repeat_choice = None):
             $ repeat_choice = None
             menu:
                 "Add an outfit.":
-                    world.mc.name "[the_person.name], I've got something I'd like you to wear for me." ## Do we want a completely silent protag? Speaks only through menu input maybe?
+                    mc.name "[the_person.name], I've got something I'd like you to wear for me." ## Do we want a completely silent protag? Speaks only through menu input maybe?
                     hide screen main_ui
                     $ renpy.scene("Active")
                     call screen outfit_select_manager()
@@ -1538,10 +1538,10 @@ label talk_person(the_person, repeat_choice = None):
                                 "No, save it for some other time.":
                                     pass
                     else:
-                        world.mc.name "On second thought, nevermind."
+                        mc.name "On second thought, nevermind."
                         
                 "Delete an outfit.":
-                    world.mc.name "[the_person.name], lets have a talk about what you've been wearing."
+                    mc.name "[the_person.name], lets have a talk about what you've been wearing."
                     hide screen main_ui
                     $ renpy.scene("Active")
                     call screen outfit_delete_manager(the_person.wardrobe)
@@ -1550,7 +1550,7 @@ label talk_person(the_person, repeat_choice = None):
                     #TODO: Figure out what happens when someone doesn't have anything in their wardrobe.
                 
                 "Wear an outfit right now.":
-                    world.mc.name "[the_person.name], I want you to get changed for me."
+                    mc.name "[the_person.name], I want you to get changed for me."
                     hide screen main_ui
                     $ renpy.scene("Active")
                     call screen girl_outfit_select_manager(the_person.wardrobe)
@@ -1562,29 +1562,29 @@ label talk_person(the_person, repeat_choice = None):
                     the_person.name "Is this better?"
             call talk_person(the_person) from _call_talk_person_1
             
-        "Move her to a new division." if world.mc.business.get_employee_title(the_person) != "None" and 0 < world.time_of_day < 4:
+        "Move her to a new division." if mc.business.get_employee_title(the_person) != "None" and 0 < world.time_of_day < 4:
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
-            $ selected_div = renpy.display_menu([(div.name, div) for div in world.mc.business.division], True, "Choice")
+            $ selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
             if the_person.job not in selected_div.jobs:
-                $ world.mc.business.remove_employee(the_person)
-                $ world.mc.business.add_employee(the_person, selected_div)
+                $ mc.business.remove_employee(the_person)
+                $ mc.business.add_employee(the_person, selected_div)
                 the_person.name "I'll get started right away!"
             else:
                 $ the_person.change_happiness(-1) # for desinterest
                 show screen float_up_screen(["-1 Happiness"],["float_text_yellow"])
                 the_person.name "Actually I am already working there."
 
-        "Fire them!" if world.mc.business.get_employee_title(the_person) != "None" and 0 < world.time_of_day < 4:
+        "Fire them!" if mc.business.get_employee_title(the_person) != "None" and 0 < world.time_of_day < 4:
             $ repeat_choice = None
             "You tell [the_person.name] to collect their things and leave the building."
-            $ world.mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)
+            $ mc.business.remove_employee(the_person) #TODO: check if we should actually be physically removing the person from the location without putting them somewhere else (person leak?)
 
         "Take a closer look at [the_person.name].":
             $ repeat_choice = None
             call examine_person(the_person) from _call_examine_person
             call talk_person(the_person) from _call_talk_person_2
-        "Give her a dose of serum." if world.mc.inventory.get_any_serum_count() > 0 and "Mandatory Serum Testing" in world.mc.business.active_policies:
+        "Give her a dose of serum." if mc.inventory.get_any_serum_count() > 0 and "Mandatory Serum Testing" in mc.business.active_policies:
             $ repeat_choice = "give her a dose of serum"
             call give_her_a_dose_of_serum
         "Seduce her.":
@@ -1598,7 +1598,7 @@ label talk_person(the_person, repeat_choice = None):
     return
 
 label compliment_her_outfit:
-    world.mc.name "Hey [the_person.name], I just wanted to say that you look great today. That style really suits you." #TODO: Add more context aware dialogue.
+    mc.name "Hey [the_person.name], I just wanted to say that you look great today. That style really suits you." #TODO: Add more context aware dialogue.
     $ slut_difference = int(the_person.sluttiness - the_person.outfit.slut_requirement) #Negative if their outfit is sluttier than what they would normally wear.
     # Note: The largest effect should occure when the outfit is just barely in line with her sluttiness. Too high or too low and it will have no effect.
 
@@ -1616,32 +1616,32 @@ label compliment_her_outfit:
         if slut_difference > sweet_spot_range:
             $ slut_difference = sweet_spot_range
         $ slut_difference = sweet_spot_range - slut_difference #invert the value so we now have 10 - 10 at both extreme ends, 10 - 0 at the middle where it will have the most effect.
-        $ change_amount = the_person.change_slut_modified(world.mc.charisma + 1 + slut_difference) #Increase their sluttiness if they are suggestable right now.
+        $ change_amount = the_person.change_slut_modified(mc.charisma + 1 + slut_difference) #Increase their sluttiness if they are suggestable right now.
         show screen float_up_screen(["+%d Sluttiness" % change_amount],["float_text_pink"])
         the_person.name "Glad you think so, I was on the fence, but it's nice to know that somebody likes it!"
     return
 
 label flirt_with_her:
-    world.mc.name "Hey [the_person.name], you're looking particularly good today. I wish I got to see a little bit more of that fabulous body."
-    $ change_amount = the_person.change_slut_modified(world.mc.charisma + 1)
+    mc.name "Hey [the_person.name], you're looking particularly good today. I wish I got to see a little bit more of that fabulous body."
+    $ change_amount = the_person.change_slut_modified(mc.charisma + 1)
     show screen float_up_screen(["+%d Sluttiness" % change_amount],["float_text_pink"])
     $the_person.call_flirt_response()
     return
 
 label compliment_her_recent_work:
-    world.mc.name "[the_person.name], I wanted to tell you that you've been doing a great job lately. Keep it up, you're one of hte most important players in this whole operation."
-    $ change_amount = world.mc.charisma + 1
+    mc.name "[the_person.name], I wanted to tell you that you've been doing a great job lately. Keep it up, you're one of hte most important players in this whole operation."
+    $ change_amount = mc.charisma + 1
     $ change_amount_obedience = the_person.change_obedience_modified(-change_amount)
     $ the_person.happiness += change_amount
     $ the_person.draw_person(emotion = "happy")
     show screen float_up_screen(["+%d Happiness" % change_amount,"%d Obedience" % change_amount_obedience],["float_text_yellow","float_text_grey"])
-    the_person.name "Thanks [world.mc.name], it means a lot to hear that from you. I'll just keep doing what I'm doing I guess."
+    the_person.name "Thanks [mc.name], it means a lot to hear that from you. I'll just keep doing what I'm doing I guess."
     return
 
 label insult_her_recent_work:
-    world.mc.name "[the_person.name], I have to say I've been disappointed in your work for a little while now. Try to shape up, or we'll have to have a more offical talk about it."
-    $ change_amount = world.mc.charisma*2 + 1
-    $ change_amount_happiness = 5-world.mc.charisma
+    mc.name "[the_person.name], I have to say I've been disappointed in your work for a little while now. Try to shape up, or we'll have to have a more offical talk about it."
+    $ change_amount = mc.charisma*2 + 1
+    $ change_amount_happiness = 5-mc.charisma
     $ change_amount= the_person.change_obedience_modified(change_amount)
     $ the_person.change_happiness(-change_amount_happiness)
     $ the_person.draw_person(emotion = "sad")
@@ -1667,7 +1667,7 @@ label seduce_her:
 
 label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness increase for situations like blackmail or getting drunk
     python:
-        available_positions = world.mc.get_available_positions(list_of_positions, the_person)
+        available_positions = mc.get_available_positions(list_of_positions, the_person)
 
         alt_options = [("Strip her down.","Strip"), ("Leave","Leave")]
 
@@ -1683,7 +1683,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
             if isinstance(position_choice, Position):
                 the_person.draw_person(position_choice.position_tag)
                 if round == 0 or position_choice != the_position: #We are changing to a new position.
-                    sites = [("do it on the " + obj, obj) for obj in world.mc.location.objects_with_trait(position_choice.requires_location)]
+                    sites = [("do it on the " + obj, obj) for obj in mc.location.objects_with_trait(position_choice.requires_location)]
                     if len(sites) > 1:
                        renpy.say("", "Where do you do it?")
 
@@ -1695,18 +1695,18 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
         while isinstance(position_choice, Position):
 
             $ the_position = position_choice
-            $ the_position.call_transition(the_position, the_person, world.mc.location, the_object, round)
-            $ the_position.call_scene(the_person, world.mc.location, the_object, round)
+            $ the_position.call_transition(the_position, the_person, mc.location, the_object, round)
+            $ the_position.call_scene(the_person, mc.location, the_object, round)
             $ the_person.call_for_arouse(mc, the_position)
 
             python:
                 ##Ask how you want to keep fucking her##
-                if (world.mc.arousal >= 100):
+                if (mc.arousal >= 100):
                     "You're past your limit, you have no choice but to cum!"
                     position_choice = "Finish"
                 else:
                     tuple_list = [("Keep going some more.",the_position), ("Back off and change positions.","Pull Out")]
-                    if (world.mc.arousal > 80): #Only let you finish if you've got a high enough arousal score. #TODO: Add stat that controls how much control you have over this.
+                    if (mc.arousal > 80): #Only let you finish if you've got a high enough arousal score. #TODO: Add stat that controls how much control you have over this.
                         tuple_list.append(("Cum!","Finish"))
                     for pos_name in the_position.connections:
                         position = getattr(world, pos_name)
@@ -1716,9 +1716,9 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
                     round += 1
         if position_choice == "Finish":
             python:
-                world.mc.reset_arousal()
+                mc.reset_arousal()
                 position_choice = "Leave"
-                the_position.call_outro(the_person, world.mc.location, the_object, round)
+                the_position.call_outro(the_person, mc.location, the_object, round)
                 # TODO: have you finishing bump her arousal up so you might both cum at once.
 
         elif position_choice == "Strip":
@@ -1726,7 +1726,7 @@ label fuck_person(the_person): #TODO: Add a conditional obedience and sluttiness
             python:
                 if the_person.outfit.is_nude():
                     alt_options = [("Leave","Leave")]
-                available_positions = world.mc.get_available_positions(list_of_positions, the_person)
+                available_positions = mc.get_available_positions(list_of_positions, the_person)
     return
 
 label strip_menu(the_person):
@@ -1820,7 +1820,7 @@ label examine_person(the_person):
             if not outfit_bottom[1].hide_below:
                 string += " You can see her pussy underneath."
         renpy.say("",string)
-        for div in world.mc.business.division:
+        for div in mc.business.division:
             if the_person in div.people:
                 renpy.say("", "%s currently works in your %s department." % (the_person.name, div.name.lower()) )
                 break
@@ -1830,11 +1830,11 @@ label examine_person(the_person):
     return
     
 label give_serum(the_person):
-    call screen serum_inventory_select_ui(world.mc.inventory)
+    call screen serum_inventory_select_ui(mc.inventory)
     if _return != "None":
         $ the_serum = _return
         "You decide to give [the_person.name] a dose of [the_serum.name]."
-        $ world.mc.inventory.change_serum(the_serum,-1)
+        $ mc.inventory.change_serum(the_serum,-1)
         $ the_person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
     else:
         "You decide not to give [the_person.name] anything right now."
@@ -1856,24 +1856,24 @@ label advance_time:
     python:
         for (people,place) in people_to_process: #Run the results of people spending their turn in their current location.
             people.run_turn()
-        world.mc.business.run_turn()
+        mc.business.run_turn()
         
     $ count = 0
-    $ maximum = len(world.mc.business.mandatory_crises_list)
+    $ maximum = len(mc.business.mandatory_crises_list)
     $ clear_list = []
     while count < maximum: #We need to keep this in a renpy loop, because a return call will always return to the end of an entire python block.
-        $crisis = world.mc.business.mandatory_crises_list[count]
+        $crisis = mc.business.mandatory_crises_list[count]
         if crisis.check_requirement():
             $ crisis.call_action()
             $ renpy.scene("Active")
-            $ renpy.show(world.mc.location.name,what=world.mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
+            $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
             $ clear_list.append(crisis)
         $ count += 1
             
     
     python: #Needs to be a different python block, otherwise the rest of the block is not called when the action returns.
         for crisis in clear_list:
-            world.mc.business.mandatory_crises_list.remove(crisis) #Clean up the list.
+            mc.business.mandatory_crises_list.remove(crisis) #Clean up the list.
     
     if renpy.random.randint(0,100) < 10: #ie. run a crisis 25% of the time. TODO: modify this.
         python:
@@ -1887,7 +1887,7 @@ label advance_time:
             $ the_crisis.call_action()
     
     $ renpy.scene("Active")
-    $ renpy.show(world.mc.location.name,what=world.mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
+    $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
     hide screen person_info_ui
     show screen business_ui
     
@@ -1897,27 +1897,27 @@ label advance_time:
         python:
             for (people,place) in people_to_process:
                 people.run_day()
-        $ world.mc.business.run_day()
+        $ mc.business.run_day()
         
-        if world.mc.business.funds < 0:
-            $ world.mc.business.bankrupt_days += 1
-            if world.mc.business.bankrupt_days == world.mc.business.max_bankrupt_days:
+        if mc.business.funds < 0:
+            $ mc.business.bankrupt_days += 1
+            if mc.business.bankrupt_days == mc.business.max_bankrupt_days:
                 $ renpy.say("","With no funds to pay your creditors you are forced to close your business and auction off all of your materials at a fraction of their value. Your story ends here.")
                 $ renpy.full_restart()
             else:
-                $ world.days_remaining = world.mc.business.max_bankrupt_days-world.mc.business.bankrupt_days
+                $ world.days_remaining = mc.business.max_bankrupt_days-mc.business.bankrupt_days
                 $ renpy.say("","Warning! Your company is losing money and unable to pay salaries or purchase necessary supplies! You have %d world.days to restore yourself to positive funds or you will be foreclosed upon!" % world.days_remaining)
         else:
-            $ world.mc.business.bankrupt_days = 0
+            $ mc.business.bankrupt_days = 0
             
         call screen end_of_day_update() # We have to keep this outside of a python block, because the renpy.call_screen function does not properly fade out the text bar.
-        $ world.mc.business.clear_messages()
+        $ mc.business.clear_messages()
 
     else:
         $ world.time_of_day += 1 ##Otherwise, just run the end of world.day code.
         
-    if world.time_of_day == 1 and "Daily Serum Dosage" in world.mc.business.active_policies: #It is the start of the work world.day, give everyone their daily dose of serum
-        $ world.mc.business.give_daily_serum()
+    if world.time_of_day == 1 and "Daily Serum Dosage" in mc.business.active_policies: #It is the start of the work world.day, give everyone their daily dose of serum
+        $ mc.business.give_daily_serum()
         
     python:    
         for (people,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.

@@ -9,10 +9,10 @@ init 1:
     
 label intro_deepthroat(the_girl, the_location, the_object, the_round):
     "You unzip your pants and pull your underwear down, letting your hard cock spring free."
-    world.mc.name "[the_girl.name], mind getting on your knees and taking this nice and deep for me?"
+    mc.name "[the_girl.name], mind getting on your knees and taking this nice and deep for me?"
     if the_girl.sluttiness > 50:
         "[the_girl.name] reaches down and runs a finger along the top of your dick, then smiles and drops to her knees and looks up at you."
-        the_girl.name "Okay [world.mc.name], I'll see what I can do."
+        the_girl.name "Okay [mc.name], I'll see what I can do."
     else:
         "[the_girl.name] reaches down and runs a finger along the top of your dick. She hesitates for a few moments, then drops to her knees."
         the_girl.name "I'll... I'll do my best."
@@ -21,7 +21,7 @@ label intro_deepthroat(the_girl, the_location, the_object, the_round):
     
 label scene_deepthroat_1(the_girl, the_location, the_object, the_round):
     "[the_girl.name] holds herself down on your hard cock for a few long seconds. She looks up at you, maintaining eye contact as she licks at the bottom of your shaft with her tongue."
-    world.mc.name "Fuck, that feels great [the_girl.name]."
+    mc.name "Fuck, that feels great [the_girl.name]."
     "She pushes you just a little bit deeper, then slides back and off. She strokes your wet dick with her hand as she catches her breath."
     the_girl.name "Ah... Glad you like it. Okay, lets keep going."
     "She wastes no time sliding you right back down her throat. She gags a little as she bottoms out on your cock. The feeling of her warm, wet mouth sends pleasant shivers up your spine."
@@ -34,10 +34,10 @@ label scene_deepthroat_2(the_girl, the_location, the_object, the_round):
     else:
         "[the_girl.name] closes her eyes and focuses on taking your cock even deeper as she throats you."
         
-    if world.mc.arousal > 70:
-        world.mc.name "Fuck, keep that up and I'll be cumming soon!"
+    if mc.arousal > 70:
+        mc.name "Fuck, keep that up and I'll be cumming soon!"
     else:
-        world.mc.name "That's it, keep it up. You're doing a great job [the_girl.name]!"
+        mc.name "That's it, keep it up. You're doing a great job [the_girl.name]!"
     
     return
     
@@ -45,7 +45,7 @@ label outro_deepthroat(the_girl, the_location, the_object, the_round):
     "The warm, tight feeling of [the_girl.name]'s throat wrapped around your shaft pulls you closer and closer to orgasm. You feel yourself pass the point of no return and let out a soft moan."
     menu:
         "Cum on her face.":
-            world.mc.name "Fuck, here I come!"
+            mc.name "Fuck, here I come!"
             "You take a step back, pulling your cock out of [the_girl.name]'s throat with a satisfyingly wet pop, and take aim at her face."
             if the_girl.sluttiness > 80:
                 "[the_girl.name] sticks out her tongue for you and holds still, eager to take your hot load."
@@ -61,7 +61,7 @@ label outro_deepthroat(the_girl, the_location, the_object, the_round):
             $ the_girl.call_cum_face()
             
         "Cum in her mouth.":
-            world.mc.name "Fuck, I'm about to cum! I'm going to fill that cute mouth of yours up!"
+            mc.name "Fuck, I'm about to cum! I'm going to fill that cute mouth of yours up!"
             "You keep your hand on the back of [the_girl.name]'s head to make it clear you want her to keep sucking. She keeps throating you until you tense up and start to pump your load out into her mouth."
             if the_girl.sluttiness > 70:
                 "[the_girl.name] doesn't even flinch as you shoot your hot cum across the back of her throat. She keeps bobbing her head up and down until you've let out every last drop, then slides back carefully and looks up with a mouth full of sperm."
@@ -75,7 +75,7 @@ label outro_deepthroat(the_girl, the_location, the_object, the_round):
             $ the_girl.call_cum_mouth()
             
         "Cum down her throat.":
-            world.mc.name "Fuck, here I come!"
+            mc.name "Fuck, here I come!"
             "You use your hand on the back of [the_girl.name]'s head to pull her close, pushing your cock as deep down her throat as you can manage. You grunt and twitch as you start to empty your balls right into her stomach."
             if the_girl.sluttiness > 90:
                 "[the_girl.name] looks up at you and stares into your eyes as you climax. She tightens and relaxes her throat, as if to draw out every last drop of semen from you."
@@ -93,7 +93,7 @@ label outro_deepthroat(the_girl, the_location, the_object, the_round):
     
 label transition_deepthroat_blowjob(the_girl, the_location, the_object, the_round):
     "You move your hand from the back of [the_girl.name]'s head and sigh contentedly."
-    world.mc.name "Fuck that felt nice."
+    mc.name "Fuck that felt nice."
     "[the_girl.name] slides your cock out of her mouth and strokes it with one hand while she talks to you."
     the_girl.name "Mmm, glad you liked it. I think I'm going to have a sore throat in the morning after all that."
     "She smiles and kisses the tip of your dick, then slides it back into her mouth and starts to suck on it some more, paying more attention to the shaft now."

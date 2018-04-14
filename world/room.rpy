@@ -23,18 +23,13 @@ init -25 python:
         }
         def __init__(self, people=4, **kwargs):
             self.__dict__.update(**kwargs)
-            self.people = set(create_random_person() for x in range(people)) if self.public else set()
+            self.people = set(create_random_person() for _ in range(people)) if self.public else set()
 
-        def objects_with_trait(self, the_trait):
-            return [objname for objname in self.scenery.keys() if the_trait in self.object_traits[objname]]
+        def objects_with_trait(self, trait):
+            return [_ for _ in self.scenery if trait in self.object_traits[_]]
 
-        def has_object_with_trait(self,the_trait):
-            if the_trait == "None":
-                return True
-            for objname in self.scenery.keys():
-                if the_trait in self.object_traits[objname]:
-                    return True
-            return False
+        def has_object_with_trait(self,trait):
+            return trait == "None" or any(trait in self.object_traits[_] for _ in self.scenery)
 
         def valid_actions(self):
             return sum(1 for _ in self.actions if _.check_requirement())

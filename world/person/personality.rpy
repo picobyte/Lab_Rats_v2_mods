@@ -128,7 +128,7 @@ label relaxed_sex_responses(the_person):
     
 label relaxed_climax_responses(the_person):
     if the_person.sluttiness > 70:
-        the_person.name "I'm going to cum! Ah! Make me cum [world.mc.name], I want to cum so badly! Ah!"
+        the_person.name "I'm going to cum! Ah! Make me cum [mc.name], I want to cum so badly! Ah!"
         "She closes her eyes and squeals with pleasure." 
     else:
         the_person.name "Ah! I'm cumming! Oh fuck! Ah!"
@@ -138,7 +138,7 @@ label relaxed_clothing_accept(the_person):
     if the_person.obedience > 130:
         the_person.name "It's for me? Thank you sir, I'll add it to my wardrobe."
     else:
-        the_person.name "Oh, it's cute! Thank's [world.mc.name]!"
+        the_person.name "Oh, it's cute! Thank's [mc.name]!"
     return
     
 label relaxed_clothing_reject(the_person):
@@ -175,7 +175,7 @@ label relaxed_sex_accept(the_person):
         if the_person.obedience < 70:
             the_person.name "I was just about to suggest the same thing."
         else:
-            the_person.name "Mmm, you have a dirty mind [world.mc.name], I like it."
+            the_person.name "Mmm, you have a dirty mind [mc.name], I like it."
     else:
         the_person.name "Okay, we can give that a try."
     return
@@ -185,7 +185,7 @@ label relaxed_sex_obedience_accept(the_person, amount=None):
         show screen float_up_screen(["[amount] Happiness"],["float_text_yellow"])
 
     if the_person.sluttiness > 70:
-        the_person.name "Oh god [world.mc.name], I should really say no... But you always make me feel so good, I can't say no to you."
+        the_person.name "Oh god [mc.name], I should really say no... But you always make me feel so good, I can't say no to you."
     else:
         if the_person.obedience > 130:
             the_person.name "Yes sir, if that's what you want to do I'll give it a try."
@@ -195,7 +195,7 @@ label relaxed_sex_obedience_accept(the_person, amount=None):
     
 label relaxed_sex_gentle_reject(the_person):
     if the_person.sluttiness > 50:
-        the_person.name "Wait, I don't think I'm warmed up enough for this [world.mc.name]. How about we do something else first?"
+        the_person.name "Wait, I don't think I'm warmed up enough for this [mc.name]. How about we do something else first?"
     else:
         the_person.name "Wait. I don't think I'm comfortable with this. Could we just do something else instead?"
     return
@@ -223,7 +223,7 @@ label relaxed_seduction_response(the_person):
         elif the_person.sluttiness > 10:
             the_person.name "Oh, do you see something you like?"
         else:
-            the_person.name "Oh, I don't really know what to say [world.mc.name]..."
+            the_person.name "Oh, I don't really know what to say [mc.name]..."
     return
     
 label relaxed_flirt_response(the_person):
@@ -266,7 +266,7 @@ label relaxed_cum_mouth(the_person):
             the_person.name "Thank you sir, I hope you had a good time."       
     else:
         if the_person.sluttiness > 80:
-            the_person.name "Your cum tastes great [world.mc.name], thanks for giving me so much of it."
+            the_person.name "Your cum tastes great [mc.name], thanks for giving me so much of it."
             "[the_person.name] licks her lips and sighs happily."            
         else:
             the_person.name "Bleh, I don't know if I'll ever get use to that."
@@ -306,7 +306,7 @@ label reserved_sex_responses(the_person):
     
 label reserved_climax_responses(the_person):
     if the_person.sluttiness > 70:
-        the_person.name "You're going to... Ah! You're going to make me climax [world.mc.name]!"
+        the_person.name "You're going to... Ah! You're going to make me climax [mc.name]!"
         "She closes her eyes as she tenses up. She freezes for a long second, then lets out a long, slow breath." 
     else:
         the_person.name "Oh, I think I'm about to... Oh yes!"
@@ -324,9 +324,9 @@ label reserved_clothing_reject(the_person):
         the_person.name "You're too kind sir, really. I don't think I can accept such a... beautiful gift from you though."
     else:
         if the_person.sluttiness > 60:
-            the_person.name "It's very nice [world.mc.name], but I think it's a little too revealing, even for me. Maybe when I'm feeling a little more bold, okay?"
+            the_person.name "It's very nice [mc.name], but I think it's a little too revealing, even for me. Maybe when I'm feeling a little more bold, okay?"
         else:
-            the_person.name "Really [world.mc.name]? Just suggesting that I would wear something like that is a little too forward, don't you think?"
+            the_person.name "Really [mc.name]? Just suggesting that I would wear something like that is a little too forward, don't you think?"
     return
     
 label reserved_clothing_review(the_person):
@@ -345,7 +345,7 @@ label reserved_strip_reject(the_person):
     elif the_person.obedience < 70:
         the_person.name "That's going to stay right there for now. I'll decide when I want it to come off, okay?."
     else:
-        the_person.name "[world.mc.name], I don't feel comfortable taking that off. Just leave it put."
+        the_person.name "[mc.name], I don't feel comfortable taking that off. Just leave it put."
     return
                                                                             
 label reserved_sex_accept(the_person):
@@ -355,7 +355,7 @@ label reserved_sex_accept(the_person):
         else:
             the_person.name "Mmm, you think we should give that a try? I'm feeling adventurous today, lets go."
     else:
-        the_person.name "Oh, I know I shouldn't [world.mc.name]... but I think you've managed to convince me."
+        the_person.name "Oh, I know I shouldn't [mc.name]... but I think you've managed to convince me."
     return
     
 label reserved_sex_obedience_accept(the_person, amount=None):
@@ -368,12 +368,12 @@ label reserved_sex_obedience_accept(the_person, amount=None):
         if the_person.obedience > 130:
             the_person.name "Okay sir, if that's what you want. I'll do what I can to serve you."
         else:
-            the_person.name "If it were anyone other than you I'd say no [world.mc.name]. Don't get too use to this, okay?"
+            the_person.name "If it were anyone other than you I'd say no [mc.name]. Don't get too use to this, okay?"
     return
     
 label reserved_sex_gentle_reject(the_person):
     if the_person.sluttiness > 50:
-        the_person.name "Wait, a lady must be romanced first [world.mc.name]. At least get me warmed up first."
+        the_person.name "Wait, a lady must be romanced first [mc.name]. At least get me warmed up first."
     else:
         the_person.name "This doesn't seem like the kind of thing a proper lady would do. Lets do something else, please."
     return
@@ -385,7 +385,7 @@ label reserved_sex_angry_reject(the_person, amount=None):
         the_person.name "Excuse me? Do I look like some sort of prostitute?"
         the_person.name "Get away from me, you're lucky I don't turn you into the police for that! Give me some space, I don't want to talk after that."
     else:
-        the_person.name "Um, what do you think you're doing [world.mc.name]? That's disgusting, and certainly no way to act around a lady!"
+        the_person.name "Um, what do you think you're doing [mc.name]? That's disgusting, and certainly no way to act around a lady!"
     return
     
 label reserved_seduction_response(the_person):
@@ -398,9 +398,9 @@ label reserved_seduction_response(the_person):
         if the_person.sluttiness > 50:
             the_person.name "You've got that look in your eye again. there's just no satisfying you, is there? You're lucky I'm such a willing participant."
         elif the_person.sluttiness > 10:
-            the_person.name "Oh [world.mc.name], you always know how to make a woman feel wanted..."
+            the_person.name "Oh [mc.name], you always know how to make a woman feel wanted..."
         else:
-            the_person.name "[world.mc.name], isn't that a little bit forward of you? I'm not saying no though..."
+            the_person.name "[mc.name], isn't that a little bit forward of you? I'm not saying no though..."
     return
     
 label reserved_flirt_response(the_person):
@@ -411,7 +411,7 @@ label reserved_flirt_response(the_person):
             the_person.name "Thank you for the compliment, sir, I appreciate it."
     else:
         if the_person.sluttiness > 50:
-            the_person.name "Oh [world.mc.name], that's so naughty of you to even think about..."
+            the_person.name "Oh [mc.name], that's so naughty of you to even think about..."
             "[the_person.name] winks at you and spins, giving you a full look at her body."
             the_person.name "How will I ever get you to contain yourself?"
         else:
@@ -426,9 +426,9 @@ label reserved_cum_face(the_person):
             the_person.name "Well that's certainly a lot. I hope that means I did a satisfactory job."
     else:
         if the_person.sluttiness > 80:
-            the_person.name "Oh [world.mc.name], what are you doing to me? I'm beginning to like looking like this!"            
+            the_person.name "Oh [mc.name], what are you doing to me? I'm beginning to like looking like this!"            
         else:
-            the_person.name "Oh god [world.mc.name], could you imagine if someone saw me like this? I really should go and get cleaned up."
+            the_person.name "Oh god [mc.name], could you imagine if someone saw me like this? I really should go and get cleaned up."
     return
     
 label reserved_cum_mouth(the_person):
@@ -439,7 +439,7 @@ label reserved_cum_mouth(the_person):
             "[the_person.name] puckers her lips, obviously not happy with the taste but too polite to say anything."
     else:
         if the_person.sluttiness > 80:
-            the_person.name "You're making me act like such a slut [world.mc.name], what would the other women think if they knew what I just did?"
+            the_person.name "You're making me act like such a slut [mc.name], what would the other women think if they knew what I just did?"
         else:
             the_person.name "Well, at least there's no mess to clean up. I need to go wash my mouth out after that though."
     return

@@ -8,9 +8,9 @@
 #        #Here is where you would put connections if they existed.
     
 label intro_doggy(the_girl, the_location, the_object, the_round):
-    world.mc.name "[the_girl.name], I want you to get on your hands and knees for me."
+    mc.name "[the_girl.name], I want you to get on your hands and knees for me."
     if the_girl.sluttiness > 80:
-        the_girl.name "Mmm,, you know just what I like [world.mc.name]."
+        the_girl.name "Mmm,, you know just what I like [mc.name]."
     else:
         the_girl.name "Like this?"
     "[the_girl.name] gets onto all fours in front of you on the [the_object.name]. She wiggles her ass impatiently at you as you get your hard cock lined up."
@@ -44,7 +44,7 @@ label scene_doggy_2(the_girl, the_location, the_object, the_round):
 label outro_doggy(the_girl, the_location, the_object, the_round):
     "[the_girl.name]'s tight cunt draws you closer to your orgasm with each thrust. You finally pass the point of no return and speed up, fucking her as hard as you can manage."
     $the_girl.call_sex_response()
-    world.mc.name "Ah, I'm going to cum!"
+    mc.name "Ah, I'm going to cum!"
     menu:
         "Cum inside of her.":
             "You pull back on [the_girl.name]'s hips and drive your cock deep inside of her as you cum. She gasps softly in time with each new shot of hot semen inside of her."

@@ -26,8 +26,4 @@ init -4 python:
             return any(self.location == div.room for div in self.business.division)
 
         def get_available_positions(self, list_of_positions, other_person):
-            tuple_list = []
-            for position in list_of_positions:
-                if self.location.has_object_with_trait(position.requires_location) and position.check_clothing(other_person):
-                    tuple_list.append((position.name,position))
-            return tuple_list
+            return [(p.name, p) for p in list_of_positions if self.location.has_object_with_trait(p.requires_location) and p.check_clothing(other_person)]

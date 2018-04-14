@@ -158,11 +158,20 @@ init python:
         def corp(self):
             return self.mc.business
 
+        @property
+        def loc(self):
+            return self.mc.location
+
         def __iter__(self): # when iterating over world you get the world locations
             for k in World.locations.keys():
                 yield self.__dict__[k]
+
+
+        def is_work_time(self): #Checks to see if employees are currently working
+            return (self.day % 7) < 6 and 0 < self.time_of_day < 4 # work hours and give people the weekends off.
+
 label create_world():
     python:
         world = World()
-        world.mc = MainCharacter(MyCorp())
+        mc = MainCharacter(MyCorp())
     return

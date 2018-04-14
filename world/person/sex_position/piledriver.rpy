@@ -8,11 +8,11 @@ init 1:
         piledriver.link_positions(missionary,"transition_piledriver_missionary")
     
 label intro_piledriver(the_girl, the_location, the_object, the_round):
-    world.mc.name "[the_girl.name], I want you to lie down for me."
+    mc.name "[the_girl.name], I want you to lie down for me."
     "[the_girl.name] nods, glancing briefly at the bulge in your pants. She gets onto the [the_object.name] and waits for you."
     the_girl.name "How's this?"
     "You get your hard cock out and kneel down in front of her. She yelps in suprise when you grab her ankles and bring them up and over her waist."
-    world.mc.name "There we go, this will be even better."
+    mc.name "There we go, this will be even better."
     "You rub the tip of your cock against her clit a few times, then press forward and slide yourself inside of her."
     $the_girl.call_sex_response()
     return
@@ -20,7 +20,7 @@ label intro_piledriver(the_girl, the_location, the_object, the_round):
 label scene_piledriver_1(the_girl, the_location, the_object, the_round):
     "You hold onto [the_girl.name]'s ankles and lean into her, using the position to push yourself nice and deep inside of her."
     the_girl.name "Oh... Fuck... Ah..."
-    world.mc.name "Does that feel good?"
+    mc.name "Does that feel good?"
     if the_girl.effective_sluttiness > 100:
         "All [the_girl.name] can do is nod and moan loudly in response. You do your best to drive your cock all the way to it's base, fitting every last inch into [the_girl.name]'s cunt."
     else:
@@ -33,18 +33,18 @@ label scene_piledriver_2(the_girl, the_location, the_object, the_round):
     if the_girl.outfit.tits_available():
         "You reach down with one hand and fondle [the_girl.name]'s tits, squeezing them and pinching her nipples."
         the_girl.name "Ah... That feels so strange..."
-        world.mc.name "Do you like it?"
+        mc.name "Do you like it?"
         "[the_girl.name] nods and moans in response. You fuck her a little faster."
     else:
         "You reach down with one hand and run it over [the_girl.name]'s tits over her clothes."
-        world.mc.name "Wish I could get a better look at these girls."
+        mc.name "Wish I could get a better look at these girls."
         the_girl.name "Then you'd have to stop fucking me though..."
         "You fuck her a little faster and listen to her moan while you consider your dilemma."
     return
     
 label outro_piledriver(the_girl, the_location, the_object, the_round):
     "[the_girl.name]'s pussy is warm, tight and wet as you pump in and out of it, pulling you closer and closer to climaxing with each thrust. You finally can't take any more and feel your orgasm approaching quickly."
-    world.mc.name "Fuck me, I'm going to cum!"
+    mc.name "Fuck me, I'm going to cum!"
     menu:
         "Cum inside of her.":
             if the_girl.sluttiness > 120:
@@ -75,6 +75,6 @@ label transition_piledriver_missionary(the_girl, the_location, the_object, the_r
     
 label transition_default_piledriver(the_girl, the_location, the_object, the_round):
     "You put [the_girl.name] on her back, then lift her legs up and bend her over at the waist. You kneel over her, lining your hard cock up with her tight pussy."
-    world.mc.name "Ready?"
+    mc.name "Ready?"
     "[the_girl.name] nods, and you slip yourself deep, deep inside of her."
     return
