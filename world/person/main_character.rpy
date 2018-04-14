@@ -9,16 +9,14 @@ init -4 python:
             super(MainCharacter, self).__init__(**persistent.character)
 
             self.location = world.bedroom
-            self.energy = 50
+            self.energy = 50 #FIXME: not in use
             self.designed_wardrobe = Wardrobe("Designed Wardrobe", [])
             self.money = 100 ## Personal money that can be spent however you wish. Company funds are seperate (but can be manipulated in your favour)
             self.business = business
             self.inventory = SerumInventory([])
 
         def use_energy(self,amount):
-            self.energy = self.energy - amount
-            if self.energy < 0:
-                self.energy = 0
+            self.energy = max(self.energy - amount, 0)
 
         def save_design(self,the_outfit,new_name):
             the_outfit.name = new_name

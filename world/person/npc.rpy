@@ -239,7 +239,7 @@ init -14 python:
             else:
                 # Your seduction attempt wasn't even close, angry response follows
                 self.draw_person(the_position.position_tag,emotion="angry")
-                self.change_happiness(-5) #She's pissed you would even try that
+                self.happiness = max(self.happiness - 5, 0) #She's pissed you would even try that
                 by_ref[0] = "Leave"
                 self.call_sex_angry_reject(-5)
 
@@ -255,7 +255,7 @@ init -14 python:
                 #She's climaxing.
                 self.draw_person(the_position.position_tag,emotion="orgasm")
                 renpy.show_screen("float_up_screen", ["+5 Happiness"], ["float_text_yellow"])
-                self.change_happiness(5) #Orgasms are good, right?
+                self.happiness += 5 #Orgasms are good, right?
                 renpy.call(self.personality.climax_response_label, self)
             else:
                 renpy.call(self.personality.sex_response_label, self)
@@ -264,17 +264,15 @@ init -14 python:
         def call_sex_accept_response(self):
             self.personality.get_sex_accept_response(self)
 
-        def call_sex_obedience_accept_response(self, amount=None):
-            if amount:
-                self.change_happiness(amount)
+        def call_sex_obedience_accept_response(self, amount=0):
+            self.happiness = max(self.happiness + amount, 0)
             self.personality.get_sex_obedience_accept_response(self, amount)
 
         def call_sex_gentle_reject(self):
             self.personality.get_sex_gentle_reject(self)
 
-        def call_sex_angry_reject(self, amount=None):
-            if amount:
-                self.change_happiness(amount)
+        def call_sex_angry_reject(self, amount=0):
+            self.happiness = max(self.happiness + amount, 0)
             self.personality.get_sex_angry_reject(self, amount)
 
         def call_seduction_response(self):
@@ -312,19 +310,13 @@ init -14 python:
 
 
         def change_suggest(self,amount):
-            self.suggestibility += amount
-            if self.suggestibility < 0:
-                self.suggestibility = 0
+            self.suggestibility = max(self.suggestibility + amount, 0)
 
         def change_happiness(self,amount):
-            self.happiness += amount
-            if self.happiness < 0:
-                self.happiness = 0
+            self.happiness = max(self.happiness + amount, 0)
 
         def change_slut(self,amount):
-            self.sluttiness += amount
-            if self.sluttiness < 0:
-                self.sluttiness = 0
+            self.sluttiness = max(self.sluttiness + amount, 0)
 
         def change_slut_modified(self,amount): #Changes slut amount, but modified by current suggestibility.
             change_amount = (amount*self.suggestibility)/100
@@ -332,9 +324,7 @@ init -14 python:
             return change_amount
 
         def change_obedience(self,amount):
-            self.obedience += amount
-            if self.obedience < 0:
-                self.obedience = 0
+            self.obedience = max(self.obedience + amount, 0)
 
         def change_obedience_modified(self,amount):
             change_amount = (amount*self.suggestibility)/100
@@ -342,19 +332,13 @@ init -14 python:
             return change_amount
 
         def change_cha(self,amount):
-            self.charisma += amount
-            if self.charisma < 0:
-                self.charisma = 0
+            self.charisma = max(self.charisma + amount, 0)
 
         def change_int(self,amount):
-            self.int += amount
-            if self.int < 0:
-                self.int = 0
+            self.int = max(self.int + amount, 0)
 
         def change_focus(self,amount):
-            self.focus += amount
-            if self.focus < 0:
-                self.focus = 0
+            self.focus = max(self.focus + amount, 0)
 
         def review_outfit(self):
             if self.should_wear_uniform():

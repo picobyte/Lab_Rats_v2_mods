@@ -1461,7 +1461,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ the_person.draw_person(emotion = "happy")
                             $ change_amount = 1+world.mc.charisma
                             show screen float_up_screen(["+%d Happiness" % change_amount],["float_text_yellow"])
-                            $ the_person.change_happiness(change_amount)
+                            $ the_person.happiness += change_amount
                             $ world.mc.money -= the_person.salary
                             "[the_person.name] takes the bills from you and smiles."
                             the_person.name "Thank you sir."
@@ -1471,7 +1471,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ the_person.draw_person(emotion = "happy")
                             $ change_amount = 1+world.mc.charisma
                             $ change_amount_happiness = 5+world.mc.charisma
-                            $ the_person.change_happiness(change_amount_happiness)
+                            $ the_person.happiness += change_amount_happiness
                             $ the_person.change_obedience_modified(change_amount)
                             $ world.mc.money -= weeks_wages
                             show screen float_up_screen(["+%d Happiness" % change_amount,"+%d Obedience" % change_amount],["float_text_yellow","float_text_grey"])
@@ -1484,7 +1484,7 @@ label talk_person(the_person, repeat_choice = None):
                             $ change_amount = 5+world.mc.charisma
                             $ change_amount_happiness = 10+world.mc.charisma
                             $ world.mc.money -= months_wages
-                            $the_person.change_happiness(change_amount_happiness)
+                            $the_person.happiness += change_amount_happiness
                             $the_person.change_obedience_modified(change_amount)
                             "[the_person.name] takes the bills, momentarily stunned by the amount."
                             show screen float_up_screen(["+%d Happiness" % change_amount,"+%d Obedience" % change_amount],["float_text_yellow","float_text_grey"])
@@ -1504,7 +1504,7 @@ label talk_person(the_person, repeat_choice = None):
                             world.mc.name "[the_person.name], it's criminal that I pay you as little as I do. I'm going to mark you down for a 10%% raise, effective by the end of today."
                             $ change_amount = 5+world.mc.charisma
                             $ change_amount_happiness = 10+world.mc.charisma
-                            $ the_person.change_happiness(change_amount_happiness)
+                            $ the_person.happiness += change_amount_happiness
                             $ change_amount_obedience = the_person.change_obedience_modified(change_amount)
                             show screen float_up_screen(["+$%d/world.day Salary" % raise_amount,"+%d Happiness" % change_amount,"+%d Obedience" % change_amount_obedience],["float_text_green","float_text_yellow","float_text_grey"])
                             $ the_person.salary += raise_amount
@@ -1632,7 +1632,7 @@ label compliment_her_recent_work:
     world.mc.name "[the_person.name], I wanted to tell you that you've been doing a great job lately. Keep it up, you're one of hte most important players in this whole operation."
     $ change_amount = world.mc.charisma + 1
     $ change_amount_obedience = the_person.change_obedience_modified(-change_amount)
-    $ the_person.change_happiness(change_amount)
+    $ the_person.happiness += change_amount
     $ the_person.draw_person(emotion = "happy")
     show screen float_up_screen(["+%d Happiness" % change_amount,"%d Obedience" % change_amount_obedience],["float_text_yellow","float_text_grey"])
     the_person.name "Thanks [world.mc.name], it means a lot to hear that from you. I'll just keep doing what I'm doing I guess."

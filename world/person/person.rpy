@@ -96,9 +96,7 @@ init -16 python:
             self.arousal = 0 #How actively horny a girl is, and how close she is to orgasm. Generally resets to 0 after orgasming, and decreases over time while not having sex (or having bad sex).
 
         def change_arousal(self,amount):
-            self.arousal += amount
-            if self.arousal < 0:
-                self.arousal = 0
+            self.arousal = max(self.arousal + amount, 0)
 
         def reset_arousal(self):
             self.arousal = 0

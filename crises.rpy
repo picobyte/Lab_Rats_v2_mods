@@ -79,7 +79,7 @@ label broken_AC_crisis_label:
             "The unexpected break raises moral and makes the production staff feel more independent."
             python:
                 for person in world.mc.business.p_div.people:
-                    person.change_happiness(5)
+                    person.happiness += 5
                     person.change_obedience_modified(-5)
             "The repair man shows up early and it turns out to be an easy fix. The lab is soon back up and running."
             
@@ -712,7 +712,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
         menu:
             "Give the serum back for final testing.":
                 world.mc.name "It seems like you have everything under control here [rd_staff.name], I'm going to leave that testing your capable hands."
-                $ rd_staff.change_happiness(5)
+                $ rd_staff.happiness += 5
                 $ change_amount= rd_staff.change_obedience_modified(5)
                 show screen float_up_screen(["+5 Happiness","+[change_amount] Obedience"],["float_text_yellow","float_text_grey"])
                 
