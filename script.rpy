@@ -998,7 +998,7 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
                         add coloured_image
                         #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
 
-                        
+
 screen map_manager():
     add "Paper_Background.png"
     for place in world: #Draw the background
@@ -1015,7 +1015,7 @@ screen map_manager():
                     anchor [0.5,0.5]
                     auto "gui/LR2_Hex_Button_%s.png"
                     focus_mask "gui/LR2_Hex_Button_idle.png"
-                    action Function(world.mc.change_location,place) 
+                    action setVariable(world.mc.location, place)
                     sensitive True #TODO: replace once we want limited travel again with: place in world.mc.location.connections
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
@@ -1026,14 +1026,14 @@ screen map_manager():
                 anchor [0.0,0.0]
                 align place.map_pos
                 imagebutton:
-                    
+
                     anchor [0.5,0.5]
                     idle "gui/LR2_Hex_Button_Alt_idle.png"
                     focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
-                    action Function(world.mc.change_location,place) 
-                    sensitive False 
+                    action setVariable(world.mc.location, place)
+                    sensitive False
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
-    
+
     frame:
         background None
         anchor [0.5,0.5]

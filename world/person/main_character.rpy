@@ -15,9 +15,6 @@ init -4 python:
             self.business = business
             self.inventory = SerumInventory([])
 
-        def change_location(self,new_location):
-            self.location = new_location
-
         def use_energy(self,amount):
             self.energy = self.energy - amount
             if self.energy < 0:
