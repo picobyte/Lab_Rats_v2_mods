@@ -52,7 +52,7 @@ label transition_kissing_blowjob(the_girl, the_location, the_object, the_round):
     #"You wait, and soon she's on her knees, booping your second snoot."
     #"Transition from kissing to blowjob."
     "You break the kiss between you and [the_girl.name] and look into her eyes, idly stroking her hair with a hand."
-    "[mc.name]" "[the_girl.name], how about you take care of this for me?"
+    "[world.mc.name]" "[the_girl.name], how about you take care of this for me?"
     "You reach down with your other hand and unzip your pants. You pull your underwear down and let your hard cock spring free."
     if the_girl.sluttiness > 80:
         "[the_girl.name] stares down at your cock hungrily, licking her lips."

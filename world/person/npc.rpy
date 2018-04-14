@@ -119,7 +119,7 @@ init -14 python:
             for serum in self.serum_effects: #Compute the effects of all of the serum that the girl is under.
                 serum['duration'] -= duration
                 if serum['duration'] <= 0:
-                    self.add_traits(mc.business.serum_designs[serum["name"]]["traits"], add=False)
+                    self.add_traits(world.mc.business.serum_designs[serum["name"]]["traits"], add=False)
                 else:
                     remaining_effects.append(serum)
 
@@ -133,17 +133,17 @@ init -14 python:
 
             #Now we want to see if she's unhappy enough to quit. We will tally her "happy points", a negative number means a chance to quit.
 
-            if any(self in div.people for div in mc.business.division): #Only let people who work for us quit their job.
+            if any(self in div.people for div in world.mc.business.division): #Only let people who work for us quit their job.
                 happy_points = self.get_job_happiness_score()
                 if happy_points < 0: #We have a chance of quitting.
                     chance_to_quit = happy_points * -2 #there is a %2*unhappiness chance that the girl will quit.
                     if renpy.random.randint(0,100) < chance_to_quit: #She is quitting
                         potential_quit_action = Action(self.name + " is quitting.", quiting_crisis_requirement, "quitting_crisis_label", self)
-                        if potential_quit_action not in mc.business.mandatory_crises_list:
-                            mc.business.mandatory_crises_list.append(potential_quit_action)
+                        if potential_quit_action not in world.mc.business.mandatory_crises_list:
+                            world.mc.business.mandatory_crises_list.append(potential_quit_action)
 
                     else: #She's not quitting, but we'll let the player know she's unhappy TODO: Only present this message with a certain research/policy.
-                        mc.business.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
+                        world.mc.business.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
 
         def move(self, curr, dest):
             if not curr is dest and self in curr.people: # Don't bother moving people who are already there.
@@ -154,11 +154,11 @@ init -14 python:
 
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
 
-            if time_of_day == 0 or time_of_day == 4: #Home time
+            if world.time_of_day == 0 or world.time_of_day == 4: #Home time
                 self.move(location, world["downtown"]) #Move to downtown as proxy for home.
 
             else:
-                for div in mc.business.division:
+                for div in world.mc.business.division:
                     if self in div.people:  #She works for us, move her to her work station,
                         self.move(location, div.room)
                         if self.should_wear_uniform():
@@ -169,8 +169,8 @@ init -14 python:
                     self.move(location, renpy.random.choice([loc for name, loc in world.iteritems() if loc.public]))
 
 
-        def run_day(self): #Called at the end of the day.
-            self.outfit = self.wardrobe.pick_random_outfit() #Put on a new outfit for the day!
+        def run_day(self): #Called at the end of the world.day.
+            self.outfit = self.wardrobe.pick_random_outfit() #Put on a new outfit for the world.day!
             self.serum_effects = self.recover(2) #Night is 3 segments, but 1 is allready called when run_turn is called.
 
         def draw_person(self,position = None,emotion = None): #Draw the person, standing as default if they aren't standing in any other position.
@@ -246,7 +246,7 @@ init -14 python:
         def call_for_arouse(self, mc, the_position):
 
             # The same calculation but for the guy
-            mc.change_arousal(the_position.guy_arousal + (the_position.guy_arousal * getattr(self, the_position.skill_tag) * 0.1))
+            world.mc.change_arousal(the_position.guy_arousal + (the_position.guy_arousal * getattr(self, the_position.skill_tag) * 0.1))
             change_amount = the_position.girl_arousal + (the_position.girl_arousal * getattr(mc, the_position.skill_tag) * 0.1)
             renpy.show_screen("float_up_screen", ["+[change_amount] Arousal"], ["float_text_red"])
             self.change_arousal(change_amount) #The girls arousal gain is the base gain + 10% per the characters skill in that category.
@@ -375,15 +375,15 @@ init -14 python:
 
         def should_wear_uniform(self):
             #Check to see if we are: 1) Employed by the PC. 2) At work right now. 3) there is a uniform set for our department.
-            if mc.business.is_open_for_business(): #We should be at work right now, so if there is a uniform we should wear it.
-                for div in mc.business.division:
+            if world.mc.business.is_open_for_business(): #We should be at work right now, so if there is a uniform we should wear it.
+                for div in world.mc.business.division:
                     if self in div.people:
-                        return mc.business.get_uniform(self.job)
+                        return world.mc.business.get_uniform(self.job)
 
             return False #If we fail to meet any of the above conditions we should return false.
 
         def wear_uniform(self): #Puts the girl into her uniform, if it exists.
-            the_uniform = mc.business.get_uniform(self.job) #Get the uniform for her department.
+            the_uniform = world.mc.business.get_uniform(self.job) #Get the uniform for her department.
             self.outfit = copy.deepcopy(the_uniform) #We already know we work for the mc if we should be wearing a uniform. Take a deep copy so strips don't leave us naked.
 
         def get_job_happiness_score(self):
@@ -398,7 +398,7 @@ init -14 python:
         def effective_sluttiness(self): #Used in sex scenes where the girl will be more aroused, making it easier for her to be seduced.
             return self.sluttiness + (self.arousal/2)
 
-        def calculate_base_salary(self): #returns the default value this person should be worth on a per day basis.
+        def calculate_base_salary(self): #returns the default value this person should be worth on a per world.day basis.
             return (self.int + self.focus + self.charisma)*2 + (self.hr_skill + self.market_skill + self.research_skill + self.production_skill + self.supply_skill)
 
     def make_person(): #This will generate a person, using a pregen body some of the time if they are available.
@@ -406,10 +406,10 @@ init -14 python:
         if renpy.random.randint(1,100) < split_proportion and len(NPC.premade_list) > 0:
             character_params = renpy.random.choice(NPC.premade_list) #Get a premade character
             NPC.premade_list.remove(character_params)
-            return create_random_person(business=mc.business, **character_params)
+            return create_random_person(business=world.mc.business, **character_params)
 
         #Either we aren't getting a premade, or we are out of them.
-        return create_random_person(business=mc.business)
+        return create_random_person(business=world.mc.business)
 
     def height_to_string(the_height): #Height is a value between 0.9 and 1.0 which corisponds to 5' 0" and 5' 10"
         rounded_height = __builtin__.round(the_height,2) #Round height to 2 decimal points.

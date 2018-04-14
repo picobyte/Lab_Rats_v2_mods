@@ -31,37 +31,37 @@ init -30 python:
 
     ##Initialization of requirement functions go down here.##
     def sleep_action_requirement():
-        return time_of_day == 4
+        return world.time_of_day == 4
 
     def faq_action_requirement():
         return preferences.show_faq
 
     def hr_work_action_requirement():
-        return time_of_day < 4
+        return world.time_of_day < 4
 
     def research_work_action_requirement():
-        if time_of_day < 4:
-            return mc.business.active_research_design != None
+        if world.time_of_day < 4:
+            return world.mc.business.active_research_design != None
         else:
             return False
 
     def supplies_work_action_requirement():
-        return time_of_day < 4
+        return world.time_of_day < 4
 
     def market_work_action_requirement():
-        return time_of_day < 4
+        return world.time_of_day < 4
 
     def production_work_action_requirement():
-        if time_of_day < 4:
-            return mc.business.serum_production_target != None
+        if world.time_of_day < 4:
+            return world.mc.business.serum_production_target != None
         else:
             return False
 
     def interview_action_requirement():
-        return time_of_day < 4
+        return world.time_of_day < 4
 
     def serum_design_action_requirement():
-        return time_of_day < 4
+        return world.time_of_day < 4
 
     def research_select_action_requirement():
         return True
@@ -76,7 +76,7 @@ init -30 python:
         return True
 
     def set_autosell_action_requirement():
-        return mc.business.serum_production_target is not None
+        return world.mc.business.serum_production_target is not None
 
     def pick_supply_goal_action_requirement():
         return True
@@ -88,13 +88,13 @@ init -30 python:
         return True
 
 #    def can_hr_open_job():
-#        return len(mc.business.h_div.people) > 1
+#        return len(world.mc.business.h_div.people) > 1
 
     def set_uniform_requirement():
-        return "Strict Corporate Uniforms" in mc.business.active_policies
+        return "Strict Corporate Uniforms" in world.mc.business.active_policies
 
     def set_serum_requirement():
-        return "Daily Serum Dosage" in mc.business.active_policies
+        return "Daily Serum Dosage" in world.mc.business.active_policies
 
     ##Actions##
     hr_work_action = Action("Spend time orgainizing your business.", hr_work_action_requirement, "hr_work_action_description")
@@ -126,7 +126,7 @@ init:
     pass
 
 label sleep_action_description:
-    "You go to bed after a hard days work."
+    "You go to bed after a hard world.days work."
     call advance_time from _call_advance_time
     return
 
@@ -135,49 +135,49 @@ label faq_action_description:
     return
 
 label hr_work_action_description:
-    $ mc.business.player_hr()
+    $ world.mc.business.player_hr()
     call advance_time from _call_advance_time_1
     "You settle in and spend a few hours filling out paperwork."
     return
 
 label research_work_action_description:
-    $ mc.business.player_research()
+    $ world.mc.business.player_research()
     call advance_time from _call_advance_time_2
     "You spend a few hours in the lab, experimenting with different chemicals and techniques."
     return
 
 label supplies_work_action_description:
-    $ mc.business.player_buy_supplies()
+    $ world.mc.business.player_buy_supplies()
     call advance_time from _call_advance_time_3
     "You spend a few hours securing new supplies for the lab, spending some of it's available funds to do so."
     return
 
 label market_work_action_description:
-    $ mc.business.player_market()
+    $ world.mc.business.player_market()
     call advance_time from _call_advance_time_4
     "You spend a few hours making phone calls to your clients and shipping out orders that have been marked for sale."
     return
 
 label production_work_action_description:
-    $ mc.business.player_production()
+    $ world.mc.business.player_production()
     call advance_time from _call_advance_time_5
     "You spend a few hours in the lab, synthesizing serum from the it's raw chemical precursors."
     return
 
 label interview_action_description:
     $ count = 3 #Num of people to generate, by default is 3. Changed with some policies
-    if "Recruitment Batch Size Improvement Three" in mc.business.active_policies:
+    if "Recruitment Batch Size Improvement Three" in world.mc.business.active_policies:
         $ count = 10
-    elif "Recruitment Batch Size Improvement Two" in mc.business.active_policies:
+    elif "Recruitment Batch Size Improvement Two" in world.mc.business.active_policies:
         $ count = 6
-    elif "Recruitment Batch Size Improvement One" in mc.business.active_policies:
+    elif "Recruitment Batch Size Improvement One" in world.mc.business.active_policies:
         $ count = 4
 
     $ interview_cost = 50
     "Bringing in [count] people for an interview will cost $[interview_cost]. Do you want to spend time interviewing potential employees?"
     menu:
         "Yes, I'll pay the cost. -$[interview_cost]":
-            $ mc.business.funds += -interview_cost #T
+            $ world.mc.business.funds += -interview_cost #T
             $ renpy.scene("Active")
             hide screen main_ui
             hide screen business_ui
@@ -196,9 +196,9 @@ label interview_action_description:
                 $ new_person = _return
                 "You complete the nessesary paperwork and hire [_return.name]. What division do you assign them to?"
                 python:
-                    mc.business.remove_employee(new_person)
-                    selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
-                    mc.business.add_employee(new_person, selected_div)
+                    world.mc.business.remove_employee(new_person)
+                    selected_div = renpy.display_menu([(div.name, div) for div in world.mc.business.division], True, "Choice")
+                    world.mc.business.add_employee(new_person, selected_div)
             else:
                 "You decide against hiring anyone new for now."
             call advance_time from _call_advance_time_6
@@ -213,7 +213,7 @@ label serum_design_action_description:
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $ mc.business.add_serum_design(_return)
+        $ world.mc.business.add_serum_design(_return)
         call advance_time from _call_advance_time_7
     else:
         "You decide not to spend any time designing a new serum type."
@@ -226,7 +226,7 @@ label research_select_action_description:
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $mc.business.set_serum_research(_return)
+        $world.mc.business.set_serum_research(_return)
         $renpy.say("", "You change your research to %s." % _return["name"])
     else:
         "You decide to leave your labs current research topic as it is."
@@ -239,7 +239,7 @@ label production_select_action_description:
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $mc.business.change_production(_return)
+        $world.mc.business.change_production(_return)
         $renpy.say("", "You change your production line over to %s." % _return["name"])
     else:
         "You decide not to change the way your production line is set up."
@@ -250,7 +250,7 @@ label trade_serum_action_description:
     hide screen main_ui
     hide screen business_ui
     $ renpy.block_rollback()
-    call screen serum_trade_ui(mc.inventory,mc.business.inventory)
+    call screen serum_trade_ui(world.mc.inventory,world.mc.business.inventory)
     $ renpy.block_rollback()
     show screen main_ui
     show screen business_ui
@@ -261,21 +261,21 @@ label sell_serum_action_description:
     hide screen main_ui
     hide screen business_ui
     $ renpy.block_rollback()
-    call screen serum_trade_ui(mc.business.inventory,mc.business.sale_inventory,"Production Stockpile","Sales Stockpile")
+    call screen serum_trade_ui(world.mc.business.inventory,world.mc.business.sale_inventory,"Production Stockpile","Sales Stockpile")
     $ renpy.block_rollback()
     show screen main_ui
     show screen business_ui
     return
 
 label set_autosell_action_description:
-    $ amount = renpy.input("How many units of " + mc.business.serum_production_target.name + " would you like to keep in stock? Extra will automatically be moved to the sales department.")
+    $ amount = renpy.input("How many units of " + world.mc.business.serum_production_target.name + " would you like to keep in stock? Extra will automatically be moved to the sales department.")
     $ amount = amount.strip()
     while not (amount.isdigit() and int(amount) >= 0):
         $ amount = renpy.input("Please put in positive integer value.")
     $ amount = int(amount)
 
-    $ mc.business.auto_sell_threshold = amount
-    "Extra doses of the serum [mc.business.serum_production_target.name] will be automatically moved to the sales department now."
+    $ world.mc.business.auto_sell_threshold = amount
+    "Extra doses of the serum [world.mc.business.serum_production_target.name] will be automatically moved to the sales department now."
     return
 
 
@@ -287,7 +287,7 @@ label pick_supply_goal_action_description:
         $ amount = renpy.input("Please put in an integer value.")
 
     $ amount = int(amount)
-    $ mc.business.supply_goal = amount
+    $ world.mc.business.supply_goal = amount
     if amount <= 0:
         "You tell your team to keep [amount] units of serum supply stocked. They question your sanity, but otherwise continue with their work. Perhaps you should use a positive number."
     else:
@@ -297,26 +297,26 @@ label pick_supply_goal_action_description:
 
 label move_funds_action_description:
     menu:
-        "Move funds from the company to yourself." if mc.business.funds>0:
-            $ amount = renpy.input("How much would you like to withdraw from the company bank account? (Currently has $[mc.business.funds])")
+        "Move funds from the company to yourself." if world.mc.business.funds>0:
+            $ amount = renpy.input("How much would you like to withdraw from the company bank account? (Currently has $[world.mc.business.funds])")
             $ amount.strip()
-            while (not amount.isdigit() or int(amount) > mc.business.funds):
-                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.business.funds])")
+            while (not amount.isdigit() or int(amount) > world.mc.business.funds):
+                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[world.mc.business.funds])")
                 $ amount.strip()
 
-            $ mc.business.funds -= int(amount)
-            $ mc.money += int(amount)
+            $ world.mc.business.funds -= int(amount)
+            $ world.mc.money += int(amount)
             return
 
-        "Move funds from yourself into the company." if mc.money>0:
-            $ amount = renpy.input("How much would you like to deposit into the company account? (You currently have $[mc.money])")
+        "Move funds from yourself into the company." if world.mc.money>0:
+            $ amount = renpy.input("How much would you like to deposit into the company account? (You currently have $[world.mc.money])")
             $ amount.strip()
-            while (not amount.isdigit() or int(amount) > mc.money):
-                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.money])")
+            while (not amount.isdigit() or int(amount) > world.mc.money):
+                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[world.mc.money])")
                 $ amount.strip()
 
-            $ mc.business.funds += int(amount)
-            $ mc.money -= int(amount)
+            $ world.mc.business.funds += int(amount)
+            $ world.mc.money -= int(amount)
             return
 
         "Do nothing.":
@@ -333,19 +333,19 @@ label set_uniform_description:
     "Which division do you want to set the uniform for?"
     python:
         tuple_list = [("All", "All")]
-        for div in mc.business.division:
+        for div in world.mc.business.division:
             tuple_list.append((div.name, div))
 
         selected_div = renpy.display_menu(tuple_list,True,"Choice")
 
-    call screen outfit_select_manager(mc.business.get_max_outfits_to_change())
+    call screen outfit_select_manager(world.mc.business.get_max_outfits_to_change())
 
     python:
         if _return != "No Return":
-            if selected_div in mc.business.division:
+            if selected_div in world.mc.business.division:
                 div.uniform = _return
             else:
-                for div in mc.business.division:
+                for div in world.mc.business.division:
                     div.uniform = _return
     return
 
@@ -353,13 +353,13 @@ label set_serum_description:
     "Which divisions would you like to set a daily serum for?"
     python:
         tuple_list = [("All", "All")]
-        for div in mc.business.division:
+        for div in world.mc.business.division:
             tuple_list.append((div.name, div))
 
         selected_div = renpy.display_menu(tuple_list,True,"Choice")
     menu:
         "Pick a new serum.":
-            call screen serum_inventory_select_ui(mc.business.inventory)
+            call screen serum_inventory_select_ui(world.mc.business.inventory)
             $ selected_serum = _return
 
         "Clear existing serum.":
@@ -367,9 +367,9 @@ label set_serum_description:
 
     python:
         if selected_serum != "None": #IF we didn't select an actual serum, just return and don't chagne anything.
-            if selected_div in mc.business.division:
+            if selected_div in world.mc.business.division:
                 selected_div.serum = selected_serum
             else:
-                for div in mc.business.division:
+                for div in world.mc.business.division:
                     div.serum = selected_serum
     return

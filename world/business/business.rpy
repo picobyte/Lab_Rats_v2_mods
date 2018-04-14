@@ -4,7 +4,7 @@ init -23 python:
             self.name = name
             self.people = set(people or []) # may be away, test room.people for non-absensent
             self.jobs = set(jobs or [name])
-            self.room = world[room]
+            self.room = getattr(world, room)
             self.serum = None
             self.uniform = None
 
@@ -53,8 +53,8 @@ init -23 python:
 
             self.funds = 1000 #Your starting wealth.
 
-            self.bankrupt_days = 0 #How many days you've been bankrupt. If it hits the max value you lose.
-            self.max_bankrupt_days = 3 #How many days you can be negative without loosing the game. Can be increased through research.
+            self.bankrupt_days = 0 #How many world.days you've been bankrupt. If it hits the max value you lose.
+            self.max_bankrupt_days = 3 #How many world.days you can be negative without loosing the game. Can be increased through research.
 
             self.supply_count = 0
             self.supply_goal = 250
@@ -74,7 +74,7 @@ init -23 python:
 
             self.active_policies = set()
 
-            self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the day.
+            self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the world.day.
             self.production_potential = 0 #How many production points the team was capable of
             self.supplies_purchased = 0
             self.production_used = 0 #How many production points were actually used to make something.
@@ -88,7 +88,7 @@ init -23 python:
 
             #Compute efficency drop
             for div in self.division:
-                for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the day, etc.
+                for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the world.day, etc.
                     if person.job in div.jobs:
                         self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 
@@ -120,15 +120,15 @@ init -23 python:
                 if person.job in self.m_div.jobs:
                     self.sale_progress(person.charisma,person.focus,person.market_skill)
 
-        def run_day(self): #Run at the end of the day.
-            #Pay everyone for the day
+        def run_day(self): #Run at the end of the world.day.
+            #Pay everyone for the world.day
             cost = self.calculate_salary_cost()
             self.funds += -cost
 
             return
 
         def is_open_for_business(self): #Checks to see if employees are currently working
-            if time_of_day == 1 or time_of_day == 2 or time_of_day == 3: #TODO: give people the weekends off.
+            if world.time_of_day == 1 or world.time_of_day == 2 or world.time_of_day == 3: #TODO: give people the weekends off.
                 return True
             else:
                 return False
@@ -138,8 +138,8 @@ init -23 python:
                 if job in div.jobs:
                     return div.uniform
 
-        def clear_messages(self): #clear all messages for the day.
-            self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the day.
+        def clear_messages(self): #clear all messages for the world.day.
+            self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the world.day.
             self.production_potential = 0 #How many production points the team was capable of
             self.supplies_purchased = 0
             self.production_used = 0 #How many production points were actually used to make something.
@@ -181,10 +181,10 @@ init -23 python:
                     self.active_research_design = None
 
         def player_research(self):
-            self.research_progress(mc.int,mc.focus,mc.research_skill)
+            self.research_progress(world.mc.int,world.mc.focus,world.mc.research_skill)
 
         def player_buy_supplies(self):
-            self.supply_purchase(mc.focus,mc.charisma,mc.supply_skill)
+            self.supply_purchase(world.mc.focus,world.mc.charisma,world.mc.supply_skill)
 
         def supply_purchase(self,focus,cha,skill):
             max_supply = __builtin__.round(((3*focus) + (cha) + (2*skill) + 10) * (self.team_effectiveness))/100
@@ -195,17 +195,17 @@ init -23 python:
 
             self.funds += -max_supply
             self.supply_count += max_supply
-            self.supplies_purchased += max_supply #Used for end of day reporting
+            self.supplies_purchased += max_supply #Used for end of world.day reporting
 
         def player_market(self):
-            self.sale_progress(mc.charisma,mc.focus,mc.market_skill)
+            self.sale_progress(world.mc.charisma,world.mc.focus,world.mc.market_skill)
 
         def sale_progress(self,cha,focus,skill):
 
             serum_value_multiplier = 1.00 #For use with value boosting policies. Multipliers are multiplicative.
-            if mc.business.m_div.uniform and "Male Focused Modeling" in mc.business.active_policies:
+            if world.mc.business.m_div.uniform and "Male Focused Modeling" in world.mc.business.active_policies:
                 #If there is a uniform and we have the policy to increase value based on that we change the multilier.
-                sluttiness_multiplier = (mc.business.m_div.uniform.slut_requirement/100.0) + 1
+                sluttiness_multiplier = (world.mc.business.m_div.uniform.slut_requirement/100.0) + 1
                 serum_value_multiplier = serum_value_multiplier * (sluttiness_multiplier)
 
             serum_sale_count = __builtin__.round(((3*cha) + (focus) + (2*skill) + 10) * (self.team_effectiveness))/100 #Total number of doses of serum that can be sold by this person.
@@ -262,10 +262,10 @@ init -23 python:
             self.production_points = 0
 
         def player_production(self):
-            self.production_progress(mc.focus,mc.int,mc.production_skill)
+            self.production_progress(world.mc.focus,world.mc.int,world.mc.production_skill)
 
         def player_hr(self):
-            self.hr_progress(mc.charisma,mc.int,mc.hr_skill)
+            self.hr_progress(world.mc.charisma,world.mc.int,world.mc.hr_skill)
 
         def hr_progress(self,cha,int,skill): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
             self.team_effectiveness += (3*cha) + (int) + (2*skill) + 10

@@ -74,7 +74,7 @@ init -16 python:
             #Skills can be trained up over time, but are limited by your raw stats. Ranges from 1 to 5 at start, can go up or down (min 0)
 
                 "Human Resources": "Your skill at human resources. Crucial for maintaining an efficent business",
-                "Marketing": "Your skill at marketing. Higher skill will allow you to ship more doses of serum per day",
+                "Marketing": "Your skill at marketing. Higher skill will allow you to ship more doses of serum per world.day",
                 "Research and Development": "Your skill at researching new serum traits and designs. Critical for improving your serum inventorm",
                 "Production": "Your skill at producing serum in the production lab. Produced serums can then be sold for profit or kept for personal use",
                 "Supply Procurement": "Your skill at obtaining raw supplies for your production division. Without supply, nothing can be created in the lab",

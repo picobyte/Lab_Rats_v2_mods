@@ -1,4 +1,4 @@
-init python:
+init -4 python:
     class MainCharacter(Person):
         points_per_stat = {
             "Main Stats": 3,
@@ -8,7 +8,7 @@ init python:
         def __init__(self, business):
             super(MainCharacter, self).__init__(**persistent.character)
 
-            self.location = world["bedroom"]
+            self.location = world.bedroom
             self.energy = 50
             self.designed_wardrobe = Wardrobe("Designed Wardrobe", [])
             self.money = 100 ## Personal money that can be spent however you wish. Company funds are seperate (but can be manipulated in your favour)
@@ -36,24 +36,3 @@ init python:
                 if self.location.has_object_with_trait(position.requires_location) and position.check_clothing(other_person):
                     tuple_list.append((position.name,position))
             return tuple_list
-
-label create_test_variables(): #Gets all of the variables ready. TODO: Move some of this stuff to an init block?
-    python:
-        #By having this in an init block it may be set to null each time the game is reloaded, because the initialization stuff below is only called once.
-        world = { k: Room(**v) for k, v in Room.default_locations.iteritems() }
-        world["lobby"].name = persistent.company_name + " " + world["lobby"].name
-
-        mc = MainCharacter(MyCorp())
-
-        max_num_of_random = 4 ##Default use to be 4
-        for name, place in world.iteritems():
-            if place.public:
-                random_count = renpy.random.randint(1,max_num_of_random)
-                for x in range(0,random_count):
-                    place.people.add(create_random_person()) #We are using create_random_person instead of make_person because we want premade character bodies to be hirable instead of being eaten up by towns-folk.
-
-        ##Global Variable Initialization##
-        day = 0 ## Game starts on day 0.
-        time_of_day = 0 ## 0 = Early morning, 1 = Morning, 2 = Afternoon, 3 = Evening, 4 = Night
-
-    return
