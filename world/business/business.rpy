@@ -26,6 +26,7 @@ init -23 python:
         def __init__(self, name, division):
             self.name = name
             self.division = set(division)
+            self.inventory = {"stock": collections.defaultdict(default_to_zero), "sale": collections.defaultdict(default_to_zero)}
 
     class MyCorp(Business):
         # main jobs to start with:
@@ -76,7 +77,6 @@ init -23 python:
             self.active_research_design = None #
 
             self.serum_production_target = None
-            self.inventory = {"stock": collections.defaultdict(default_to_zero), "sale": collections.defaultdict(default_to_zero)}
 
             self.active_policies = set()
 
@@ -144,10 +144,7 @@ init -23 python:
             self.sales_made = 0
 
         def calculate_salary_cost(self):
-            daily_cost = 0
-            for person in self.get_employee_list():
-                daily_cost += person.salary
-            return daily_cost
+            return sum(person.salary for person in self.get_employee_list())
 
         def add_serum_design(self,serum):
             while not "name" in serum:

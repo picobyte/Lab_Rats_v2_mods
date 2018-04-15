@@ -27,7 +27,7 @@ init -14 python:
         mods = {"Work Skills": 5, "Main Stats": 5, "Foreplay": 5, "Oral": 5, "Vaginal": 5, "Anal": 5,
                 "suggest": 0, "obedience": renpy.random.randint(-10,10), "sluttiness": renpy.random.randint(0,10)}
 
-        if business: # no policies when for premade NPC list is made
+        if business: # no policies when premade NPC list is made
             for pol in business.active_policies:
                 if "effect" in pol:
                     for k, v in pol["effect"].iteritems():
