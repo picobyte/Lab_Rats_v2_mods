@@ -159,7 +159,7 @@ init python:
             return (self.day % 7) < 6 and 0 < self.time_of_day < 4 # work hours and give people the weekends off.
 
         def add_time_is_next_day(self):
-            self.time_of_day = (self.time_of_day + 1) % 4
+            self.time_of_day = (self.time_of_day + 1) % 5
             self.day += not self.time_of_day
             return not self.time_of_day
 
