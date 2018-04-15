@@ -143,7 +143,7 @@ init python:
             self.__dict__.update(**kwargs)
 
             for i, loc in enumerate(World.locations):
-                self.__dict__[loc["id"]] = Room(i)
+                self.__dict__[loc["id"]] = Room(**loc)
 
             self.lobby.name = persistent.company_name + " " + self.lobby.name
 
