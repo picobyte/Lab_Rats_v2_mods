@@ -1,6 +1,15 @@
 init python:
     class World(renpy.store.object):
         locations = ({
+            "id": "person_home",
+            "name": "my house", # from perspective of person, for phone
+            "connections": set(["downtown"]),
+            "background_image": house_background,
+            "scenery": set(),
+            "open_time": set([0,4]),
+            "actions": (),
+            "public": False,
+        },{
             "id": "bedroom",
             "connections": set(["hall"]),
             "background_image": house_background,
@@ -71,9 +80,11 @@ init python:
             "map_pos": (0.85,0.38)
         },{ ##Connects all Locations##
             "id": "downtown",
-            "connections": set(["hall", "lobby", "mall"]),
+            "connections": set(["hall", "lobby", "mall", "person_home"]),
             "background_image": outside_background,
             "scenery": set(["floor"]),
+            "space": 20,
+            "open_time": set([0, 4]),
             "actions": (),
             "public": True,
             "map_pos": (0.5,0.65)
@@ -84,6 +95,7 @@ init python:
             "background_image": mall_background,
             "scenery": set(["wall", "floor", "chair"]),
             "actions": (),
+            "space": 6,
             "public": True,
             "map_pos": (0.68,0.24)
         },{
@@ -93,6 +105,7 @@ init python:
             "background_image": mall_background,
             "scenery": set(["wall", "floor"]),
             "actions": (),
+            "space": 6,
             "public": True,
             "map_pos": (0.6,0.15)
         },{
@@ -111,6 +124,7 @@ init python:
             "background_image": mall_background,
             "scenery": set(["wall", "floor", "chair"]),
             "actions": (),
+            "space": 6,
             "public": True,
             "map_pos": (0.4,0.15)
         },{
@@ -119,6 +133,8 @@ init python:
             "background_image": mall_background,
             "scenery": set(["wall", "floor", "chair"]),
             "actions": (),
+            "space": 6,
+            "open_time": set([0, 4]),
             "public": True,
             "map_pos": (0.32,0.24)
         },{
@@ -126,9 +142,11 @@ init python:
             "connections": set(["downtown", "office_store", "clothing_store", "sex_store", "home_store", "gym"]),
             "background_image": mall_background,
             "scenery": set(["wall", "floor"]), # dict with string object and counts, traits defined in object_traits
+            "space": 20,
+            "open_time": set([0, 4]),
             "actions": (), #A list of Action objects
             "public": True, #If True, random people can wander here.
-            "map_pos": (0.5,0.3) #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically.
+            "map_pos": (0.5,0.3) #A tuple of two float values from 0.0 to 1.0, used to determine where this should be placed on the map dynamically. Not drawn if not set.
         })
         day_names = ("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday") #Arrays that hold the names of the world.days of the week and times of world.day. Arrays start at 0.
         time_names = ("Early Morning","Morning","Afternoon","Evening","Night")

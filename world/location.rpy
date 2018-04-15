@@ -22,11 +22,12 @@ init -25 python:
             "grass": set(["Lay","Kneel","Stand"]),
             "chair": set(["Sit","Low"]) # can be inventory
         }
-        def __init__(self, name=None, inventory=None, people=4, **room):
+        def __init__(self, name=None, inventory=None, space=4, **room):
             self.items = collections.defaultdict(default_to_zero, inventory or {})
             self.__dict__.update(**room)
             self.name = name or self.id
-            self.people = set(create_random_person() for _ in range(renpy.random.randint(0, people))) if self.public else set()
+            self.space = space
+            self.people = set(create_random_person() for _ in range(renpy.random.randint(space/2, space))) if self.public else set()
 
         def objects_with_trait(self, trait):
             return [_ for _ in self.scenery if trait in self.object_traits[_]]

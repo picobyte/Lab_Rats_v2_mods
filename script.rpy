@@ -965,11 +965,11 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
 
 screen map_manager():
     add "Paper_Background.png"
-    for place, loc in itertools.combinations(world, 2):
+    for place, loc in itertools.combinations((loc for loc in world if hasattr(loc, "map_pos")), 2):
         if loc.id in place.connections or place.id in loc.connections:
             add Vren_Line(place.map_pos, loc.map_pos, 4,"#117bff") #Draw a white line between each location
     for place in world: #Draw the text buttons over the background
-        if mc.location != place:
+        if hasattr(place, "map_pos"):
             frame:
                 background None
                 xysize [171,150]
@@ -977,25 +977,15 @@ screen map_manager():
                 align place.map_pos
                 imagebutton:
                     anchor [0.5,0.5]
-                    auto "gui/LR2_Hex_Button_%s.png"
-                    focus_mask "gui/LR2_Hex_Button_idle.png"
                     action SetField(mc, "location", place)
-                    sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
-                text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
-
-        else:
-            frame:
-                background None
-                xysize [171,150]
-                anchor [0.0,0.0]
-                align place.map_pos
-                imagebutton:
-
-                    anchor [0.5,0.5]
-                    idle "gui/LR2_Hex_Button_Alt_idle.png"
-                    focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
-                    action SetField(mc, "location", place)
-                    sensitive False
+                    if mc.location != place:
+                        auto "gui/LR2_Hex_Button_%s.png"
+                        focus_mask "gui/LR2_Hex_Button_idle.png"
+                        sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
+                    else:
+                        idle "gui/LR2_Hex_Button_Alt_idle.png"
+                        focus_mask "gui/LR2_Hex_Button_Alt_idle.png"
+                        sensitive False
                 text "%s\n(%d)" % (place.name.title(), len(place.people)) anchor [0.5,0.5] style "map_text_style"
 
     frame:

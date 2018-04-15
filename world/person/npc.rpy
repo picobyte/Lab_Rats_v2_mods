@@ -155,8 +155,8 @@ init -14 python:
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
 
             if world.time_of_day == 0 or world.time_of_day == 4: #Home time
-                self.move(location, world.downtown) #Move to downtown as proxy for home.
-
+                remaining_open = [loc for loc in world if hasattr(loc, "open_time") and loc.public and len(loc.people) < loc.space and world.time_of_day in loc.open_time] + [world.person_home] * 10
+                self.move(location, renpy.random.choice(remaining_open))
             else:
                 for div in mc.business.division:
                     if self in div.people:  #She works for us, move her to her work station,
@@ -166,7 +166,7 @@ init -14 python:
                         break
                 else: #She does not work for us, scatter her somewhere public on the map.
                     #Check to see where is public (or where you are white listed) and move to one of those locations randomly
-                    self.move(location, renpy.random.choice([loc for loc in world if loc.public]))
+                    self.move(location, renpy.random.choice([loc for loc in world if loc.public and len(loc.people) < loc.space]))
 
 
         def run_day(self): #Called at the end of the world.day.
