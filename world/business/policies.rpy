@@ -62,16 +62,16 @@
         #### RECRUITMENT IMPROVEMENT POLICIES ####
         "Recruitment Batch Size Improvement One": {
             "desc": "More efficent hiring software will allow you to interview up to review up to four resumes in a single recruitment batch.",
-            "cost": 200, "req": set()
+            "cost": 200, "req": set(), "interview batch increase": 1
         },
         "Recruitment Batch Size Improvement Two": {
             "desc": "Further improvements in hiring software and protocols allows you to review up to six resumes in a single recruitment batch.",
-            "cost": 600, "req": set(["Recruitment Batch Size Improvement One"])
+            "cost": 600, "req": set(["Recruitment Batch Size Improvement One"]), "interview batch increase": 2
         },
         "Recruitment Batch Size Improvement Three": {
             "desc": "A complete suite of recruitment software lets you maximize the use of your time while reviewing resumes. " +
             "Allows you to review ten resumes in a single recruitment batch.",
-            "cost": 1200, "req": set(["Recruitment Batch Size Improvement Two"])
+            "cost": 1200, "req": set(["Recruitment Batch Size Improvement Two"]), "interview batch increase": 4
         },
 
         "Recruitment Skill Improvement": {

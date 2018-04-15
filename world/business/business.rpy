@@ -1,7 +1,4 @@
 init -23 python:
-    import collections
-    def default_to_zero():
-        return collections.defaultdict(int)
     class Division(renpy.store.object):
         def __init__(self, name="Freelancer", people=None, room=None, jobs=None):
             self.name = name
@@ -71,6 +68,8 @@ init -23 python:
             self.production_points = 0
             self.team_effectiveness = 100 #Ranges from 50 (Chaotic, everyone functions at 50% speed) to 200 (masterfully organized). Normal levels are 100, special traits needed to raise it higher.
             self.effectiveness_cap = 100 #Max cap, can be raised.
+
+            self.interview_cost = 50
 
             self.serum_traits = default_serum_traits
             self.serum_design = {}

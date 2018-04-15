@@ -163,45 +163,32 @@ label production_work_action_description:
     return
 
 label interview_action_description:
-    $ count = 3 #Num of people to generate, by default is 3. Changed with some policies
-    if "Recruitment Batch Size Improvement Three" in mc.business.active_policies:
-        $ count = 10
-    elif "Recruitment Batch Size Improvement Two" in mc.business.active_policies:
-        $ count = 6
-    elif "Recruitment Batch Size Improvement One" in mc.business.active_policies:
-        $ count = 4
+    $ count = 3 + sum(policies[p].get("interview batch increase", 0) for p in mc.business.active_policies) #Num of people to generate, by default is 3. Changed with some policies
+    $ mc.business.funds += -mc.business.interview_cost #T
+    $ renpy.scene("Active")
+    hide screen main_ui
+    hide screen business_ui
+    python:
+        candidates = []
 
-    $ interview_cost = 50
-    "Bringing in [count] people for an interview will cost $[interview_cost]. Do you want to spend time interviewing potential employees?"
-    menu:
-        "Yes, I'll pay the cost. -$[interview_cost]":
-            $ mc.business.funds += -interview_cost #T
-            $ renpy.scene("Active")
-            hide screen main_ui
-            hide screen business_ui
-            python:
-                candidates = []
+        for x in range(0,count+1): #NOTE: count is given +1 because the screen tries to pre-calculate the result of button presses. This leads to index out-of-bounds, unless we pad it with an extra character (who will not be reached).
+            candidates.append(make_person())
+        show_candidate(candidates[0]) #Show the first candidate, updates are taken care of by actions within the screen.
 
-                for x in range(0,count+1): #NOTE: count is given +1 because the screen tries to pre-calculate the result of button presses. This leads to index out-of-bounds, unless we pad it with an extra character (who will not be reached).
-                    candidates.append(make_person())
-                show_candidate(candidates[0]) #Show the first candidate, updates are taken care of by actions within the screen.
-
-            call screen interview_ui(candidates,count)
-            $ renpy.scene("Active")
-            show screen main_ui
-            show screen business_ui
-            if _return != "None":
-                $ new_person = _return
-                "You complete the nessesary paperwork and hire [_return.name]. What division do you assign them to?"
-                python:
-                    mc.business.remove_employee(new_person)
-                    selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
-                    mc.business.add_employee(new_person, selected_div)
-            else:
-                "You decide against hiring anyone new for now."
-            call advance_time from _call_advance_time_6
-        "Nevermind.":
-            pass
+    call screen interview_ui(candidates,count)
+    $ renpy.scene("Active")
+    show screen main_ui
+    show screen business_ui
+    if _return != "None":
+        $ new_person = _return
+        "You complete the nessesary paperwork and hire [_return.name]. What division do you assign them to?"
+        python:
+            mc.business.remove_employee(new_person)
+            selected_div = renpy.display_menu([(div.name, div) for div in mc.business.division], True, "Choice")
+            mc.business.add_employee(new_person, selected_div)
+    else:
+        "You decide against hiring anyone new for now."
+    call advance_time from _call_advance_time_6
     return
 
 label serum_design_action_description:
@@ -225,7 +212,7 @@ label research_select_action_description:
     show screen business_ui
     if _return != "None":
         $mc.business.set_serum_research(_return)
-        $renpy.say("", "You change your research to %s." % _return["name"])
+        $renpy.say("", "You change your research to %(name)s." % _return)
     else:
         "You decide to leave your labs current research topic as it is."
     return
@@ -238,7 +225,7 @@ label production_select_action_description:
     show screen business_ui
     if _return != "None":
         $mc.business.change_production(_return)
-        $renpy.say("", "You change your production line over to %s." % _return["name"])
+        $renpy.say("", "You change your production line over to %(name)s." % _return)
     else:
         "You decide not to change the way your production line is set up."
     return
@@ -266,14 +253,14 @@ label sell_serum_action_description:
     return
 
 label set_autosell_action_description:
-    $ amount = renpy.input("How many units of " + mc.business.serum_production_target.name + " would you like to keep in stock? Extra will automatically be moved to the sales department.")
+    $ amount = renpy.input("How many units of %(name)s would you like to keep in stock? Extra will automatically be moved to the sales department." % mc.business.serum_production_target)
     $ amount = amount.strip()
     while not (amount.isdigit() and int(amount) >= 0):
         $ amount = renpy.input("Please put in positive integer value.")
     $ amount = int(amount)
 
     $ mc.business.auto_sell_threshold = amount
-    "Extra doses of the serum [mc.business.serum_production_target.name] will be automatically moved to the sales department now."
+    $ renpy.say("", "Extra doses of the serum %(name)s will be automatically moved to the sales department now." % mc.business.serum_production_target)
     return
 
 
