@@ -2,7 +2,6 @@ init python:
     class World(renpy.store.object):
         locations = ({
             "id": "bedroom",
-            "name": "bedroom",
             "connections": set(["hall"]),
             "background_image": house_background,
             "scenery": set(["wall", "floor", "bed", "window"]),
@@ -11,7 +10,6 @@ init python:
             "map_pos": (0.1,0.5)
         },{
             "id": "kitchen",
-            "name": "kitchen",
             "connections": set(["hall"]),
             "background_image": house_background,
             "scenery": set(["wall", "floor", "chair"]),
@@ -29,7 +27,6 @@ init python:
             "map_pos": (0.2,0.6)
         },{ ##PC's Work##
             "id": "lobby",
-            "name": "lobby",
             "connections": set(["downtown", "office", "rd_room", "p_room", "m_room"]),
             "background_image": office_background,
             "scenery": set(["wall", "floor", "chair", "window"]),
@@ -74,7 +71,6 @@ init python:
             "map_pos": (0.85,0.38)
         },{ ##Connects all Locations##
             "id": "downtown",
-            "name": "downtown",
             "connections": set(["hall", "lobby", "mall"]),
             "background_image": outside_background,
             "scenery": set(["floor"]),
@@ -119,7 +115,6 @@ init python:
             "map_pos": (0.4,0.15)
         },{
             "id": "gym",
-            "name": "gym",
             "connections": set(["mall"]),
             "background_image": mall_background,
             "scenery": set(["wall", "floor", "chair"]),
@@ -128,7 +123,6 @@ init python:
             "map_pos": (0.32,0.24)
         },{
             "id": "mall",
-            "name": "mall",
             "connections": set(["downtown", "office_store", "clothing_store", "sex_store", "home_store", "gym"]),
             "background_image": mall_background,
             "scenery": set(["wall", "floor"]), # dict with string object and counts, traits defined in object_traits
@@ -143,7 +137,7 @@ init python:
             self.__dict__.update(**kwargs)
 
             for i, loc in enumerate(World.locations):
-                self.__dict__[loc["id"]] = Room(**loc)
+                self.__dict__[loc["id"]] = Location(**loc)
 
             self.lobby.name = persistent.company_name + " " + self.lobby.name
 

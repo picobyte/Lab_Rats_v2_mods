@@ -9,20 +9,23 @@ init -25:
     image bg paper_menu_background = Image("Paper_Background.png")
 
 init -25 python:
-    class Room(renpy.store.object): #Contains people and objects.
+    import collections
+    def default_to_zero():
+        return collections.defaultdict(int)
+
+    class Location(renpy.store.object): #Contains people, scenery(fixed in place) and objects(portable).
         object_traits = {
             "wall": set(["Lean"]),
             "window": set(["Lean"]),
-            "chair": set(["Sit","Low"]),
             "bed": set(["Sit","Lay","Low"]),
             "floor": set(["Lay","Kneel","Stand"]),
             "grass": set(["Lay","Kneel","Stand"]),
-            "wall": set(["Lean"]),
-            "window": set(["Lean"]),
-            "chair": set(["Sit","Low"])
+            "chair": set(["Sit","Low"]) # can be inventory
         }
-        def __init__(self, people=4, **room):
+        def __init__(self, name=None, inventory=None, people=4, **room):
+            self.items = collections.defaultdict(default_to_zero, inventory or {})
             self.__dict__.update(**room)
+            self.name = name or self.id
             self.people = set(create_random_person() for _ in range(renpy.random.randint(0, people))) if self.public else set()
 
         def objects_with_trait(self, trait):

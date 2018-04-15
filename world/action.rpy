@@ -1,6 +1,4 @@
 init -30 python:
-    # Rooms have actions
-
     class Action(renpy.store.object): #Contains the information about actions that can be taken in a room. Dispayed when you are asked what you want to do somewhere.
         # Also used for crises, those are not related to any partiular room and are not displayed in a list. They are forced upon the player.
         def __init__(self,name,requirement,effect,args=None):
