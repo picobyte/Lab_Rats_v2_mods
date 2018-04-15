@@ -336,17 +336,14 @@ screen end_of_day_update():
 
 screen employee_overview():
     add "Paper_Background.png"
-    default div = mc.business.r_div
-    default sp = max(map(lambda p: len(Person.terse_stat[p])*35 if p in Person.terse_stat else len(p)*35, [x[1] for sk, x in Person.stats if sk != "Sex Skills"]))
+    default div = mc.business.division[3]
+    default sp = max(map(lambda p: len(Person.terse_stat[p] if p in Person.terse_stat else p)*35, [x[1] for sk, x in Person.stats if sk != "Sex Skills"]))
     modal True
     hbox:
         yalign 0.05
         xalign 0.05
-        textbutton "Research" action SetScreenVariable("div",mc.business.r_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Production" action SetScreenVariable("div",mc.business.p_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Supply" action SetScreenVariable("div",mc.business.s_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Marketing" action SetScreenVariable("div",mc.business.m_div) style "textbutton_style" text_style "textbutton_text_style"
-        textbutton "Human Resources" action SetScreenVariable("div",mc.business.h_div) style "textbutton_style" text_style "textbutton_text_style"
+        for division in mc.business.division:
+            textbutton division.name action SetScreenVariable("div", division) style "textbutton_style" text_style "textbutton_text_style"
 
     text "Position: %s" % div.name style "menu_text_style" size 20 yalign 0.12 xalign 0.02 xanchor 0.0
     frame:

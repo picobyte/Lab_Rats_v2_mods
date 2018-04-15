@@ -28,14 +28,14 @@ init 1 python:
     def in_research_with_other(): #A common requirement check, the PC is in the office (not nessesarily the lab), during work hours, with at least one other person.
         if world.is_work_time(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(mc.business.r_div.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
+                if len(world.r_room.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
                         return True
         return False
             
     def in_production_with_other():
         if world.is_work_time(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(mc.business.p_div.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
+                if len(world.p_room.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
                         return True
         return False
         
@@ -54,7 +54,7 @@ init 1 python:
     def broken_AC_crisis_requirement():
         if world.is_work_time(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(mc.business.p_div.people) > 0: #Check to see if there's at least one person in the production team at work.
+                if len(world.p_room.people) > 0: #Check to see if there's at least one person in the production team at work.
                     return True
         return False
             
@@ -75,7 +75,7 @@ label broken_AC_crisis_label:
             "You tell everyone in the production lab to take a break for a few hours while the air conditioning is repaired."
             "The unexpected break raises moral and makes the production staff feel more independent."
             python:
-                for person in mc.business.p_div.people:
+                for person in world.p_room.people:
                     person.happiness += 5
                     person.change_obedience_modified(-5)
             "The repair man shows up early and it turns out to be an easy fix. The lab is soon back up and running."
@@ -83,19 +83,19 @@ label broken_AC_crisis_label:
         "It's not that hot, get back to work!":
             "Nobody's happy working in the heat, but exercising your authority will make your production staff more likely to obey in the future."
             python:    
-                for person in mc.business.p_div.people:
+                for person in world.p_room.people:
                     person.change_happiness(-5)
                     person.change_obedience_modified(5)
             "The repair man shows up early and it turns out to be an easy fix. The lab is soon back up and running."    
                 
         "Tell everyonyone to strip down and keep working.":
-            if len(mc.business.p_div.people) > 1: #We have more than one person, do a group strip scene.
+            if len(world.p_room.people) > 1: #We have more than one person, do a group strip scene.
                 mc.name "I know it's uncomfortable in here right now, but we're just going to have to make due."
                 mc.name "If anyone feels the need to take something off to get comfortable, I'm lifting the dress code until the air conditioning is fixed."
                 #We're going to use the most slutty girl of the group lead the pack. She'll be the one we pay attention to.
                 python:
                     the_person = None
-                    for girl in mc.business.p_div.people:
+                    for girl in world.p_room.people:
                         if not the_person:
                             the_person = girl
                         else:
@@ -111,7 +111,7 @@ label broken_AC_crisis_label:
                     the_person.name "Let's do it girls! I can't be the only one who loves an excuse to flash her tits, right?"
                 
             else: #There's just one person here, have them strip down.
-                $ the_person = mc.business.p_div.people[0] #Get the one person, the crisis requires we have at least 1 person in here so this should always be true.
+                $ the_person = world.p_room.people[0] #Get the one person, the crisis requires we have at least 1 person in here so this should always be true.
                 $ the_person.draw_person()
                 mc.name "[the_person.name], I know it's uncomfortable in here right now, but we're going to have to make due."
                 mc.name "If you feel like it would help to take something off, I'm lifting the dress code until the air condition is fixed."
@@ -187,7 +187,7 @@ label broken_AC_crisis_label:
                 "[the_person.name] fiddles with some of her clothing, then shrugs."
                 the_person.name "I'm not sure I'm comfortable taking any of this off... I'm sure I'll be fine in the heat for a little bit."
             
-            if len(mc.business.p_div.people) > 1:
+            if len(world.p_room.people) > 1:
                 if removed_something:
                     "The rest of the department follows the lead of [the_person.name], stripping off various amounts of clothing."
                     "The girls laugh and tease each other as they strip down, and they all seem to be more comfortable less clothed."
@@ -205,7 +205,7 @@ label broken_AC_crisis_label:
                     
             if removed_something:
                 python:
-                    for person in mc.business.p_div.people:
+                    for person in world.p_room.people:
                         person.change_slut_modified(10)
     $renpy.scene("Active")
     return
@@ -285,7 +285,7 @@ label lab_accident_crisis_label():
         return
 
     $ the_serum = mc.business.active_research_design
-    $ the_person = renpy.random.sample(mc.business.r_div.people, 1)[0]
+    $ the_person = renpy.random.sample(world.r_room.people, 1)[0]
     
     if mc.location == world.rd_room:
         call change_location(world.rd_room) from _call_lab_accident_1
@@ -332,7 +332,7 @@ label production_accident_crisis_label():
         return
         
     $ the_serum = mc.business.serum_production_target
-    $ the_person = renpy.random.sample(mc.business.p_div.people, 1)[0]
+    $ the_person = renpy.random.sample(world.p_room.people, 1)[0]
     
     if mc.location == world.p_room:
         call change_location(world.p_room) from _call_production_accident_1
@@ -659,7 +659,7 @@ init 1 python:
         return True #Always true, this will always happen right after a serum is created, regardless of the time.
     
 label serum_creation_crisis_label(the_serum): # Called every time a new serum is created, test it on a R&D member.
-    $ rd_staff = renpy.random.sample(mc.business.r_div.people, 1)[0] #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
+    $ rd_staff = renpy.random.sample(world.r_room.people, 1)[0] #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
     if rd_staff is not None:
         if mc.location == world.rd_room: # The MC is in the lab, just physically get them.
             call change_location(world.rd_room) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.

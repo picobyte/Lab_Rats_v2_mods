@@ -25,7 +25,7 @@ init -23 python:
     class Business(renpy.store.object):
         def __init__(self, name, division):
             self.name = name
-            self.division = set(division)
+            self.division = division
             self.inventory = {"stock": collections.defaultdict(default_to_zero), "sale": collections.defaultdict(default_to_zero)}
 
     class MyCorp(Business):

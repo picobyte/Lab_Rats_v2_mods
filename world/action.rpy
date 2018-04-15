@@ -86,7 +86,7 @@ init -30 python:
         return True
 
 #    def can_hr_open_job():
-#        return len(mc.business.h_div.people) > 1
+#        return len(mc.business.division[4].people) > 1
 
     def set_uniform_requirement():
         return "Strict Corporate Uniforms" in mc.business.active_policies
