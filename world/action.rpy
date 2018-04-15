@@ -250,7 +250,7 @@ label trade_serum_action_description:
     hide screen main_ui
     hide screen business_ui
     $ renpy.block_rollback()
-    call screen serum_trade_ui(mc.inventory,mc.business.inventory)
+    call screen serum_trade_ui(mc.inventory["serum"],mc.business.inventory["stock"]["serum"])
     $ renpy.block_rollback()
     show screen main_ui
     show screen business_ui
@@ -261,7 +261,7 @@ label sell_serum_action_description:
     hide screen main_ui
     hide screen business_ui
     $ renpy.block_rollback()
-    call screen serum_trade_ui(mc.business.inventory,mc.business.sale_inventory,"Production Stockpile","Sales Stockpile")
+    call screen serum_trade_ui(mc.business.inventory["stock"]["serum"],mc.business.inventory["sale"]["serum"],"Production Stockpile","Sales Stockpile")
     $ renpy.block_rollback()
     show screen main_ui
     show screen business_ui
@@ -359,7 +359,7 @@ label set_serum_description:
         selected_div = renpy.display_menu(tuple_list,True,"Choice")
     menu:
         "Pick a new serum.":
-            call screen serum_inventory_select_ui(mc.business.inventory)
+            call screen serum_inventory_select_ui(mc.business.inventory["stock"]["serum"])
             $ selected_serum = _return
 
         "Clear existing serum.":

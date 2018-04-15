@@ -103,7 +103,7 @@ init -14 python:
             show_array = []
             style_array = []
             for trait in traits:
-                for param, value in trait["effect"].iteritems():
+                for param, value in mc.business.serum_traits[trait]["effect"].iteritems():
                     if hasattr(self, param):
                         setattr(self, param, getattr(self, param) + value if add else -value)
                         if visually:
@@ -155,7 +155,7 @@ init -14 python:
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
 
             if world.time_of_day == 0 or world.time_of_day == 4: #Home time
-                self.move(location, world["downtown"]) #Move to downtown as proxy for home.
+                self.move(location, world.downtown) #Move to downtown as proxy for home.
 
             else:
                 for div in mc.business.division:
@@ -296,7 +296,7 @@ init -14 python:
         def set_outfit(self,new_outfit):
             self.outfit = new_outfit
 
-        def give_serum(self,design): ##Make sure you are passing a copy of the serum, not a reference.
+        def give_serum(self,design):
             self.serum_effects.append({"name" : design['name'], "duration": design["duration"]})
             self.add_traits(design["traits"], visually=True)
 

@@ -1,4 +1,7 @@
 init -23 python:
+    import collections
+    def default_to_zero():
+        return collections.defaultdict(int)
     class Division(renpy.store.object):
         def __init__(self, name="Freelancer", people=None, room=None, jobs=None):
             self.name = name
@@ -8,13 +11,13 @@ init -23 python:
             self.serum = None
             self.uniform = None
 
-        def give_daily_serum(self, inventory, message_list):
+        def give_daily_serum(self, serum_inventory, message_list):
             if self.serum:
                 for person in self.room.people:
-                    if inventory.get_serum_count(self.serum) == 0:
+                    if serum_inventory[self.serum] == 0:
                         message_list["Stockpile ran out of %s to give to the %s division." % (self.serum.name, self.name.lower())] = 0
-                        break
-                    inventory.change_serum(self.serum,-1)
+                        return
+                    serum_inventory[self.serum] -= 1
                     person.give_serum(copy.copy(self.serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
 
         def remove_employee(self, the_person):
@@ -63,19 +66,18 @@ init -23 python:
 
             self.supply_count = 0
             self.supply_goal = 250
-            self.auto_sell_threshold = None
+            self.auto_sell_threshold = 0
             self.marketability = 0
             self.production_points = 0
             self.team_effectiveness = 100 #Ranges from 50 (Chaotic, everyone functions at 50% speed) to 200 (masterfully organized). Normal levels are 100, special traits needed to raise it higher.
             self.effectiveness_cap = 100 #Max cap, can be raised.
 
             self.serum_traits = default_serum_traits
-            self.serum_designs = []
+            self.serum_design = {}
             self.active_research_design = None #
 
             self.serum_production_target = None
-            self.inventory = SerumInventory([])
-            self.sale_inventory = SerumInventory([])
+            self.inventory = {"stock": collections.defaultdict(default_to_zero), "sale": collections.defaultdict(default_to_zero)}
 
             self.active_policies = set()
 
@@ -151,11 +153,11 @@ init -23 python:
         def add_serum_design(self,serum):
             while not "name" in serum:
                 name = renpy.input("Please give this serum design a name.")
-                if not name or name in self.serum_designs:
+                if not name or name in self.serum_design:
                     renpy.say("", "That name is already registered. Please use another.")
                 else:
                     serum["name"] = name
-            self.serum_designs.append(serum)
+            self.serum_design[name] = serum
 
         def set_serum_research(self,name):
             self.active_research_design = name
@@ -200,51 +202,48 @@ init -23 python:
                 sluttiness_multiplier = (mc.business.m_div.uniform.slut_requirement/100.0) + 1
                 serum_value_multiplier = serum_value_multiplier * (sluttiness_multiplier)
 
-            serum_sale_count = __builtin__.round(((3*cha) + (focus) + (2*skill) + 10) * (self.team_effectiveness))/100 #Total number of doses of serum that can be sold by this person.
-            sorted_by_value = sorted(self.sale_inventory.serums_held, key = lambda serum: serum[0].value) #List of tuples [SerumDesign, count], sorted by the value of each design. Used so most valuable serums are sold first.
-            if self.sale_inventory.get_any_serum_count() < serum_sale_count:
-                serum_sale_count = self.sale_inventory.get_any_serum_count()
+            serum_sale_count = __builtin__.round(((3*cha) + focus + (2*skill) + 10) * (self.team_effectiveness))/100 #Total number of doses of serum that can be sold by this person.
+
+            serum_sale_count = min(sum(self.inventory["sale"]["serum"].values()), serum_sale_count)
 
             if serum_sale_count > 0: #ie. we have serum in our inventory to sell, and the capability to sell them.
-                for serum in sorted_by_value:
-                    if serum_sale_count <= serum[1]:
-                        #There are enough to satisfy order. Remove, add value to wallet, and break
-                        value_sold = serum_sale_count * serum[0].value * serum_value_multiplier
-                        self.funds += value_sold
-                        self.sales_made += value_sold
-                        self.sale_inventory.change_serum(serum[0],-serum_sale_count)
-                        serum_sale_count = 0
-                        break
-                    #There are not enough in this single order, remove _all_ of them, add value, go onto next thing.
-                    serum_sale_count += -serum[1] #We were able to sell this number of serum.
-                    value_sold = serum[1] * serum[0].value * serum_value_multiplier
+                for serum, count in sorted(self.inventory["sale"]["serum"].keys(), key=lambda serum: self.serum_design[serum]["value"]):
+                    # if there is not capacity enough to process all, process remainder and break
+                    count = min(serum_sale_count, count)
+                    value_sold = count * self.serum_design[serum]["value"] * serum_value_multiplier
                     self.funds += value_sold
                     self.sales_made += value_sold
-                    self.sale_inventory.change_serum(serum[0],-serum[1]) #Should set serum count to 0.
-                    #Don't break, we haven't used up all of the serum count
-
+                    self.inventory["sale"]["serum"][serum] -= count
+                    serum_sale_count -= count
+                    if serum_sale_count == 0:
+                        break
 
         def production_progress(self,focus,int,skill):
-            production_amount = __builtin__.round(((3*focus) + (int) + (2*skill) + 10) * (self.team_effectiveness))/100
+
+            production_amount = __builtin__.round(((3*focus) + int + (2*skill) + 10) * (self.team_effectiveness))/100
+
             self.production_potential += production_amount
             production_amount = min(production_amount, self.supply_count)
             self.production_used += production_amount
 
             if self.serum_production_target != None:
-                self.supply_count += -production_amount
+                target_name = self.serum_production_target
+                target = self.serum_design[target_name]
+
+                self.supply_count -= production_amount
                 ##Check how many serum can be made, make them and add them to your inventory.
                 self.production_points += production_amount
-                serum_count = self.production_points//self.serum_production_target.production_cost
-                if serum_count > 0:
-                    msg = "Produced " + self.serum_production_target.name
-                    self.message_list[msg] = self.message_list[msg] + serum_count if msg in self.message_list else serum_count
-                    self.production_points += -(serum_count * self.serum_production_target.production_cost)
-                    if self.serum_production_target is not None and self.auto_sell_threshold is not None and self.inventory.get_serum_count(self.serum_production_target)+serum_count > self.auto_sell_threshold: #If there is a limit set, and the production takes us above the limit, sell extra
-                        the_difference = (self.inventory.get_serum_count(self.serum_production_target) + serum_count) - self.auto_sell_threshold #Get the count of serum we can still add to the business inventory. ie set us to the limit.
-                        self.inventory.change_serum(self.serum_production_target,serum_count-the_difference)
-                        self.sale_inventory.change_serum(self.serum_production_target,the_difference)
-                    else:
-                        self.inventory.change_serum(self.serum_production_target,serum_count)
+                production_count = self.production_points // target["production"]
+
+                if production_count > 0:
+
+                    msg = "Produced %s" % target_name
+                    self.message_list[msg] = self.message_list.get(msg, 0) + production_count
+                    self.production_points -= production_count * target["production"]
+
+                    sold_count = max(0, self.inventory["stock"]["serum"][target_name] + production_count - self.auto_sell_threshold)
+                    self.inventory["stock"]["serum"][target_name] -= sold_count
+                    self.inventory["sale"]["serum"][target_name] += sold_count
 
         def change_production(self,new_serum):
             self.serum_production_target = new_serum
@@ -292,7 +291,7 @@ init -23 python:
 
         def give_daily_serum(self):
             for div in self.division:
-                div.give_daily_serum(self.inventory, self.message_list)
+                div.give_daily_serum(self.inventory["stock"]["serum"], self.message_list)
 
         def purchase_policy(self, policy):
             self.funds -= policy.cost

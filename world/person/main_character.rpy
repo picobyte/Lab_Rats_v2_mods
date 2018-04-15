@@ -13,7 +13,6 @@ init -4 python:
             self.designed_wardrobe = Wardrobe("Designed Wardrobe", [])
             self.money = 100 ## Personal money that can be spent however you wish. Company funds are seperate (but can be manipulated in your favour)
             self.business = business
-            self.inventory = SerumInventory([])
 
         def use_energy(self,amount):
             self.energy = max(self.energy - amount, 0)

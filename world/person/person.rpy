@@ -94,6 +94,7 @@ init -16 python:
             #TODO: Integrate this with the rest of the game, so you can have different fonts for different characters, different colours, etc.
             self.char_object = Character(what_font="Avara.ttf") #We use this to customize the font in the dialogue boxes
             self.arousal = 0 #How actively horny a girl is, and how close she is to orgasm. Generally resets to 0 after orgasming, and decreases over time while not having sex (or having bad sex).
+            self.inventory = collections.defaultdict(default_to_zero)
 
         def change_arousal(self,amount):
             self.arousal = max(self.arousal + amount, 0)

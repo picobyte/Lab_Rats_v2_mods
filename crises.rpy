@@ -45,14 +45,11 @@ init 1 python:
                 if mc.business.get_employee_count() > 0:
                     return True
         return False
-        
+
     def mc_asleep(): #Returns true if the main character is at home and in bed.
-        if world.time_of_day == 4: #It has to be after work, right when you've gone to bed.
-            if mc.location == world["bedroom"]:
-                return True
-        return False
-    
-   
+        return world.time_of_day == 4 and mc.location == world.bedroom #It has to be after work, right when you've gone to bed.
+
+
     #Defining the requirement to be tested.
     def broken_AC_crisis_requirement():
         if world.is_work_time(): #Only trigger if people are in the office.

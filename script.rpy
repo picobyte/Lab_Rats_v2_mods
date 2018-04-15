@@ -34,44 +34,6 @@ init -2 python:
     def copy_cursor_pos():
         pygame.scrap.put(pygame.SCRAP_TEXT, "%d, %d"%renpy.get_mouse_pos())
 
-    class SerumInventory(renpy.store.object): #A bag class that lets businesses and people hold onto different types of serums, and move them around.
-        def __init__(self,starting_list):
-            self.serums_held = starting_list ##Starting list is a list of tuples, going [SerumDesign,count]. Count should be possitive.
-            
-        def get_serum_count(self, serum_design):
-            for design in self.serums_held:
-                if design[0] == serum_design:
-                    return design[1]
-            return 0
-            
-        def get_any_serum_count(self):
-            count = 0
-            for design in self.serums_held:
-                count += design[1]
-            return count
-            
-        def change_serum(self, serum_design,change_amount): ##Serum count must be greater than 0. Adds to stockpile of serum_design if it is already there, creates it otherwise.
-            found = False
-            for design in self.serums_held:
-                if design[0] == serum_design and not found:
-                    design[1] += int(change_amount)
-                    found = True
-                    if design[1] <= 0:
-                        self.serums_held.remove(design)
-                        
-            if not found:
-                if change_amount > 0:
-                    self.serums_held.append([serum_design,int(change_amount)])
-                    
-                    
-        def get_serum_type_list(self): ## returns a list of all the serum types that are in the inventory, without their counts.
-            return_values = []
-            for design in self.serums_held:
-                return_values.append(design[0])
-            return return_values
-
-
-
     class Position(renpy.store.object):
         def __init__(self,name,slut_requirement,position_tag,requires_location,requires_clothing,skill_tag,girl_arousal,guy_arousal,connections,intro,scenes,outro,transition_default):
             self.name = name
@@ -510,8 +472,9 @@ screen person_info_detailed(the_person):
             xsize 800
             if the_person.serum_effects:
                 text "Currently Affected By:" style "menu_text_style"
-                for name, serum in map(lambda x: (x["name"], mc.business.serum_designs[x["name"]]), the_person.serum_effects):
-                    text "%s : %d Turns left" % (name, serum["duration"] - serum["time"]) style "menu_text_style"
+                for name, serum in mc.business.serum_design.iteritems():
+                    if name in the_person.serum_effects:
+                        text "%s : %d Turns left" % (name, serum["duration"] - serum["time"]) style "menu_text_style"
                 null height 80
             if the_person.status_effects:
                 text "Current Status Effects:" style "menu_text_style"
@@ -616,14 +579,14 @@ init -2 python: # Some functions used only within screens for modifying variable
             for k, v in trait[t].iteritems():
                 serum[k] += v if add else -v
 
-screen show_serum_inventory(the_inventory):
+screen show_serum_inventory(serum_inventory):
     add "Science_Menu_Background.png"
     vbox:
         xalign 0.02
         yalign 0.02
         text "Serums in Inventory" style "menu_text_style" size 25
-        for design in the_inventory.serums_held:
-            textbutton design[0].name + ": " + str(design[1]) style "textbutton_style" text_style "textbutton_text_style" action NullAction() sensitive True hovered Show("serum_tooltip",None,design[0]) unhovered Hide("serum_tooltip")
+        for serum in serum_inventory.iteritems():
+            textbutton "%s: %d" % serum style "textbutton_style" text_style "textbutton_text_style" action NullAction() sensitive True hovered Show("serum_tooltip",None, mc.business.serum_design[serum[0]]) unhovered Hide("serum_tooltip")
 
         textbutton "Return" action Return() style "textbutton_style" text_style "textbutton_text_style"
 
@@ -721,18 +684,18 @@ screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business")
         xalign 0.02
         yalign 0.02
         text "Trade Serums Between Inventories." style "menu_text_style" size 25
-        for serum in set(inventory_1.get_serum_type_list()) | set(inventory_2.get_serum_type_list()): #Gets a unique entry for each serum design that shows up in either list. Doesn't duplicate if it's in both.
+        for serum in set(inventory_1.keys() + inventory_2.keys()): #Gets a unique entry for each serum design that shows up in either list. Doesn't duplicate if it's in both.
             # has a few things. 1) name of serum design. 2) count of first inventory, 3) arrows for transfering, 4) count of second inventory.
             vbox:
                 textbutton serum.name + ": " style "textbutton_style" text_style "menu_text_style" action NullAction() hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip") #displays the name of this particular serum
                 hbox:
                     null width 40
-                    text name_1 + " has: " + str(inventory_1.get_serum_count(serum)) style "menu_text_style"#The players current inventory count. 0 if there is nothing in their inventory
-                    textbutton "#<#" action [Function(inventory_1.change_serum,serum,1),Function(inventory_2.change_serum,serum,-1)] sensitive (inventory_2.get_serum_count(serum) > 0) style "textbutton_style" text_style "textbutton_text_style"
+                    text name_1 + " has: %d" % inventory_1[serum] style "menu_text_style"#The players current inventory count. 0 if there is nothing in their inventory
+                    textbutton "#<#" action [SetDict(inventory_1, serum, inventory_1[serum] + 1), SetDict(inventory_2, serum, inventory_2[serum] - 1)] sensitive inventory_2[serum] > 0 style "textbutton_style" text_style "textbutton_text_style"
                     #When pressed, moves 1 serum from the business inventory to the player. Not active if the business has nothing in it.
                     null width 40
-                    textbutton "#>#" action [Function(inventory_2.change_serum,serum,1),Function(inventory_1.change_serum,serum,-1)] sensitive (inventory_1.get_serum_count(serum) > 0) style "textbutton_style" text_style "textbutton_text_style"
-                    text name_2 + " has: " + str(inventory_2.get_serum_count(serum)) style "menu_text_style"
+                    textbutton "#>#" action [SetDict(inventory_2, serum, inventory_2[serum] + 1), SetDict(inventory_1, serum, inventory_1[serum] - 1)] sensitive inventory_1[serum] > 0 style "textbutton_style" text_style "textbutton_text_style"
+                    text name_2 + " has: %d" % inventory_2.get(serum, 0) style "menu_text_style"
         textbutton "Finished." action Return() style "textbutton_style" text_style "textbutton_text_style"
                 
                 
@@ -747,7 +710,7 @@ screen serum_select_ui: #How you select serum and trait research
         hbox:
             vbox:
                 text "Serum Designs:" style "menu_text_style"
-                for serum in mc.business.serum_designs:
+                for _, serum in mc.business.serum_design.iteritems():
                     if serum["research done"] < serum["research required"]:
                         textbutton "Research %(name)s (%(research done)d/%(research required)d)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
              
@@ -777,16 +740,16 @@ screen serum_production_select_ui:
         vbox:
             xsize 1000
             xalign 0.2
-            for serum in mc.business.serum_designs:
+            for _, serum in mc.business.serum_design.iteritems():
                 if serum["research done"] >= serum["research required"]:
                     textbutton "Produce %(name)s (Requires %(production)d production points per dose. Worth $%(value)d/dose)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Do not change production." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
         
-screen serum_inventory_select_ui(the_inventory): #Used to let the player select a serum from an inventory.
+screen serum_inventory_select_ui(serum_inventory): #Used to let the player select a serum from an inventory.
     add "Science_Menu_Background.png"
     vbox:
-        for serum, count in the_inventory.serums_held.iteritems():
-            textbutton "%s (%d)" % (serum, count) action [Hide("serum_tooltip"),Return(serum[0])] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum[0]) unhovered Hide("serum_tooltip")
+        for serum, ct in serum_inventory.iteritems():
+            textbutton "%s (%d)" % (serum, ct) action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
             
         
@@ -1283,11 +1246,11 @@ label faq_loop:
     return
     
 label check_inventory_loop:
-    call screen show_serum_inventory(mc.inventory)
+    call screen show_serum_inventory(mc.inventory["serum"])
     return
     
 label check_business_inventory_loop:
-    call screen show_serum_inventory(mc.business.inventory)
+    call screen show_serum_inventory(mc.business.inventory["stock"]["serum"])
     return
     
 label outfit_design_loop:
@@ -1585,7 +1548,7 @@ label talk_person(the_person, repeat_choice = None):
             $ repeat_choice = None
             call examine_person(the_person) from _call_examine_person
             call talk_person(the_person) from _call_talk_person_2
-        "Give her a dose of serum." if mc.inventory.get_any_serum_count() > 0 and "Mandatory Serum Testing" in mc.business.active_policies:
+        "Give her a dose of serum." if sum(mc.inventory["serum"].values()) > 0 and "Mandatory Serum Testing" in mc.business.active_policies:
             $ repeat_choice = "give her a dose of serum"
             call give_her_a_dose_of_serum
         "Seduce her.":
@@ -1831,12 +1794,12 @@ label examine_person(the_person):
     return
     
 label give_serum(the_person):
-    call screen serum_inventory_select_ui(mc.inventory)
+    call screen serum_inventory_select_ui(mc.inventory["serum"])
     if _return != "None":
         $ the_serum = _return
         "You decide to give [the_person.name] a dose of [the_serum.name]."
-        $ mc.inventory.change_serum(the_serum,-1)
-        $ the_person.give_serum(copy.copy(the_serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
+        $ mc.inventory["serum"][the_serum] -= 1
+        $ the_person.give_serum(the_serum)
     else:
         "You decide not to give [the_person.name] anything right now."
     return
