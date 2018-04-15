@@ -5,7 +5,7 @@
 #Otherwise, it uses the default standing images. Right now, this should have changed absolutely nothing about the way the game works.
 
 init -2 python:
-    
+
     import copy
     import math
     import __builtin__
@@ -13,12 +13,12 @@ init -2 python:
     import re
     import itertools
 #    import shader
-    
-    config.image_cache_size = 12    
+
+    config.image_cache_size = 12
     config.layers.insert(1,"Active") ## The "Active" layer is used to display the girls images when you talk to them. The next two lines signal it is to be hidden when you bring up the menu and when you change contexts (like calling a screen)
     config.menu_clear_layers.append("Active")
     config.context_clear_layers.append("Active")
-    
+
     preferences.gl_tearing = True ## Prevents juttery animation with text while using advanced shaders to display images
     pygame.scrap.init()
 
@@ -50,25 +50,25 @@ init -2 python:
             self.outro = outro
             self.transition_default = transition_default
             self.transitions = []
-            
+
         def link_positions(self,other,transition_label): #This is a one way link!
             self.connections.append(other)
             self.transitions.append([other,transition_label])
-            
+
         def link_positions_two_way(self,other,transition_label_1,transition_label_2): #Link it both ways. Great for adding a modded position without modifying other positions.
             self.link_positions(other,transition_label_1)
             other.link_positions(self,transition_label_2)
-            
+
         def call_intro(self, the_person, the_location, the_object, round):
             renpy.call(self.intro,the_person, the_location, the_object, round)
-            
+
         def call_scene(self, the_person, the_location, the_object, round):
             random_scene = renpy.random.randint(0,len(self.scenes)-1)
             renpy.call(self.scenes[random_scene],the_person, the_location, the_object, round)
-            
+
         def call_outro(self, the_person, the_location, the_object, round):
             renpy.call(self.outro,the_person, the_location, the_object, round)
-            
+
         def call_transition(self,the_position, the_person, the_location, the_object, round):
             if round:
                 transition_scene = the_position.transition_default
@@ -78,7 +78,7 @@ init -2 python:
                 renpy.call(transition_scene, the_person, the_location, the_object, round)
             else:
                 self.call_intro(the_person, the_location, the_object, round)
-            
+
         def check_clothing(self, the_person):
             if self.requires_clothing == "Vagina":
                 return the_person.outfit.vagina_available()
@@ -98,7 +98,7 @@ init -2 python:
             self.end = (end[0] * 1920, end[1] * 1080) ## tuple of x,y coords
             self.thickness = thickness
             self.color = color
-            
+
             ##Store normal values for drawing anti-aliased lines
             self.normal_temp = [self.end[0]-self.start[0],self.end[1]-self.start[1]]
             self.normal = [0,0]
@@ -106,61 +106,61 @@ init -2 python:
             self.normal[1] = self.normal_temp[0]
             self.mag = math.sqrt(math.pow(self.normal[0],2) + math.pow(self.normal[1],2))
             self.normal = [(self.normal[0]*self.thickness)/self.mag,(self.normal[1]*self.thickness)/self.mag]
-            
+
             ##Store point list so we don't have to calculate it each time
             self.start_right = [self.start[0]+self.normal[0],self.start[1]+self.normal[1]]
             self.start_left = [self.start[0]-self.normal[0],self.start[1]-self.normal[1]]
             self.end_left = [self.end[0]+self.normal[0],self.end[1]+self.normal[1]]
             self.end_right = [self.end[0]-self.normal[0],self.end[1]-self.normal[1]]
-            
+
             self.point_list = [self.start_left,self.start_right,self.end_left,self.end_right]
-            
+
         def render(self, width, height, st, at):
-            
+
             render = renpy.Render(1920,1080)
             canvas = render.canvas()
-            
+
             canvas.polygon(self.color,self.point_list,) ##Draw the polygon. It will have jagged edges so we...
             canvas.aalines(self.color,False,self.point_list) ##Also draw a set of antialiased lines around the edge so it doesn't look jagged any more.
             return render
-            
+
         def __eq__(self,other): ## Used to see if two Vren_Line objects are equivelent and thus don't need to be redrawn each time any of the variables is changed.
             if not isinstance(other, Vren_Line):
                 return False
 
             return self.start != other.start or self.end != other.end or self.thickness != other.thickness or self.color != other.color ##ie not the same
-            
-            
-        
+
+
+
 
 init -1:
     python:
         list_of_positions = []
-    
-    
+
+
 transform scale_person(scale_factor = 1):
     zoom scale_factor
-        
+
 init -2 style textbutton_style: ##The generic style used for text button backgrounds. TODO: Replace this with a pretty background image instead of a flat colour.
     padding [5,5]
     margin [5,5]
     background "#000080"
     insensitive_background "#222222"
     hover_background "#aaaaaa"
-    
+
 init -2 style textbutton_text_style: ##The generic style used for the text within buttons
     size 20
     italic True
     bold True
     color "#dddddd"
     outlines [(2,"#222222",0,0)]
-    
+
 init -2 style menu_text_style:
     size 18
     italic True
     bold True
     color "#dddddd"
-    outlines [(2,"#222222",0,0)]    
+    outlines [(2,"#222222",0,0)]
 
 init -2 style outfit_style: ##The text style used for text inside of the outfit manager.
     size 16
@@ -247,7 +247,7 @@ screen main_ui: #The UI that shows most of the important information to the scre
             text "Arousal: %d/100" % mc.arousal style "menu_text_style"
             text "Cash: $%d" % mc.money style "menu_text_style"
             text "Location: %s" % mc.location.name.title() style "menu_text_style"
-        
+
 screen business_ui: #Shows some information about your business.
     frame:
         background im.Flip("Info_Frame_1.png",vertical=True)
@@ -276,7 +276,7 @@ screen business_ui: #Shows some information about your business.
                 text "Currently Producing: Nothing!" style "menu_text_style" color "#DD0000"
             textbutton "Review Staff" action Show("employee_overview") style "textbutton_style" text_style "textbutton_text_style"
             textbutton "Check Stock" action ui.callsinnewcontext("check_business_inventory_loop") style "textbutton_style" text_style "textbutton_text_style"
-            
+
 screen end_of_day_update():
     add "Paper_Background.png"
     text mc.business.name:
@@ -285,7 +285,7 @@ screen end_of_day_update():
         xalign 0.5
         yalign 0.1
         size 40
-    
+
     frame:
         background "#1a45a1aa"
         xalign 0.1
@@ -302,7 +302,7 @@ screen end_of_day_update():
             text "     Research Produced: %d" % mc.business.research_produced style "textbutton_text_style"
             text "     Sales Made: $%d" % mc.business.sales_made style "textbutton_text_style"
             text "     Daily Salary Paid: $%d" % mc.business.calculate_salary_cost() style "textbutton_text_style"
-    
+
     frame:
         background "#1a45a1aa"
         xalign 0.1
@@ -323,7 +323,7 @@ screen end_of_day_update():
                         text "     %s" % item style "textbutton_text_style"
                     elif isinstance(item, tuple) and isinstance(item[0], Person):
                         text "     %s (%s) %s" % (item[0].name, item[0].job, item[1]) style "textbutton_text_style"
-    
+
     frame:
         background None
         anchor [0.5,0.5]
@@ -335,7 +335,7 @@ screen end_of_day_update():
             focus_mask "gui/button/choice_idle_background.png"
             action Return()
         textbutton "End Day" align [0.5,0.5] style "button_text"
-        
+
 screen employee_overview():
     add "Paper_Background.png"
     default div = mc.business.r_div
@@ -411,8 +411,8 @@ screen employee_overview():
             focus_mask "gui/button/choice_idle_background.png"
             action Hide("employee_overview")
         textbutton "Return" align [0.5,0.5] style "return_button_style"
-    
-            
+
+
 screen person_info_ui(the_person): #Used to display stats for a person while you're talking to them.
     frame:
         background im.Flip("Info_Frame_1.png",vertical=True)
@@ -434,8 +434,8 @@ screen person_info_ui(the_person): #Used to display stats for a person while you
             text "Sluttiness: %d" % the_person.sluttiness style "menu_text_style"
             text "Obedience: %d" % the_person.obedience style "menu_text_style"
             textbutton "Detailed Information" action Show("person_info_detailed",the_person=the_person) style "textbutton_style" text_style "textbutton_text_style"
-            
-            
+
+
 screen person_info_detailed(the_person):
     add "Paper_Background.png"
     modal True
@@ -444,7 +444,7 @@ screen person_info_detailed(the_person):
     default research_base = the_person.int*3 + the_person.research_skill*2 + the_person.focus + 10
     default prod_base = the_person.focus*3 + the_person.production_skill*2 + the_person.int + 10
     default supply_base = the_person.focus*3 + the_person.supply_skill*2 + the_person.charisma + 10
-    
+
     hbox:
         xalign 0.1
         yalign 0.1
@@ -492,7 +492,7 @@ screen person_info_detailed(the_person):
             focus_mask "gui/button/choice_idle_background.png"
             action Hide("person_info_detailed")
         textbutton "Return" align [0.5,0.5] style "return_button_style"
-        
+
 screen mc_character_sheet(): #TODO: Impliment a level up system for the main character
     add "Paper_Background.png"
     modal True
@@ -501,7 +501,7 @@ screen mc_character_sheet(): #TODO: Impliment a level up system for the main cha
         yalign 0.05
         text mc.name style "menu_text_style" size 40 xanchor 0.5 xalign 0.5
         text "Owner of: " + mc.business.name style "menu_text_style" size 30 xanchor 0.5 xalign 0.5
-        
+
     hbox:
         xanchor 0.5
         xalign 0.5
@@ -524,11 +524,11 @@ screen mc_character_sheet(): #TODO: Impliment a level up system for the main cha
             focus_mask "gui/button/choice_idle_background.png"
             action Hide("mc_character_sheet")
         textbutton "Return" align [0.5,0.5] text_style "return_button_style"
-        
-    
-    
-    
-        
+
+
+
+
+
 screen interview_ui(the_candidates,count):
     default current_selection = 0
     default the_candidate = the_candidates[current_selection]
@@ -556,14 +556,14 @@ screen interview_ui(the_candidates,count):
             textbutton "Next Candidate" action [SetScreenVariable("current_selection",current_selection+1),
                 SetScreenVariable("the_candidate",the_candidates[current_selection+1]),
                 Function(show_candidate,the_candidates[current_selection+1])] sensitive current_selection < count-1 selected False style "textbutton_style" text_style "textbutton_text_style"
-            
-            
+
+
             textbutton "Previous Candidate" action [SetScreenVariable("current_selection",current_selection-1),
                 SetScreenVariable("the_candidate",the_candidates[current_selection-1]),
                 Function(show_candidate,the_candidates[current_selection-1])] sensitive current_selection > 0 selected False style "textbutton_style" text_style "textbutton_text_style"
-            
+
             textbutton "Hire Nobody" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
-         
+
 init -2 python: # Some functions used only within screens for modifying variables
     def show_candidate(the_candidate):
         renpy.scene("Active")
@@ -666,7 +666,7 @@ screen serum_tooltip(serum):
             text "Trait: " + name style "menu_text_style"
             text mc.business.serum_traits[name]["desc"] style "menu_text_style"
             text "\n*********\n" style "menu_text_style"
-            
+
 screen trait_tooltip(the_trait,given_xalign=0.9,given_yalign=0.0):
     vbox:
         xalign given_xalign
@@ -676,8 +676,8 @@ screen trait_tooltip(the_trait,given_xalign=0.9,given_yalign=0.0):
         text "\n*********\n" style "menu_text_style"
         text "Research Required: %d" % the_trait["research required"] style "menu_text_style"
         text the_trait["desc"] style "menu_text_style"
-            
-            
+
+
 screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business"): #Lets you trade serums back and forth between two different inventories. Inventory 1 is assumed to be the players.
     add "Science_Menu_Background.png"
     vbox:
@@ -697,8 +697,8 @@ screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business")
                     textbutton "#>#" action [SetDict(inventory_2, serum, inventory_2[serum] + 1), SetDict(inventory_1, serum, inventory_1[serum] - 1)] sensitive inventory_1[serum] > 0 style "textbutton_style" text_style "textbutton_text_style"
                     text name_2 + " has: %d" % inventory_2.get(serum, 0) style "menu_text_style"
         textbutton "Finished." action Return() style "textbutton_style" text_style "textbutton_text_style"
-                
-                
+
+
 screen serum_select_ui: #How you select serum and trait research
     add "Science_Menu_Background.png"
     vbox:
@@ -706,35 +706,35 @@ screen serum_select_ui: #How you select serum and trait research
             text "Current Research: %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
         else:
             text "Current Research: None!" style "menu_text_style"
-        
+
         hbox:
             vbox:
                 text "Serum Designs:" style "menu_text_style"
                 for _, serum in mc.business.serum_design.iteritems():
                     if serum["research done"] < serum["research required"]:
                         textbutton "Research %(name)s (%(research done)d/%(research required)d)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
-             
+
             null width 40
-            
+
         vbox:
             text "New Traits:" style "menu_text_style"
             for name, trait in mc.business.serum_traits.iteritems():
                 if not trait["research done"] >= trait["research required"] and all(t["research done"] >= t["research required"] for t in map(lambda x: mc.business.serum_traits[x], trait["requires"])):
                     textbutton "%(name)s (%(research done)d/%(research required)d)" % trait action [Hide("trait_tooltip"),Return(trait)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("trait_tooltip",None,trait) unhovered Hide("trait_tooltip")
-                    
+
     textbutton "Do not change research." action Return("None") style "textbutton_style" text_style "textbutton_text_style" yalign 0.995
-        
+
 screen serum_production_select_ui:
     add "Science_Menu_Background.png"
     vbox:
         xalign 0.1
         xsize 1200
-        null height 40 
+        null height 40
         if mc.business.serum_production_target != None:
             text "Currently Producing: %(name)s - $%(value)d/dose (Current Progress: %(research done).1f/%(research required).1f)" % mc.business.serum_production_target style "menu_text_style" size 25
         else:
             text "Currently Producing: Nothing!" style "menu_text_style"
-        
+
         null height 40
         text "Change Production To:" style "menu_text_style" size 20
         vbox:
@@ -744,15 +744,15 @@ screen serum_production_select_ui:
                 if serum["research done"] >= serum["research required"]:
                     textbutton "Produce %(name)s (Requires %(production)d production points per dose. Worth $%(value)d/dose)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Do not change production." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
-        
+
 screen serum_inventory_select_ui(serum_inventory): #Used to let the player select a serum from an inventory.
     add "Science_Menu_Background.png"
     vbox:
         for serum, ct in serum_inventory.iteritems():
             textbutton "%s (%d)" % (serum, ct) action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
-            
-        
+
+
 screen outfit_creator(starting_outfit): ##Pass a completely blank outfit instance for a new outfit, or an already existing instance to load an old one.\
     add "Paper_Background.png"
     default panties_label = "None"
@@ -771,7 +771,7 @@ screen outfit_creator(starting_outfit): ##Pass a completely blank outfit instanc
             spacing -20
             text "Add Clothing" style "menu_text_style"
             null height 50
-            
+
             textbutton "Panties" action ToggleScreenVariable("panties_label","Panties","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if panties_label == "Panties":
@@ -779,78 +779,78 @@ screen outfit_creator(starting_outfit): ##Pass a completely blank outfit instanc
                     textbutton "    " + cloth.name:
                         action Function(starting_outfit.add_lower, cloth) sensitive starting_outfit.can_add_lower(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_lower, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-            
+
             textbutton "Bras" action ToggleScreenVariable("bra_label","Bras","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if bra_label == "Bras":
                 for cloth in bra_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_upper, cloth) sensitive starting_outfit.can_add_upper(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_upper, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-            
+
             textbutton "Pants" action ToggleScreenVariable("pants_label","Pants","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if pants_label == "Pants":
                 for cloth in pants_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_lower, cloth) sensitive starting_outfit.can_add_lower(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_lower, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-            
+
             textbutton "Skirts" action ToggleScreenVariable("skirts_label","Skirts","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if skirts_label == "Skirts":
                 for cloth in skirts_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_lower, cloth) sensitive starting_outfit.can_add_lower(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_lower, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-            
+
             textbutton "Dresses" action ToggleScreenVariable("dress_label","Dress","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if dress_label == "Dress":
                 for cloth in dress_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_dress, cloth) sensitive starting_outfit.can_add_dress(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_dress, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-             
+
             textbutton "Shirts" action ToggleScreenVariable("shirts_label","Shirts","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if shirts_label == "Shirts":
                 for cloth in shirts_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_upper, cloth) sensitive starting_outfit.can_add_upper(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_upper, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-            
+
             textbutton "Socks" action ToggleScreenVariable("socks_label","Socks","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if socks_label == "Socks":
                 for cloth in socks_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_feet, cloth) sensitive starting_outfit.can_add_feet(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_feet, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-                
+
             textbutton "Shoes" action ToggleScreenVariable("shoes_label","Shoes","None") style "textbutton_style" text_style "textbutton_text_style"
             null height 30
             if shoes_label == "Shoes":
                 for cloth in shoes_list:
                     textbutton "    " + cloth.name action Function(starting_outfit.add_feet, cloth) sensitive starting_outfit.can_add_feet(cloth) text_style "outfit_style" hovered Function(demo_outfit.add_feet, cloth) unhovered Function(demo_outfit.remove_clothing, cloth)
             null height 30
-        
+
         null width 80 height 100 ## Adds an empty space
-        
+
         vbox:
             text "Remove Clothing" style "menu_text_style"
             for cloth in starting_outfit.upper_body:
                 if not cloth.is_extension: #Don't list extensions for removal.
                     textbutton cloth.name action [Function(starting_outfit.remove_clothing, cloth),Function(demo_outfit.remove_clothing, cloth)] text_style "outfit_style"
-                
+
             for cloth in starting_outfit.lower_body:
                 if not cloth.is_extension:
                     textbutton cloth.name action [Function(starting_outfit.remove_clothing, cloth),Function(demo_outfit.remove_clothing, cloth)] text_style "outfit_style"
-                
+
             for cloth in starting_outfit.feet:
                 if not cloth.is_extension:
                     textbutton cloth.name action [Function(starting_outfit.remove_clothing, cloth),Function(demo_outfit.remove_clothing, cloth)] text_style "outfit_style"
-                
+
             for cloth in starting_outfit.accessories:
                 if not cloth.is_extension:
                     textbutton cloth.name action [Function(starting_outfit.remove_clothing, cloth),Function(demo_outfit.remove_clothing, cloth)] text_style "outfit_style"
-                
+
         null width  80 height 100 ## More whitespace
-        
+
         vbox:
             text "Outfit Stats" style "menu_text_style"
             text "Sluttiness Required: %d" % demo_outfit.slut_requirement style "menu_text_style"
@@ -862,20 +862,20 @@ screen outfit_creator(starting_outfit): ##Pass a completely blank outfit instanc
             text "Pussy Usable: " + str(demo_outfit.vagina_available()) style "menu_text_style"
             text "Wearing Panties: " + str(demo_outfit.wearing_panties()) style "menu_text_style"
             text "Panties Covered: " + str(demo_outfit.panties_covered()) style "menu_text_style"
-        
+
         null width  80 height 100 ## More whitespace
-        
+
         vbox:
             textbutton "Save Outfit" pos (0,0) action Return(copy.deepcopy(starting_outfit)) style "textbutton_style" text_style "textbutton_text_style"
-            
+
         null width  80 height 100
-            
+
         vbox:
             textbutton "Leave Without Saving" pos (0,0) action Return("Not_New") style "textbutton_style" text_style "textbutton_text_style"
-        
+
     fixed: #TODO: Move this to it's own screen so it can be shown anywhere
         pos (1500,0)
-        
+
         add mannequin_average
         for cloth in sorted(demo_outfit.feet+demo_outfit.lower_body+demo_outfit.upper_body, key=lambda clothing: clothing.layer):
             if not cloth.is_extension:
@@ -887,16 +887,16 @@ screen outfit_creator(starting_outfit): ##Pass a completely blank outfit instanc
                     $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
                     add coloured_image
                     #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
-                
+
 screen outfit_delete_manager(the_wardrobe): ##Allows removal of outfits from players saved outfits. TODO: Expand this to general manager.
     add "Paper_Background.png"
     default preview_outfit = None
     vbox:
         for outfit in the_wardrobe.get_outfit_list():
             textbutton "Delete %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Function(the_wardrobe.remove_outfit,outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
-        
+
         textbutton "Return" action Return() style "textbutton_style" text_style "textbutton_text_style"
-        
+
     fixed:
         pos (1500,0)
         add mannequin_average
@@ -911,18 +911,18 @@ screen outfit_delete_manager(the_wardrobe): ##Allows removal of outfits from pla
                         $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
                         add coloured_image
                         #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
-                    
+
 screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the players current saved outfits, returns the selected outfit or None.
     #If sluttiness_limit is passed, you cannot exit the creator until the proposed outfit has a sluttiness below it.
     add "Paper_Background.png"
-    
+
     default preview_outfit = None
     vbox:
         for outfit in mc.designed_wardrobe.get_outfit_list():
             textbutton "Load %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(copy.deepcopy(outfit)) sensitive (outfit.slut_requirement <= slut_limit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
-            
+
         textbutton "Return" action Return("No Return") style "textbutton_style" text_style "textbutton_text_style"
-        
+
     fixed:
         pos (1500,0)
         add mannequin_average
@@ -937,16 +937,16 @@ screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the player
                         $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
                         add coloured_image
                         #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
-                        
+
 screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits currently in a girls wardrobe.
     add "Paper_Background.png"
     default preview_outfit = None
     vbox:
         for outfit in the_wardrobe.get_outfit_list():
             textbutton "Wear %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
-        
+
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
-        
+
     fixed:
         pos (1500,0)
         add mannequin_average
@@ -972,7 +972,7 @@ screen map_manager():
         if mc.location != place:
             frame:
                 background None
-                xysize [171,150] 
+                xysize [171,150]
                 anchor [0.0,0.0]
                 align place.map_pos
                 imagebutton:
@@ -1050,7 +1050,7 @@ init -2 screen policy_selection_screen():
                     background "#222"
                     action NullAction()
                     sensitive True
-                
+
 
     if tooltip:
         frame:
@@ -1059,7 +1059,7 @@ init -2 screen policy_selection_screen():
             align [0.9,0.1]
             xysize [500,500]
             text tooltip style "menu_text_style"
-            
+
     frame:
         background None
         anchor [0.5,0.5]
@@ -1071,8 +1071,8 @@ init -2 screen policy_selection_screen():
             focus_mask "gui/button/choice_idle_background.png"
             action Return()
         textbutton "Return" align [0.5,0.5] text_style "return_button_style"
-    
-        
+
+
 init -2 style return_button_style:
     text_align 0.5
     size 30
@@ -1080,7 +1080,7 @@ init -2 style return_button_style:
     bold True
     color "#dddddd"
     outlines [(2,"#222222",0,0)]
-        
+
 init -2 style map_text_style:
     text_align 0.5
     size 14
@@ -1088,47 +1088,47 @@ init -2 style map_text_style:
     bold True
     color "#dddddd"
     outlines [(2,"#222222",0,0)]
-    
+
 init -2 style map_frame_style:
     background "#094691"
-    
+
 init -2 style map_frame_blue_style:
     background "#5fa7ff"
-    
+
 init -2 style map_frame_grey_style:
     background "#222222"
-    
+
 transform float_up:
     xalign 0.92
     yalign 1.0
     alpha 1.0
     ease 1.0 yalign 0.4
     linear 2.0 alpha 0.0
-    
+
 style float_text:
     size 30
     italic True
     bold True
-    outlines [(2,"#222222",0,0)] 
-    
+    outlines [(2,"#222222",0,0)]
+
 style float_text_pink is float_text:
     color "#FFB6C1"
-    
+
 style float_text_red is float_text:
     color "B22222"
-    
+
 style float_text_grey is float_text:
     color "696969"
-    
+
 style float_text_green is float_text:
     color "228B22"
-    
+
 style float_text_yellow is float_text:
     color "D2691E"
-    
+
 style float_text_blue is float_text:
     color "483D8B"
-    
+
 screen float_up_screen (text_array, style_array): #text_array is a list of the text to be displayed on each line, style_array is the list of corisponding styles to be used for that text.
     vbox at float_up:
         xanchor 0.5
@@ -1163,12 +1163,12 @@ label start:
             "Get on with the game and don't ask again!":
                 $ preferences.show_faq = False
 
-    $ renpy.block_rollback() 
+    $ renpy.block_rollback()
     call screen character_create_screen()
     $ renpy.block_rollback()
     $ return_arrays = _return #These are the stat, skill, and sex arrays returned from the character creator.
     call create_world() from _call_create_world
-            
+
     "You have recently graduated from university, after completing your degree in chemical engineering. You've moved away from home, closer to the industrial district of the city to be close to any potential engineering jobs."
     "While the job search didn't turn up any paying positions, it did lead you to a bank posting for an old pharmaceutical lab. The bank must have needed money quick, because they were practically giving it away."
     "Without any time to consider the consequences you bought the lab. It came stocked with all of the standard equipment you would expect, and after a few world.days of cleaning you're ready to get to work."
@@ -1182,7 +1182,7 @@ label start:
     $ renpy.show(mc.location.name,what=mc.location.background_image) #show the bedroom background as our starting point.
     call examine_room(mc.location) from _call_examine_room
     jump game_loop
-    
+
 label faq_loop:
     menu:
         "Gameplay Basics.":
@@ -1197,7 +1197,7 @@ label faq_loop:
                     "Vren" "Once you have supplies you can spend time in your production lab. After some number of hours you will find a dose, or several, in your companies inventory!"
                     "Vren" "You can either take this serum for your own personal use, or you can head to the main office and mark it for sale. Once a serum is marked for sale you can spend time in your marketting division to find a buyer."
                     "Vren" "Your research and development lab can also spend time researching new traits for serum instead of producing new serum designs. You slot these into your research queue in the same way you do a new serum design."
-                    
+
                 "Hiring Staff.":
                     "Vren" "While you can do all the necessary tasks for your company yourself, that isn't how you're going to make it big. Hiring employees will let you spend you grow your business and pull in more and more money."
                     "Vren" "To hire someone, head over to your main office. From there you can request a trio of resumes to choose from, for a small cost. The stats of the three candidates will be chosen, and you can choose who to hire."
@@ -1207,52 +1207,52 @@ label faq_loop:
                     "Vren" "Focus is the primary stat for supply procurement and production, as well as a secondary stat for research."
                     "Vren" "Each character will also have an expected salary, to be paid each world.day. Higher stats will result in a more expensive employee, so consider hiring specialists rather than generalists."
                     "Vren" "Your staff will come into work each morning and perform their appropriate tasks, freeing up your time for other pursuits..."
-                    
+
                 "Corrupting People.":
                     "Vren" "You may be wondering what you can do with all this serum you produce. The main use of serum is to increase the Suggestability statistic of another character."
                     "Vren" "While a character has a Suggestability value of 0 nothing you do will have a long lasting effect on their personality. Once Suggestability is raised, their personality will change in response to your actions."
                     "Vren" "Interacting with a character may change their Obedience or Sluttiness. The most direct way to do that is to have sex with them. As a characters Sluttiness score increases the farther she will be willing to go with you."
                     "Vren" "When you finish having sex with a girl you will change her Sluttiness, modified by her current Suggestability. The higher her arousal, the larger the change in Sluttiness."
                     "Vren" "As Sluttiness increases a character will also be more willing to wear revealing clothing, or nothing at all. Design an outfit using the outfit manager in the top left, then interact with the character and ask them to wear it."
-                                        
+
         "Development Questions.":
             menu:
                 "Are the Lab Rats 1 Characters in the game?":
                     "Vren" "Not yet, but they will be added. As the options available to me in the character creator improve they will be added, and their personality will be written into the game."
                     "Vren" "Lab Rats 2 assumes an imperfect end to it's prequel, where the main character realises the potential of the serum but fails to take advantage of it over the summer."
                     "Vren" "There will also be the option to import a saved game from Lab Rats 1, letting you start off with familiar characters that have higher Sluttiness or Obedience stats."
-                    
+
                 "Will there be more character poses?":
                     "Vren" "Absolutely! The current standing poses proved that the rendering workflow for the game is valid, which means I will be able to introduce character poses for different sex positions."
                     "Vren" "Doggy style is currently the only sex position with a unique character pose associated with it, it gives a good taste of what will be possible in the future."
-                    
+
                 "Will there be animation?":
                     "Vren" "No, there will not be full animation in the game. There may be small sprite based animations added later, but this will require more experimentation by me before I can commit to it."
-                    
+
                 "Why are their holes in some pieces of clothing?":
                     "Vren" "Some character positions cause portions of the character model to poke out of their clothing when I am rendering them."
                     "Vren" "I will be adjusting my render settings and rerendering any clothing items that need it as we go forward."
-                    
+
                 "Why do all of the characters have the same face?":
                     "Vren" "All of the current character faces use the same base render, which means they all end up looking the same."
                     "Vren" "I have finished improvements to my rendering automation which will let me generate a different set of faces; expect to see more variation in future versions."
-                    
+
                 "Why do names repeat so often?":
                     "Vren" "Patrons have the ability to suggest new names for the name pool each month. This process has just started, so there are only a small collection of names in the game for now."
-                 
+
         "Done.":
             return
     call faq_loop from _call_faq_loop_1
     return
-    
+
 label check_inventory_loop:
     call screen show_serum_inventory(mc.inventory["serum"])
     return
-    
+
 label check_business_inventory_loop:
     call screen show_serum_inventory(mc.business.inventory["stock"]["serum"])
     return
-    
+
 label outfit_design_loop:
     if mc.designed_wardrobe.get_count() == 0:
         call create_outfit(None) from _call_create_outfit
@@ -1269,8 +1269,8 @@ label outfit_design_loop:
             "Delete an old outfit.":
                 call screen outfit_delete_manager(mc.designed_wardrobe)
     return
-            
-    
+
+
 label create_outfit(the_outfit):
     if the_outfit is None:
         call screen outfit_creator(Outfit("New Outfit"))
@@ -1287,7 +1287,7 @@ label create_outfit(the_outfit):
                 "Overwrite existing outfit.":
                     $ mc.designed_wardrobe.remove_outfit(mc.designed_wardrobe.get_outfit_with_name(new_outfit_name))
                     $ mc.save_design(new_outfit, new_outfit_name)
-                    
+
                 "Rename outfit.":
                     $ new_outfit_name = renpy.input ("Please input a new name.")
                     while mc.designed_wardrobe.has_outfit_with_name(new_outfit_name):
@@ -1296,7 +1296,7 @@ label create_outfit(the_outfit):
         else:
             $ mc.save_design(new_outfit, new_outfit_name)
     return
-    
+
 label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS YOU TAKE
     #"Now, what would you like to do? You can talk to someone, go somewhere else, perform an action, or reexamine the room."
     python:
@@ -1364,9 +1364,9 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
         $ choice.call_action()
 
     jump game_loop
-    
 
-        
+
+
 label change_location(the_place):
     $ renpy.scene()
     $ renpy.show(the_place.name,what=the_place.background_image)
@@ -1503,7 +1503,7 @@ label talk_person(the_person, repeat_choice = None):
                                     pass
                     else:
                         mc.name "On second thought, nevermind."
-                        
+
                 "Delete an outfit.":
                     mc.name "[the_person.name], lets have a talk about what you've been wearing."
                     hide screen main_ui
@@ -1512,7 +1512,7 @@ label talk_person(the_person, repeat_choice = None):
                     show screen main_ui
                     $ the_person.draw_person()
                     #TODO: Figure out what happens when someone doesn't have anything in their wardrobe.
-                
+
                 "Wear an outfit right now.":
                     mc.name "[the_person.name], I want you to get changed for me."
                     hide screen main_ui
@@ -1520,12 +1520,12 @@ label talk_person(the_person, repeat_choice = None):
                     call screen girl_outfit_select_manager(the_person.wardrobe)
                     if _return != "None":
                         $ the_person.set_outfit(_return)
-                    
+
                     $ the_person.draw_person()
                     show screen main_ui
                     the_person.name "Is this better?"
             call talk_person(the_person) from _call_talk_person_1
-            
+
         "Move her to a new division." if mc.business.get_employee_title(the_person) != "None" and world.is_work_time():
             $ repeat_choice = None
             the_person.name "Where would you like me then?"
@@ -1713,7 +1713,7 @@ label strip_menu(the_person):
             cloth = renpy.display_menu(strip_options + [("Go back to fucking her.","Finish")], True, "Choice")
     return
 
-    
+
 label examine_room(the_room):
     python:
         desc = "You are at the %s. " % the_room.name
@@ -1750,18 +1750,18 @@ label examine_room(the_room):
         #desc += "That's all there is to see nearby." # don't state the obvious
         renpy.say("",desc) ##This is the actual print statement!!
     return
-    
+
 label examine_person(the_person):
     #Take a close look and figure out their physical attributes (tit size, ass size?, hair colour, hair style)
-    
+
     python:
         string = "She has " + the_person.skin + " coloured skin, along with " + the_person.hair_colour + " coloured hair and pretty " + the_person.eyes + " coloured eyes. She stands " + height_to_string(the_person.height) + " tall."
         renpy.say("",string)
-        
+
         outfit_top = the_person.outfit.get_upper_visible()
         outfit_bottom = the_person.outfit.get_lower_visible()
         string = ""
-        
+
         if len(outfit_top) == 0: ##ie. is naked
             string += "She's wearing nothing at all on top, with her nice " + the_person.tits + " sized tits on display for you."
         elif len(outfit_top) == 1:
@@ -1771,7 +1771,7 @@ label examine_person(the_person):
         elif len(outfit_top) == 3:
             string += "She's wearing a " + outfit_top[2].name + " with a " + outfit_top[1].name + " and " + outfit_top[0].name + " underneath. Her tits look like they're " + the_person.tits + "'s."
         renpy.say("",string)
-        
+
         string = ""
         if len(outfit_bottom) == 0: #naked
             string += "Her legs are completely bare, and you have a clear view of her pussy."
@@ -1790,9 +1790,9 @@ label examine_person(the_person):
                 break
         else:
             renpy.say("", the_person.name + " does not currently work for you.")
-    
+
     return
-    
+
 label give_serum(the_person):
     call screen serum_inventory_select_ui(mc.inventory["serum"])
     if _return != "None":
@@ -1830,23 +1830,23 @@ label advance_time:
             $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
             $ clear_list.append(crisis)
         $ count += 1
-            
-    
+
+
     python: #Needs to be a different python block, otherwise the rest of the block is not called when the action returns.
         for crisis in clear_list:
             mc.business.mandatory_crises_list.remove(crisis) #Clean up the list.
-    
+
     if renpy.random.randint(0,100) < 10: #ie. run a crisis 25% of the time. TODO: modify this.
         python:
             possible_crisis_list = []
             for crisis in crisis_list:
                 if crisis[0].check_requirement(): #Get the first element of the weighted tuple, the action.
                     possible_crisis_list.append(crisis) #Build a list of valid crises from ones that pass their requirement.
-                    
+
         $ the_crisis = renpy.random.choice([it for k, v in possible_crisis_list for it in [k] * v])
         if the_crisis:
             $ the_crisis.call_action()
-    
+
     $ renpy.scene("Active")
     $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
     hide screen person_info_ui
@@ -1874,10 +1874,10 @@ label advance_time:
 
     if world.time_of_day == 1 and "Daily Serum Dosage" in mc.business.active_policies: #It is the start of the work world.day, give everyone their daily dose of serum
         $ mc.business.give_daily_serum()
-        
-    python:    
+
+    python:
         for (people,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.
             people.run_move(place)
-        
+
     return
 
