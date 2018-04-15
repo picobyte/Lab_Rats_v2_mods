@@ -778,7 +778,7 @@ screen serum_production_select_ui:
             xsize 1000
             xalign 0.2
             for serum in mc.business.serum_designs:
-                if serum["research done"] < serum["research required"]:
+                if serum["research done"] >= serum["research required"]:
                     textbutton "Produce %(name)s (Requires %(production)d production points per dose. Worth $%(value)d/dose)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Do not change production." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
         
