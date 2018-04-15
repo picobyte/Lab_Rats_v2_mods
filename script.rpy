@@ -131,8 +131,6 @@ init -2 python:
             return self.start != other.start or self.end != other.end or self.thickness != other.thickness or self.color != other.color ##ie not the same
 
 
-
-
 init -1:
     python:
         list_of_positions = []
@@ -903,14 +901,9 @@ screen outfit_delete_manager(the_wardrobe): ##Allows removal of outfits from pla
         if preview_outfit:
             for cloth in sorted(preview_outfit.feet+preview_outfit.lower_body+preview_outfit.upper_body, key=lambda clothing: clothing.layer):
                 if not cloth.is_extension:
-                    if cloth.draws_breasts:
-                        $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_D"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
-                        add coloured_image
-                        #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_D"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
-                    else:
-                        $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
-                        add coloured_image
-                        #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
+                    $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_D" if cloth.draws_breasts else "Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
+                    add coloured_image
+                    #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_D" if cloth.draws_breasts else "Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
 
 screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the players current saved outfits, returns the selected outfit or None.
     #If sluttiness_limit is passed, you cannot exit the creator until the proposed outfit has a sluttiness below it.
@@ -929,14 +922,9 @@ screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the player
         if preview_outfit:
             for cloth in sorted(preview_outfit.feet+preview_outfit.lower_body+preview_outfit.upper_body, key=lambda clothing: clothing.layer):
                 if not cloth.is_extension:
-                    if cloth.draws_breasts:
-                        $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_D"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
-                        add coloured_image
-                        #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_D"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
-                    else:
-                        $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
-                        add coloured_image
-                        #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
+                    $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_D" if cloth.draws_breasts else "Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
+                    add coloured_image
+                    #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_D" if cloth.draws_breasts else "Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
 
 screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits currently in a girls wardrobe.
     add "Paper_Background.png"
@@ -953,14 +941,9 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
         if preview_outfit:
             for cloth in sorted(preview_outfit.feet+preview_outfit.lower_body+preview_outfit.upper_body, key=lambda clothing: clothing.layer):
                 if not cloth.is_extension:
-                    if cloth.draws_breasts:
-                        $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_D"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
-                        add coloured_image
-                        #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_D"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
-                    else:
-                        $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
-                        add coloured_image
-                        #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
+                    $ coloured_image = im.Recolor(cloth.position_sets.get("stand1").images["Average_D" if cloth.draws_breasts else "Average_AA"].filename,int(cloth.colour[0]*255),int(cloth.colour[1]*255),int(cloth.colour[2]*255),int(cloth.colour[3]*255))
+                    add coloured_image
+                    #add ShaderDisplayable(shader.MODE_2D, cloth.position_sets.get("stand1").images["Average_D" if cloth.draws_breasts else "Average_AA"].filename, shader.VS_2D,PS_COLOUR_SUB_LR2,{},uniforms={"colour_levels":cloth.colour})
 
 
 screen map_manager():

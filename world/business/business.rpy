@@ -131,9 +131,7 @@ init -23 python:
             self.funds -= self.calculate_salary_cost()
 
         def get_uniform(self, job): #Takes a division (a room) and returns the correct uniform for that division, if one exists. If it is None, returns false.
-            for div in self.division:
-                if job in div.jobs:
-                    return div.uniform
+            return next((div.uniform for div in self.division if job in div.jobs), None)
 
         def clear_messages(self): #clear all messages for the world.day.
             self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the world.day.
@@ -262,9 +260,7 @@ init -23 python:
                 division.room.people.add(new_person)
 
         def remove_employee(self, the_person):
-            for div in self.division:
-                if the_person in div.people:
-                    return div.remove_employee(the_person)
+            return next((div.remove_employee(the_person) for div in self.division if the_person in div.people), None)
 
         def is_employee(self, person):
             return any(person in div.people for div in self.division)
@@ -280,10 +276,7 @@ init -23 python:
             return max(getattr(_, "sluttiness", -1) for _ in self.get_employee_list())
 
         def get_employee_title(self, the_person):
-            for div in self.division:
-                if the_person in div.people:
-                    return the_person.job
-            return "None"
+            return next((the_person.job for div in self.division if the_person in div.people), "None")
 
         def give_daily_serum(self):
             for div in self.division:
