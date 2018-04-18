@@ -94,26 +94,22 @@ init -2 python:
         def __init__(self, start, end, thickness, color, **kwargs):
             super(Vren_Line,self).__init__(**kwargs)
             ##Base attributes
-            self.start = (start[0] * 1920, start[1] * 1080) ## tuple of x,y coords
-            self.end = (end[0] * 1920, end[1] * 1080) ## tuple of x,y coords
-            self.thickness = thickness
+            start = (start[0] * 1920, start[1] * 1080) ## tuple of x,y coords
+            end = (end[0] * 1920, end[1] * 1080) ## tuple of x,y coords
             self.color = color
 
             ##Store normal values for drawing anti-aliased lines
-            self.normal_temp = [self.end[0]-self.start[0],self.end[1]-self.start[1]]
-            self.normal = [0,0]
-            self.normal[0] = -self.normal_temp[1]
-            self.normal[1] = self.normal_temp[0]
-            self.mag = math.sqrt(math.pow(self.normal[0],2) + math.pow(self.normal[1],2))
-            self.normal = [(self.normal[0]*self.thickness)/self.mag,(self.normal[1]*self.thickness)/self.mag]
+            normal = [start[1] - end[1], end[0] - start[0]]
+            f = thickness / (normal[0] ** 2 + normal[1] ** 2) ** 0.5
+            normal = [normal[0] * f, normal[1] * f]
 
             ##Store point list so we don't have to calculate it each time
-            self.start_right = [self.start[0]+self.normal[0],self.start[1]+self.normal[1]]
-            self.start_left = [self.start[0]-self.normal[0],self.start[1]-self.normal[1]]
-            self.end_left = [self.end[0]+self.normal[0],self.end[1]+self.normal[1]]
-            self.end_right = [self.end[0]-self.normal[0],self.end[1]-self.normal[1]]
+            start_right = [start[0] + normal[0], start[1] + normal[1]]
+            start_left = [start[0] - normal[0], start[1] - normal[1]]
+            end_left = [end[0] + normal[0], end[1] + normal[1]]
+            end_right = [end[0] - normal[0], end[1] - normal[1]]
 
-            self.point_list = [self.start_left,self.start_right,self.end_left,self.end_right]
+            self.point_list = [start_left,start_right,end_left,end_right]
 
         def render(self, width, height, st, at):
 
