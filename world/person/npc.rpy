@@ -1,4 +1,11 @@
 init -14 python:
+    def weighted_random(tup):
+        if tup:
+            remain = renpy.random.randint(0, sum(v for _, v in tup))
+            for k, v in tup:
+                remain -= v
+                if remain <= 0:
+                    return k
     # create_random_person is used to generate a NPC object from a list of random or provided stats.
     # use "make_a_person" to properly get premade characters mixed with randoms.
     # note that this only uses the static variables of Person
@@ -9,12 +16,12 @@ init -14 python:
         age = age or renpy.random.randint(21,50)
 
         body_type = body_type or renpy.random.choice(Person.list_of_body_types)
-        tits = tits or renpy.random.choice([tit for cup, weight in Person.list_of_tits for tit in [cup] * weight])
+        tits = tits or weighted_random(Person.list_of_tits)
         height = height or 0.9 + (renpy.random.random()/10)
 
         hair_style = hair_style or renpy.random.choice(Person.hair_styles)
         hair_colour = hair_colour or renpy.random.choice(Person.list_of_hairs)
-        skin = skin or renpy.random.choice([it for k, v in Person.list_of_skins for it in [k] * v])
+        skin = skin or weighted_random(Person.list_of_skins)
         face_style = face_style or renpy.random.choice(Person.list_of_faces)
         body_images = Person.body_image_for[skin]
 

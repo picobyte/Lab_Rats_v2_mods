@@ -1808,14 +1808,10 @@ label advance_time:
 
     if renpy.random.randint(0,100) < 10: #ie. run a crisis 25% of the time. TODO: modify this.
         python:
-            possible_crisis_list = []
-            for crisis in crisis_list:
-                if crisis[0].check_requirement(): #Get the first element of the weighted tuple, the action.
-                    possible_crisis_list.append(crisis) #Build a list of valid crises from ones that pass their requirement.
-
-        $ the_crisis = renpy.random.choice([it for k, v in possible_crisis_list for it in [k] * v])
-        if the_crisis:
-            $ the_crisis.call_action()
+            #Get the first element of the weighted tuple, the action, second a chance weight
+            the_crisis = weighted_random([crisis for crisis in crisis_list if crisis[0].check_requirement()])
+            if the_crisis:
+                the_crisis.call_action()
 
     $ renpy.scene("Active")
     $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
