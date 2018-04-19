@@ -28,7 +28,7 @@ init 1 python:
     def in_research_with_other(): #A common requirement check, the PC is in the office (not nessesarily the lab), during work hours, with at least one other person.
         if world.is_work_time(): #Only trigger if people are in the office.
             if mc.is_at_work(): #Check to see if the main character is at work
-                if len(world.r_room.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
+                if len(world.rd_room.people) > 0: #Check to see if there's at least one person in the research team team at work and that something is being researched.
                         return True
         return False
             
@@ -285,7 +285,7 @@ label lab_accident_crisis_label():
         return
 
     $ the_serum = mc.business.research.subject
-    $ the_person = renpy.random.sample(world.r_room.people, 1)[0]
+    $ the_person = renpy.random.sample(world.rd_room.people, 1)[0]
     
     if mc.location == world.rd_room:
         call change_location(world.rd_room) from _call_lab_accident_1
@@ -659,7 +659,7 @@ init 1 python:
         return True #Always true, this will always happen right after a serum is created, regardless of the time.
     
 label serum_creation_crisis_label(the_serum): # Called every time a new serum is created, test it on a R&D member.
-    $ rd_staff = renpy.random.sample(world.r_room.people, 1)[0] #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
+    $ rd_staff = renpy.random.sample(world.rd_room.people, 1)[0] #Get a random researcher from the R&D department. TODO: Repalce this with the head researcher position.
     if rd_staff is not None:
         if mc.location == world.rd_room: # The MC is in the lab, just physically get them.
             call change_location(world.rd_room) from _call_serum_creation_1 #Just in case another crisis had interupted us being here.

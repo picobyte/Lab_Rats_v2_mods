@@ -33,7 +33,7 @@ init -23 python:
             for person in self.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
                 if person.job in self.jobs:
 
-                    serum_sale_count = __builtin__.round((3*person.cha + person.focus + 2*person.market_skill + 10) * corp.team_effectiveness)/100 #Total number of doses of serum that can be sold by this person.
+                    serum_sale_count = __builtin__.round((3*person.charisma + person.focus + 2*person.market_skill + 10) * corp.team_effectiveness)/100 #Total number of doses of serum that can be sold by this person.
 
                     #For use with value boosting policies. Multipliers are multiplicative.
                     #If there is a uniform and we have the policy to increase value based on that we change the multilier.
@@ -146,7 +146,7 @@ init -23 python:
             self.purchased -= self.count  #Used for end of world.day reporting
             for person in self.room.people:
                 if person.job in self.jobs:
-                    self.count += max(0, min(__builtin__.round((3*perlson,focus + person.cha + 2*person.supply_skill + 10) * self.team_effectiveness)/100, self.goal - self.count))
+                    self.count += max(0, min(__builtin__.round((3*person.focus + person.charisma + 2*person.supply_skill + 10) * corp.team_effectiveness)/100, self.goal - self.count))
             corp.funds -= self.count
             self.purchased += self.count
 
@@ -157,7 +157,7 @@ init -23 python:
         def work(self, corp): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
             for person in self.room.people:
                 if person.job in self.jobs:
-                    corp.team_effectiveness += 3*person.cha + person.int + 2*person.hr_skill + 10
+                    corp.team_effectiveness += 3*person.charisma + person.int + 2*person.hr_skill + 10
 
     class Business(renpy.store.object):
         def __init__(self, name, division):
