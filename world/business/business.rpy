@@ -73,7 +73,8 @@ init -23 python:
                                 corp.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",self.subject)) #Create a serum finished crisis, it will trigger at the end of the round
                             corp.message_list["Finished researching: %s" % self.subject["name"]] = 0
                             self.subject = None
-                            return
+                            remain = 0
+                            break
                 self.subject["research done"] = self.subject["research required"] - remain
                 self.progress -= remain
 
