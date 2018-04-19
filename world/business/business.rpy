@@ -28,12 +28,12 @@ init -23 python:
             self.sold = 0
             super(Marketing, self).__init__("Marketing", [], "m_room")
 
-        def work(self, corp):
+        def work(self, corp, effectiveness):
             corp.funds -= self.sold
             for person in self.room.people | {mc}: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
                 if person.job in self.jobs:
 
-                    serum_sale_count = __builtin__.round((3*person.charisma + person.focus + 2*person.market_skill + 10) * corp.team_effectiveness)/100 #Total number of doses of serum that can be sold by this person.
+                    serum_sale_count = __builtin__.round((3*person.charisma + person.focus + 2*person.market_skill + 10) * effectiveness)/100 #Total number of doses of serum that can be sold by this person.
 
                     #For use with value boosting policies. Multipliers are multiplicative.
                     #If there is a uniform and we have the policy to increase value based on that we change the multilier.
@@ -60,14 +60,14 @@ init -23 python:
         def is_drug(self):
             return self.subject and "value" in self.subject
 
-        def work(self, corp):
+        def work(self, corp, effectiveness):
             if self.subject:
                 remain = self.subject["research required"] - self.subject["research done"]
                 self.subject["research done"] += remain
                 self.progress += remain
                 for person in self.room.people | {mc}:
                     if person.job in self.jobs:
-                        remain -= __builtin__.round((3*person.int + person.focus + 2*person.research_skill + 10) * corp.team_effectiveness)/100
+                        remain -= __builtin__.round((3*person.int + person.focus + 2*person.research_skill + 10) * effectiveness)/100
 
                         if remain <= 0: #Returns true if the research is completed by this amount'
                             if "value" in self.subject: # its a drug
@@ -88,14 +88,14 @@ init -23 python:
             self.auto_sell_threshold = 0
             super(Production, self).__init__("Production", [], "p_room")
 
-        def work(self, corp):
+        def work(self, corp, effectiveness):
             if self.serum != None:
                 remain = corp.supply.count
                 self.used += remain
                 production_count = 0
                 for person in self.room.people | {mc}:
                     if person.job in self.jobs:
-                        production_amount = min(remain, __builtin__.round((3*person.focus + person.int + 2*person.production_skill + 10) * corp.team_effectiveness)/100)
+                        production_amount = min(remain, __builtin__.round((3*person.focus + person.int + 2*person.production_skill + 10) * effectiveness)/100)
 
                         ##Check how many serum can be made, make them and add them to your inventory.
 
@@ -142,23 +142,27 @@ init -23 python:
             self.purchased = 0
             super(Supply, self).__init__("Supply Procurement", [], "office", ["Supply"])
 
-        def work(self, corp):
+        def work(self, corp, effectiveness):
             corp.funds += self.count
             self.purchased -= self.count  #Used for end of world.day reporting
             for person in self.room.people | {mc}:
                 if person.job in self.jobs:
-                    self.count += max(0, min(__builtin__.round((3*person.focus + person.charisma + 2*person.supply_skill + 10) * corp.team_effectiveness)/100, self.goal - self.count))
-            corp.funds -= self.count
+                    self.count += max(0, min(__builtin__.round((3*person.focus + person.charisma + 2*person.supply_skill + 10) * effectiveness)/100, self.goal - self.count))
             self.purchased += self.count
+            corp.funds -= self.count
 
     class HumanResources(Division):
         def __init__(self):
             super(HumanResources, self).__init__("Human Resources", [], "office")
+            self.team_effectiveness = 100 #Ranges from 50 (Chaotic, everyone functions at 50% speed) to 200 (masterfully organized). Normal levels are 100, special traits needed to raise it higher.
+            self.effectiveness_cap = 100 #Max cap, can be raised.
 
-        def work(self, corp): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
+        def work(self, corp, effectiveness): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
             for person in self.room.people | {mc}:
                 if person.job in self.jobs:
-                    corp.team_effectiveness += 3*person.charisma + person.int + 2*person.hr_skill + 10
+                    effectiveness += 3*person.charisma + person.int + 2*person.hr_skill + 10
+
+            self.team_effectiveness = min(max(50, effectiveness), self.effectiveness_cap)
 
     class Business(renpy.store.object):
         def __init__(self, name, division):
@@ -197,7 +201,7 @@ init -23 python:
 
             # Manages everyone else and improves effectiveness. Needed as company grows.
             self.hr = HumanResources()
-            super(MyCorp, self).__init__(name, [self.supply, self.production, self.marketing, self.research, self.hr])
+            super(MyCorp, self).__init__(name, [self.hr, self.supply, self.production, self.marketing, self.research])
 
             self.funds = 1000 #Your starting wealth.
 
@@ -205,8 +209,6 @@ init -23 python:
             self.max_bankrupt_days = 3 #How many world.days you can be negative without loosing the game. Can be increased through research.
 
             self.marketability = 0
-            self.team_effectiveness = 100 #Ranges from 50 (Chaotic, everyone functions at 50% speed) to 200 (masterfully organized). Normal levels are 100, special traits needed to raise it higher.
-            self.effectiveness_cap = 100 #Max cap, can be raised.
 
             self.interview_cost = 50
 
@@ -220,7 +222,7 @@ init -23 python:
 
         def run_turn(self): #Run each time the time segment changes. Most changes are done here.
 
-            #Compute efficency drop
+            #Compute efficency drop and trigger happiness & quit actions
             for div in self.division:
                 for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the world.day, etc.
                     #Now we want to see if she's unhappy enough to quit. We will tally her "happy points", a negative number means a chance to quit.
@@ -235,17 +237,11 @@ init -23 python:
                         else: #She's not quitting, but we'll let the player know she's unhappy TODO: Only present this message with a certain research/policy.
                             self.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
                     if person.job in div.jobs:
-                        self.team_effectiveness -= 1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
-
-            #Compute effiency rise from HR
-            self.hr.work(self)
-
-            self.team_effectiveness = min(max(50, self.team_effectiveness), self.effectiveness_cap)
+                        self.hr.team_effectiveness -= 1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 
             #Compute other deparement effects
             for div in self.division:
-                if div != self.hr:
-                    div.work(self)
+                div.work(self, self.hr.team_effectiveness)
 
         def payout(self): #Run at the end of the world.day.
             #Pay everyone for the world.day

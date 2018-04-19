@@ -255,7 +255,7 @@ screen business_ui: #Shows some information about your business.
             text "    %s" % mc.business.name style "menu_text_style"
             text "Company Funds: $%d" % mc.business.funds style "menu_text_style"
             text "Daily Salary Cost: $%d" % mc.business.calculate_salary_cost() style "menu_text_style"
-            text "Company Efficency: %d%%" % mc.business.team_effectiveness style "menu_text_style"
+            text "Company Efficency: %d%%" % mc.business.hr.team_effectiveness style "menu_text_style"
 #            text "Company Marketability: %d" % mc.business.marketability style "menu_text_style"
             text "Current Raw Supplies: %d (Target:%d)" % (mc.business.supply.count, mc.business.supply.goal) style "menu_text_style"
             if mc.business.research.subject:
@@ -289,7 +289,7 @@ screen end_of_day_update():
             xsize 1500
             ysize 200
             text "Daily Statistics:" style "textbutton_text_style" size 20
-            text "     Current Efficency Modifier: %d" % mc.business.team_effectiveness style "textbutton_text_style"
+            text "     Current Efficency Modifier: %d" % mc.business.hr.team_effectiveness style "textbutton_text_style"
             #text "     Production Potential: %d" % mc.business.production_potential style "textbutton_text_style"
             text "     Supplies Procured: %d Units" % mc.business.supply.purchased style "textbutton_text_style"
             text "     Production Used: %d" % mc.business.production.used style "textbutton_text_style"
