@@ -242,9 +242,6 @@ init -24 python:
         def get_count(self):
             return len(self.outfits)
 
-        def get_outfit_list(self):
-            return self.outfits
-
         def has_outfit_with_name(self, the_name):
             return any(outfit.name == the_name for outfit in self.outfits)
 

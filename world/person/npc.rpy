@@ -48,7 +48,7 @@ init -14 python:
 
         premade_list = [{"body_type": "Fat", "height": 0.99, "skin": "tan", "tits": "DD","hair_colour": "red","hair_style": Person.hair_styles[0]},
                         {"body_type": "Thin", "height": 1.0, "skin": "white", "tits": "B","hair_colour": "red","hair_style": Person.hair_styles[0]},
-                        {"body_type": "Fat", "height": 0.96, "skin": "white", "tits": "DD","hair_colour": "Brown","hair_style": Person.hair_styles[1]}]
+                        {"body_type": "Fat", "height": 0.96, "skin": "white", "tits": "DD","hair_colour": "brown","hair_style": Person.hair_styles[1]}]
 
         def __init__(self,name,last_name,age,body_type,tits,height,body_images,expression_images,hair_colour,hair_style,skin,eyes,job,wardrobe,personality,mods):
 
@@ -60,12 +60,11 @@ init -14 python:
                     else:
                         stats[short] = renpy.random.randint(1,mods[long])
 
-            super(NPC, self).__init__(**stats)
+            super(NPC, self).__init__(job=job, **stats)
 
             ## Personality stuff, name, ect. Non-physical stuff.
             #TODO: Add ability to "discover" this stuff, you don't know it by default.
             self.last_name = last_name
-            self.job = job
             self.personality = personality
             #TODO: Have a "home" variable that tells people where to go at night
             #TODO: Relationship with other people (List of known people plus relationship with them.)
@@ -84,8 +83,6 @@ init -14 python:
             #TODO: Tattoos eventually
 
             self.serum_effects = [] #A list of all of the serums we are under the effect of.
-            self.status_effects = [] #A list of functions that should be called each time chunk, usually given as the result of a serum.
-
 
             self.salary = self.calculate_base_salary()
 
@@ -126,7 +123,7 @@ init -14 python:
             for serum in self.serum_effects: #Compute the effects of all of the serum that the girl is under.
                 serum['duration'] -= duration
                 if serum['duration'] <= 0:
-                    self.add_traits(mc.business.serum_designs[serum["name"]]["traits"], add=False)
+                    self.add_traits(mc.business.production.serum_designs[serum["name"]]["traits"], add=False)
                 else:
                     remaining_effects.append(serum)
 
@@ -152,12 +149,7 @@ init -14 python:
                     else: #She's not quitting, but we'll let the player know she's unhappy TODO: Only present this message with a certain research/policy.
                         mc.business.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
 
-        def move(self, curr, dest):
-            if not curr is dest and self in curr.people: # Don't bother moving people who are already there.
-                curr.people.remove(self)
-                dest.people.add(self)
-
-        def run_move(self,location): #Move to the apporpriate place for the current time unit, ie. where the player should find us.
+        def auto_move(self,location): #Move to the apporpriate place for the current time unit, ie. where the player should find us.
 
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
 
@@ -306,15 +298,6 @@ init -14 python:
         def give_serum(self,design):
             self.serum_effects.append({"name" : design['name'], "duration": design["duration"]})
             self.add_traits(design["traits"], visually=True)
-
-        def add_status_effects(self,effects):
-            for effect in effects:
-                self.status_effects.append(effect)
-
-        def remove_status_effects(self,effects):
-            for effect in effects:
-                self.status_effects.remove(effect) #Find the effect and remove it. If it still exists somehwere else then they're still under the effect.
-
 
         def change_suggest(self,amount):
             self.suggestibility = max(self.suggestibility + amount, 0)

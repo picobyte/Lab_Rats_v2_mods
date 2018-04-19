@@ -116,7 +116,7 @@ init -2 python:
             render = renpy.Render(1920,1080)
             canvas = render.canvas()
 
-            canvas.polygon(self.color,self.point_list,) ##Draw the polygon. It will have jagged edges so we...
+            canvas.polygon(self.color,self.point_list) ##Draw the polygon. It will have jagged edges so we...
             canvas.aalines(self.color,False,self.point_list) ##Also draw a set of antialiased lines around the edge so it doesn't look jagged any more.
             return render
 
@@ -124,7 +124,7 @@ init -2 python:
             if not isinstance(other, Vren_Line):
                 return False
 
-            return self.start != other.start or self.end != other.end or self.thickness != other.thickness or self.color != other.color ##ie not the same
+            return self.point_list != other.point_list or self.color != other.color ##ie not the same
 
 
 init -1:
@@ -257,15 +257,15 @@ screen business_ui: #Shows some information about your business.
             text "Daily Salary Cost: $%d" % mc.business.calculate_salary_cost() style "menu_text_style"
             text "Company Efficency: %d%%" % mc.business.team_effectiveness style "menu_text_style"
 #            text "Company Marketability: %d" % mc.business.marketability style "menu_text_style"
-            text "Current Raw Supplies: %d (Target:%d)" % (mc.business.supply_count, mc.business.supply_goal) style "menu_text_style"
-            if mc.business.active_research_design:
+            text "Current Raw Supplies: %d (Target:%d)" % (mc.business.supply.count, mc.business.supply.goal) style "menu_text_style"
+            if mc.business.research.subject:
                 text "Current Research: " style "menu_text_style"
-                text "    %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
+                text "    %(name)s (%(research done).1f/%(research required).1f)" % mc.business.research.subject style "menu_text_style"
             else:
                 text "Current Research: None!" style "menu_text_style" color "#DD0000"
-            if mc.business.serum_production_target:
+            if mc.business.production.serum:
                 text "Currently Producing: " style "menu_text_style"
-                text "    %s" % mc.business.serum_production_target["name"] style "menu_text_style"
+                text "    %s" % mc.business.production.serum["name"] style "menu_text_style"
             else:
                 text "Currently Producing: Nothing!" style "menu_text_style" color "#DD0000"
             textbutton "Review Staff" action Show("employee_overview") style "textbutton_style" text_style "textbutton_text_style"
@@ -290,11 +290,11 @@ screen end_of_day_update():
             ysize 200
             text "Daily Statistics:" style "textbutton_text_style" size 20
             text "     Current Efficency Modifier: %d" % mc.business.team_effectiveness style "textbutton_text_style"
-            text "     Production Potential: %d" % mc.business.production_potential style "textbutton_text_style"
-            text "     Supplies Procured: %d Units" % mc.business.supplies_purchased style "textbutton_text_style"
-            text "     Production Used: %d" % mc.business.production_used style "textbutton_text_style"
-            text "     Research Produced: %d" % mc.business.research_produced style "textbutton_text_style"
-            text "     Sales Made: $%d" % mc.business.sales_made style "textbutton_text_style"
+            #text "     Production Potential: %d" % mc.business.production_potential style "textbutton_text_style"
+            text "     Supplies Procured: %d Units" % mc.business.supply.purchased style "textbutton_text_style"
+            text "     Production Used: %d" % mc.business.production.used style "textbutton_text_style"
+            text "     Research Progress: %d" % mc.business.research.progress style "textbutton_text_style"
+            text "     Sales Made: $%d" % mc.business.marketing.sold style "textbutton_text_style"
             text "     Daily Salary Paid: $%d" % mc.business.calculate_salary_cost() style "textbutton_text_style"
 
     frame:
@@ -693,15 +693,15 @@ screen serum_trade_ui(inventory_1,inventory_2,name_1="Player",name_2="Business")
 screen serum_select_ui: #How you select serum and trait research
     add "Science_Menu_Background.png"
     vbox:
-        if mc.business.active_research_design != None:
-            text "Current Research: %(name)s (%(research done).1f/%(research required).1f)" % mc.business.active_research_design style "menu_text_style"
+        if mc.business.research.subject != None:
+            text "Current Research: %(name)s (%(research done).1f/%(research required).1f)" % mc.business.research.subject style "menu_text_style"
         else:
             text "Current Research: None!" style "menu_text_style"
 
         hbox:
             vbox:
                 text "Serum Designs:" style "menu_text_style"
-                for _, serum in mc.business.serum_design.iteritems():
+                for _, serum in mc.business.production.serum_design.iteritems():
                     if serum["research done"] < serum["research required"]:
                         textbutton "Research %(name)s (%(research done)d/%(research required)d)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
 
@@ -721,8 +721,8 @@ screen serum_production_select_ui:
         xalign 0.1
         xsize 1200
         null height 40
-        if mc.business.serum_production_target != None:
-            text "Currently Producing: %(name)s - $%(value)d/dose (Current Progress: %(research done).1f/%(research required).1f)" % mc.business.serum_production_target style "menu_text_style" size 25
+        if mc.business.production.serum != None:
+            text "Currently Producing: %(name)s - $%(value)d/dose (Current Progress: %(research done).1f/%(research required).1f)" % mc.business.production.serum style "menu_text_style" size 25
         else:
             text "Currently Producing: Nothing!" style "menu_text_style"
 
@@ -731,7 +731,7 @@ screen serum_production_select_ui:
         vbox:
             xsize 1000
             xalign 0.2
-            for _, serum in mc.business.serum_design.iteritems():
+            for _, serum in mc.business.production.serum_design.iteritems():
                 if serum["research done"] >= serum["research required"]:
                     textbutton "Produce %(name)s (Requires %(production)d production points per dose. Worth $%(value)d/dose)" % serum action [Hide("serum_tooltip"),Return(serum)] style "textbutton_style" text_style "textbutton_text_style" hovered Show("serum_tooltip",None,serum) unhovered Hide("serum_tooltip")
         textbutton "Do not change production." action Return("None") style "textbutton_style" text_style "textbutton_text_style"
@@ -883,7 +883,7 @@ screen outfit_delete_manager(the_wardrobe): ##Allows removal of outfits from pla
     add "Paper_Background.png"
     default preview_outfit = None
     vbox:
-        for outfit in the_wardrobe.get_outfit_list():
+        for outfit in the_wardrobe.outfits:
             textbutton "Delete %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Function(the_wardrobe.remove_outfit,outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
 
         textbutton "Return" action Return() style "textbutton_style" text_style "textbutton_text_style"
@@ -904,7 +904,7 @@ screen outfit_select_manager(slut_limit = 999): ##Brings up a list of the player
 
     default preview_outfit = None
     vbox:
-        for outfit in mc.designed_wardrobe.get_outfit_list():
+        for outfit in mc.designed_wardrobe.outfits:
             textbutton "Load %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(copy.deepcopy(outfit)) sensitive (outfit.slut_requirement <= slut_limit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
 
         textbutton "Return" action Return("No Return") style "textbutton_style" text_style "textbutton_text_style"
@@ -923,7 +923,7 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
     add "Paper_Background.png"
     default preview_outfit = None
     vbox:
-        for outfit in the_wardrobe.get_outfit_list():
+        for outfit in the_wardrobe.outfits:
             textbutton "Wear %s (Sluttiness %d)" % (outfit.name, outfit.slut_requirement) action Return(outfit) hovered SetScreenVariable("preview_outfit", copy.deepcopy(outfit)) unhovered SetScreenVariable("preview_outfit", None) style "textbutton_style" text_style "textbutton_text_style"
 
         textbutton "Return" action Return("None") style "textbutton_style" text_style "textbutton_text_style"
@@ -941,6 +941,7 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
 
 screen map_manager():
     add "Paper_Background.png"
+    default location = mc.location
     for place, loc in itertools.combinations((loc for loc in world if hasattr(loc, "map_pos")), 2):
         if loc.id in place.connections or place.id in loc.connections:
             add Vren_Line(place.map_pos, loc.map_pos, 4,"#117bff") #Draw a white line between each location
@@ -953,7 +954,7 @@ screen map_manager():
                 align place.map_pos
                 imagebutton:
                     anchor [0.5,0.5]
-                    action SetField(mc, "location", place)
+                    action SetScreenVariable("location", place)
                     if mc.location != place:
                         auto "gui/LR2_Hex_Button_%s.png"
                         focus_mask "gui/LR2_Hex_Button_idle.png"
@@ -973,7 +974,7 @@ screen map_manager():
             align [0.5,0.5]
             auto "gui/button/choice_%s_background.png"
             focus_mask "gui/button/choice_idle_background.png"
-            action Return(mc.location)
+            action Return(location)
         textbutton "Return" align [0.5,0.5] text_style "return_button_style"
 
 init -2 screen policy_selection_screen():
@@ -1278,7 +1279,8 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
         pers_ct = len(mc.location.people)
         if pers_ct < 5:
             for people in mc.location.people:
-                tuple_list.append(("Talk to " + people.name + " " + people.last_name[0] + ".",people))
+                if people is not mc:
+                    tuple_list.append(("Talk to " + people.name + " " + people.last_name[0] + ".",people))
         else:
             tuple_list.append(("Talk to someone.", "Talk to someone."))
 
@@ -1335,6 +1337,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
 
 label change_location(the_place):
     $ renpy.scene()
+    $ mc.move(mc.location, the_place)
     $ renpy.show(the_place.name,what=the_place.background_image)
 #    "You spend some time travelling to %s." % the_place.name #TODO: Only show this when there is a significant time use? Otherwise takes up too much time changing between locations.
     return
@@ -1684,7 +1687,7 @@ label examine_room(the_room):
     python:
         desc = "You are at the %s. " % the_room.name
 
-        people_here = the_room.people #Format the names of people in the room with you so it looks nice.
+        people_here = list(p for p in the_room.people if not p is mc) #Format the names of people in the room with you so it looks nice.
         pers_ct = len(people_here)
         if pers_ct == 1:
             desc += people_here[0].name + " is here. "
@@ -1780,27 +1783,20 @@ label advance_time:
     python:
         people_to_process = [] #This is a master list of turns of need to process, stored as tuples [character,location]. Used to avoid modifying a list while we iterate over it, and to avoid repeat movements.
         for place in world:
-            for people in place.people:
-                people_to_process.append([people,place])
-                people.run_turn()
+            for person in place.people:
+                people_to_process.append([person,place])
+                if hasattr(person, "run_turn"):
+                    person.run_turn()
         mc.business.run_turn()
+        i = len(mc.business.mandatory_crises_list)
 
-    $ count = 0
-    $ maximum = len(mc.business.mandatory_crises_list)
-    $ clear_list = []
-    while count < maximum: #We need to keep this in a renpy loop, because a return call will always return to the end of an entire python block.
-        $crisis = mc.business.mandatory_crises_list[count]
+    while i != 0: #We need to keep this in a renpy loop, because a return call will always return to the end of an entire python block.
+        $ i -= 1
+        $crisis = mc.business.mandatory_crises_list[j]
         if crisis.check_requirement():
-            $ crisis.call_action()
+            $ mc.business.mandatory_crises_list.pop(j).crisis.call_action()
             $ renpy.scene("Active")
             $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
-            $ clear_list.append(crisis)
-        $ count += 1
-
-
-    python: #Needs to be a different python block, otherwise the rest of the block is not called when the action returns.
-        for crisis in clear_list:
-            mc.business.mandatory_crises_list.remove(crisis) #Clean up the list.
 
     if renpy.random.randint(0,100) < 10: #ie. run a crisis 25% of the time. TODO: modify this.
         python:
@@ -1816,20 +1812,10 @@ label advance_time:
 
     if world.add_time_is_next_day(): ##First, determine /if we're going into the next chunk of time. If we are, advance the world.day and run all of the end of world.day code.
         python:
-            for (people,place) in people_to_process:
-                people.run_day()
-        $ mc.business.run_day()
-
-        if mc.business.funds < 0:
-            $ mc.business.bankrupt_days += 1
-            if mc.business.bankrupt_days == mc.business.max_bankrupt_days:
-                $ renpy.say("","With no funds to pay your creditors you are forced to close your business and auction off all of your materials at a fraction of their value. Your story ends here.")
-                $ renpy.full_restart()
-            else:
-                $ world.days_remaining = mc.business.max_bankrupt_days-mc.business.bankrupt_days
-                $ renpy.say("","Warning! Your company is losing money and unable to pay salaries or purchase necessary supplies! You have %d world.days to restore yourself to positive funds or you will be foreclosed upon!" % world.days_remaining)
-        else:
-            $ mc.business.bankrupt_days = 0
+            for (person,place) in people_to_process:
+                if hasattr(person, "run_day"):
+                    person.run_day()
+            mc.business.payout()
 
         call screen end_of_day_update() # We have to keep this outside of a python block, because the renpy.call_screen function does not properly fade out the text bar.
         $ mc.business.clear_messages()
@@ -1838,8 +1824,9 @@ label advance_time:
         $ mc.business.give_daily_serum()
 
     python:
-        for (people,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.
-            people.run_move(place)
+        for (person,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.
+            if hasattr(person, "auto_move"):
+                person.auto_move(place)
 
     return
 

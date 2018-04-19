@@ -38,10 +38,7 @@ init -30 python:
         return world.time_of_day < 4
 
     def research_work_action_requirement():
-        if world.time_of_day < 4:
-            return mc.business.active_research_design != None
-        else:
-            return False
+        return world.time_of_day < 4 and mc.business.research.subject != None
 
     def supplies_work_action_requirement():
         return world.time_of_day < 4
@@ -50,10 +47,7 @@ init -30 python:
         return world.time_of_day < 4
 
     def production_work_action_requirement():
-        if world.time_of_day < 4:
-            return mc.business.serum_production_target != None
-        else:
-            return False
+        return world.time_of_day < 4 and mc.business.production.serum != None
 
     def interview_action_requirement():
         return world.time_of_day < 4
@@ -74,7 +68,7 @@ init -30 python:
         return True
 
     def set_autosell_action_requirement():
-        return mc.business.serum_production_target is not None
+        return mc.business.production.serum is not None
 
     def pick_supply_goal_action_requirement():
         return True
@@ -133,32 +127,37 @@ label faq_action_description:
     return
 
 label hr_work_action_description:
-    $ mc.business.player_hr()
+    $ mc.job = "Human Resources"
     call advance_time from _call_advance_time_1
+    $ mc.job = "Supervisor"
     "You settle in and spend a few hours filling out paperwork."
     return
 
 label research_work_action_description:
-    $ mc.business.player_research()
+    $ mc.job = "Researcher"
     call advance_time from _call_advance_time_2
+    $ mc.job = "Supervisor"
     "You spend a few hours in the lab, experimenting with different chemicals and techniques."
     return
 
 label supplies_work_action_description:
-    $ mc.business.player_buy_supplies()
+    $ mc.job = "Supply"
     call advance_time from _call_advance_time_3
+    $ mc.job = "Supervisor"
     "You spend a few hours securing new supplies for the lab, spending some of it's available funds to do so."
     return
 
 label market_work_action_description:
-    $ mc.business.player_market()
+    $ mc.job = "Marketing"
     call advance_time from _call_advance_time_4
+    $ mc.job = "Supervisor"
     "You spend a few hours making phone calls to your clients and shipping out orders that have been marked for sale."
     return
 
 label production_work_action_description:
-    $ mc.business.player_production()
+    $ mc.job = "Production"
     call advance_time from _call_advance_time_5
+    $ mc.job = "Supervisor"
     "You spend a few hours in the lab, synthesizing serum from the it's raw chemical precursors."
     return
 
@@ -198,7 +197,7 @@ label serum_design_action_description:
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $ mc.business.add_serum_design(_return)
+        $ mc.business.production.add_serum_design(_return)
         call advance_time from _call_advance_time_7
     else:
         "You decide not to spend any time designing a new serum type."
@@ -211,7 +210,7 @@ label research_select_action_description:
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $mc.business.set_serum_research(_return)
+        $mc.business.research.subject = _return
         $renpy.say("", "You change your research to %(name)s." % _return)
     else:
         "You decide to leave your labs current research topic as it is."
@@ -224,7 +223,7 @@ label production_select_action_description:
     show screen main_ui
     show screen business_ui
     if _return != "None":
-        $mc.business.change_production(_return)
+        $mc.business.production.change(_return)
         $renpy.say("", "You change your production line over to %(name)s." % _return)
     else:
         "You decide not to change the way your production line is set up."
@@ -253,14 +252,14 @@ label sell_serum_action_description:
     return
 
 label set_autosell_action_description:
-    $ amount = renpy.input("How many units of %(name)s would you like to keep in stock? Extra will automatically be moved to the sales department." % mc.business.serum_production_target)
+    $ amount = renpy.input("How many units of %(name)s would you like to keep in stock? Extra will automatically be moved to the sales department." % mc.business.production.serum)
     $ amount = amount.strip()
     while not (amount.isdigit() and int(amount) >= 0):
         $ amount = renpy.input("Please put in positive integer value.")
     $ amount = int(amount)
 
-    $ mc.business.auto_sell_threshold = amount
-    $ renpy.say("", "Extra doses of the serum %(name)s will be automatically moved to the sales department now." % mc.business.serum_production_target)
+    $ mc.business.production.auto_sell_threshold = amount
+    $ renpy.say("", "Extra doses of the serum %(name)s will be automatically moved to the sales department now." % mc.business.production.serum)
     return
 
 
@@ -272,7 +271,7 @@ label pick_supply_goal_action_description:
         $ amount = renpy.input("Please put in an integer value.")
 
     $ amount = int(amount)
-    $ mc.business.supply_goal = amount
+    $ mc.business.supply.goal = amount
     if amount <= 0:
         "You tell your team to keep [amount] units of serum supply stocked. They question your sanity, but otherwise continue with their work. Perhaps you should use a positive number."
     else:
@@ -283,30 +282,22 @@ label pick_supply_goal_action_description:
 label move_funds_action_description:
     menu:
         "Move funds from the company to yourself." if mc.business.funds>0:
-            $ amount = renpy.input("How much would you like to withdraw from the company bank account? (Currently has $[mc.business.funds])")
-            $ amount.strip()
-            while (not amount.isdigit() or int(amount) > mc.business.funds):
-                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.business.funds])")
-                $ amount.strip()
-
-            $ mc.business.funds -= int(amount)
-            $ mc.money += int(amount)
-            return
-
+            $ src = mc.business.funds
+            $ tgt = mc.money
         "Move funds from yourself into the company." if mc.money>0:
-            $ amount = renpy.input("How much would you like to deposit into the company account? (You currently have $[mc.money])")
-            $ amount.strip()
-            while (not amount.isdigit() or int(amount) > mc.money):
-                $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.money])")
-                $ amount.strip()
-
-            $ mc.business.funds += int(amount)
-            $ mc.money -= int(amount)
-            return
-
+            $ tgt = mc.business.funds
+            $ src = mc.money
         "Do nothing.":
             return
+    $ amount = renpy.input("How much would you like to exchange? (You currently have $[mc.money], the company has $[mc.business.funds].)")
+    $ amount.strip()
+    while (not amount.isdigit() or int(amount) > mc.money):
+        $ amount = renpy.input("Please put in a positive value equal to or lower than the current funds in the business account. (Currently has $[mc.money])")
+        $ amount.strip()
 
+    $ src += int(amount)
+    $ tgt -= int(amount)
+    return
 label policy_purchase_description:
     call screen policy_selection_screen()
     return

@@ -22,11 +22,152 @@ init -23 python:
             if the_person in self.room.people:
                 self.room.people.remove(the_person)
 
+    class Marketing(Division):
+        def __init__(self):
+            self.inventory = collections.defaultdict(default_to_zero)
+            self.sold = 0
+            super(Marketing, self).__init__("Marketing", [], "m_room")
+
+        def work(self, corp):
+            corp.funds -= self.sold
+            for person in self.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
+                if person.job in self.jobs:
+
+                    serum_sale_count = __builtin__.round((3*person.cha + person.focus + 2*person.market_skill + 10) * corp.team_effectiveness)/100 #Total number of doses of serum that can be sold by this person.
+
+                    #For use with value boosting policies. Multipliers are multiplicative.
+                    #If there is a uniform and we have the policy to increase value based on that we change the multilier.
+                    serum_value_multiplier = self.uniform.slut_requirement/100.0 + 1 if self.uniform and "Male Focused Modeling" in corp.active_policies else 1.00
+
+                    for serum, count in sorted(self.inventory["serum"].iteritems(), key=lambda serum, count: corp.production.serum_design[serum]["value"]):
+                        # if there is not capacity enough to process all, process remainder and break
+                        count = min(serum_sale_count, count)
+                        self.sold += count * corp.production.serum_design[serum]["value"] * serum_value_multiplier
+                        self.inventory["serum"][serum] -= count
+                        serum_sale_count -= count
+                        if serum_sale_count == 0:
+                            break
+                    else: # if all serums were all sold, nothing more to do for any next person.
+                        break
+            corp.funds += self.sold
+
+    class Research(Division):
+        def __init__(self):
+            self.progress = 0 #How much research the team produced today.
+            self.subject = None #
+            super(Research, self).__init__("Research and Development", [], "rd_room", ["Researcher"])
+
+        def is_drug(self):
+            return self.subject and "value" in self.subject
+
+        def work(self, corp):
+            if self.subject:
+                remain = self.subject["research required"] - self.subject["research done"]
+                self.progress += remain
+                for person in self.room.people:
+                    if person.job in self.jobs:
+                        remain -= __builtin__.round((3*person.int + person.focus + 2*person.research_skill + 10) * corp.team_effectiveness)/100
+
+                        if remain <= 0: #Returns true if the research is completed by this amount'
+                            if "value" in self.subject: # its a drug
+                                corp.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",self.subject)) #Create a serum finished crisis, it will trigger at the end of the round
+                            corp.message_list["Finished researching: %s" % self.subject["name"]] = 0
+                            self.subject = None
+                            return
+                self.subject["research done"] = self.subject["research required"] - remain
+                self.progress -= remain
+
+    class Production(Division):
+        def __init__(self):
+            self.inventory = collections.defaultdict(default_to_zero)
+            self.used = 0 #How many production points were actually used to make something.
+            self.points = 0
+            self.serum = None
+            self.serum_design = {}
+            self.auto_sell_threshold = 0
+            super(Production, self).__init__("Production", [], "p_room")
+
+        def work(self, corp):
+            if self.serum != None:
+                remain = corp.supply.count
+                self.used += remain
+                production_count = 0
+                for person in self.room.people:
+                    if person.job in self.jobs:
+                        production_amount = min(remain, __builtin__.round((3*person.focus + person.int + 2*person.production_skill + 10) * corp.team_effectiveness)/100)
+
+                        ##Check how many serum can be made, make them and add them to your inventory.
+
+                        cost = self.serum_design[self.serum]["production"]
+                        self.points += production_amount
+                        production_count += self.points // cost
+                        self.points %= cost
+
+                        remain -= production_amount
+                        if remain == 0:
+                            break
+
+                corp.supply.count = remain
+                self.used -= remain
+
+                if production_count > 0:
+
+                    msg = "Produced %s" % self.serum
+                    corp.message_list[msg] = corp.message_list.get(msg, 0) + production_count
+
+                    for_sale_count = max(0, self.inventory["serum"][self.serum] + production_count - self.auto_sell_threshold)
+                    self.inventory["serum"][self.serum] -= for_sale_count
+                    corp.marketing.inventory["serum"][self.serum] += for_sale_count
+
+
+        def add_serum_design(self,serum):
+            while not "name" in serum:
+                name = renpy.input("Please give this serum design a name.")
+                if not name or name in self.serum_design:
+                    renpy.say("", "That name is already registered. Please use another.")
+                else:
+                    serum["name"] = name
+            self.serum_design[name] = serum
+
+        def change(self,new_serum):
+            self.serum = new_serum
+            self.auto_sell_threshold = None
+            self.points = 0
+
+    class Supply(Division):
+        def __init__(self):
+            self.count = 0
+            self.goal = 250
+            self.purchased = 0
+            super(Supply, self).__init__("Supply Procurement", [], "office", ["Supply"])
+
+        def work(self, corp):
+            corp.funds += self.count
+            self.purchased -= self.count  #Used for end of world.day reporting
+            for person in self.room.people:
+                if person.job in self.jobs:
+                    self.count += max(0, min(__builtin__.round((3*perlson,focus + person.cha + 2*person.supply_skill + 10) * self.team_effectiveness)/100, self.goal - self.count))
+            corp.funds -= self.count
+            self.purchased += self.count
+
+    class HumanResources(Division):
+        def __init__(self):
+            super(HumanResources, self).__init__("Human Resources", [], "office")
+
+        def work(self, corp): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
+            for person in self.room.people:
+                if person.job in self.jobs:
+                    corp.team_effectiveness += 3*person.cha + person.int + 2*person.hr_skill + 10
+
     class Business(renpy.store.object):
         def __init__(self, name, division):
             self.name = name
             self.division = division
             self.inventory = {"stock": collections.defaultdict(default_to_zero), "sale": collections.defaultdict(default_to_zero)}
+
+    class Store(Business):
+        def __init__(self, **kwargs):
+            super(MyCorp, self).__init__(**kwargs)
 
     class MyCorp(Business):
         # main jobs to start with:
@@ -38,57 +179,43 @@ init -23 python:
         # 5) Packaging and selling serums that have been produced.
         # 6) General secretary work. Starts at none needed, grows as your company does (requires an "HR", eventually). Maybe a general % effectivness rating.
         def __init__(self):
-            # m_div etc: The phsyical locations of all of the teams, so you can move to different offices in the future.
+            # marketing etc: The phsyical locations of all of the teams, so you can move to different offices in the future.
             name = persistent.company_name
 
             # Increases company marketability. Raises max price serum can be sold for, and max volumn that can be sold.
-            self.m_div = Division("Marketing", [], "m_room")
+            self.marketing = Marketing()
 
             # Physically makes the serum and sends it off to be sold.
-            self.p_div = Division("Production", [], "p_room")
+            self.production = Production()
 
             # Researches new serums that the player designs, does theoretical research into future designs, or improves old serums slightly over time
-            self.r_div = Division("Research and Development", [], "rd_room", ["Researcher"])
+            self.research = Research()
 
             # Buys the raw supplies used by the other departments.
-            self.s_div = Division("Supply Procurement", [], "office", ["Supply"])
+            self.supply = Supply()
 
             # Manages everyone else and improves effectiveness. Needed as company grows.
-            self.h_div = Division("Human Resources", [], "office")
-            super(MyCorp, self).__init__(name, [self.m_div, self.p_div, self.r_div, self.s_div, self.h_div])
+            self.hr = HumanResources()
+            super(MyCorp, self).__init__(name, [self.supply, self.production, self.marketing, self.research, self.hr])
 
             self.funds = 1000 #Your starting wealth.
 
             self.bankrupt_days = 0 #How many world.days you've been bankrupt. If it hits the max value you lose.
             self.max_bankrupt_days = 3 #How many world.days you can be negative without loosing the game. Can be increased through research.
 
-            self.supply_count = 0
-            self.supply_goal = 250
-            self.auto_sell_threshold = 0
             self.marketability = 0
-            self.production_points = 0
             self.team_effectiveness = 100 #Ranges from 50 (Chaotic, everyone functions at 50% speed) to 200 (masterfully organized). Normal levels are 100, special traits needed to raise it higher.
             self.effectiveness_cap = 100 #Max cap, can be raised.
 
             self.interview_cost = 50
 
             self.serum_traits = default_serum_traits
-            self.serum_design = {}
-            self.active_research_design = None #
-
-            self.serum_production_target = None
 
             self.active_policies = set()
 
             self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the world.day.
-            self.production_potential = 0 #How many production points the team was capable of
-            self.supplies_purchased = 0
-            self.production_used = 0 #How many production points were actually used to make something.
-            self.research_produced = 0 #How much research the team produced today.
-            self.sales_made = 0
 
             self.mandatory_crises_list = [] #A list of crises to be resolved at the end of the turn, generally generated by events that have taken place.
-            self.clear_messages()
 
         def run_turn(self): #Run each time the time segment changes. Most changes are done here.
 
@@ -96,162 +223,44 @@ init -23 python:
             for div in self.division:
                 for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the world.day, etc.
                     if person.job in div.jobs:
-                        self.team_effectiveness += -1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
+                        self.team_effectiveness -= 1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 
             #Compute effiency rise from HR
-            for person in self.h_div.room.people:
-                if person.job in self.h_div.jobs:
-                    self.hr_progress(person.charisma,person.int,person.hr_skill)
+            self.hr.work(self)
 
-            if self.team_effectiveness < 50:
-                self.team_effectiveness = 50
-
-            if self.team_effectiveness > self.effectiveness_cap:
-                self.team_effectiveness = self.effectiveness_cap
+            self.team_effectiveness = min(max(50, self.team_effectiveness), self.effectiveness_cap)
 
             #Compute other deparement effects
-            for person in self.s_div.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
-                if person.job in self.s_div.jobs:
-                    self.supply_purchase(person.focus,person.charisma,person.supply_skill)
+            for div in self.division:
+                if div != self.hr:
+                    div.work(self)
 
-            for person in self.r_div.room.people:
-                if person.job in self.r_div.jobs:
-                    self.research_progress(person.int,person.focus,person.research_skill)
-
-            for person in self.p_div.room.people:
-                if person.job in self.p_div.jobs:
-                    self.production_progress(person.focus,person.int,person.production_skill)
-
-            for person in self.m_div.room.people:
-                if person.job in self.m_div.jobs:
-                    self.sale_progress(person.charisma,person.focus,person.market_skill)
-
-        def run_day(self): #Run at the end of the world.day.
+        def payout(self): #Run at the end of the world.day.
             #Pay everyone for the world.day
             self.funds -= self.calculate_salary_cost()
+            if self.funds < 0:
+                self.bankrupt_days += 1
+                days_remaining = self.max_bankrupt_days - self.bankrupt_days
+                if days_remaining:
+                    renpy.say("","Warning! Your company is losing money and unable to pay salaries or purchase necessary supplies! You have %d world.days to restore yourself to positive funds or you will be foreclosed upon!" % days_remaining)
+                else:
+                    renpy.say("","With no funds to pay your creditors you are forced to close your business and auction off all of your materials at a fraction of their value. Your story ends here.")
+                    renpy.full_restart()
+            else:
+                self.bankrupt_days = 0
 
         def get_uniform(self, job): #Takes a division (a room) and returns the correct uniform for that division, if one exists. If it is None, returns false.
             return next((div.uniform for div in self.division if job in div.jobs), None)
 
         def clear_messages(self): #clear all messages for the world.day.
             self.message_list = {} # This dict stores unique and counts message. If 0 it is shown once without a count at the end of the world.day.
-            self.production_potential = 0 #How many production points the team was capable of
-            self.supplies_purchased = 0
-            self.production_used = 0 #How many production points were actually used to make something.
-            self.research_produced = 0 #How much research the team produced today.
-            self.sales_made = 0
+            self.supply.purchased = 0
+            self.production.used = 0 #How many production points were actually used to make something.
+            self.research.progress = 0 #How much research the team produced today.
+            self.marketing.sold = 0
 
         def calculate_salary_cost(self):
             return sum(person.salary for person in self.get_employee_list())
-
-        def add_serum_design(self,serum):
-            while not "name" in serum:
-                name = renpy.input("Please give this serum design a name.")
-                if not name or name in self.serum_design:
-                    renpy.say("", "That name is already registered. Please use another.")
-                else:
-                    serum["name"] = name
-            self.serum_design[name] = serum
-
-        def set_serum_research(self,name):
-            self.active_research_design = name
-
-        def is_reasearching_drug(self):
-            return self.active_research_design and "value" in self.active_research_design
-
-        def research_progress(self,int,focus,skill):
-            research_amount = __builtin__.round(((3*int) + focus + (2*skill) + 10) * self.team_effectiveness)/100
-            self.research_produced += research_amount
-            if self.active_research_design:
-                design = self.active_research_design
-                design["research done"] += research_amount
-
-                if design["research done"] >= design["research required"]: #Returns true if the research is completed by this amount'
-                    if "value" in design: # its a drug
-                        self.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",design)) #Create a serum finished crisis, it will trigger at the end of the round
-                    self.message_list["Finished researching: %s" % design["name"]] = 0
-                    self.active_research_design = None
-
-        def player_research(self):
-            self.research_progress(mc.int,mc.focus,mc.research_skill)
-
-        def player_buy_supplies(self):
-            self.supply_purchase(mc.focus,mc.charisma,mc.supply_skill)
-
-        def supply_purchase(self,focus,cha,skill):
-            max_supply = __builtin__.round(((3*focus) + cha + (2*skill) + 10) * (self.team_effectiveness))/100
-            max_supply = max(0, min(max_supply, self.supply_goal - self.supply_count))
-            self.funds -= max_supply
-            self.supply_count += max_supply
-            self.supplies_purchased += max_supply #Used for end of world.day reporting
-
-        def player_market(self):
-            self.sale_progress(mc.charisma,mc.focus,mc.market_skill)
-
-        def sale_progress(self,cha,focus,skill):
-
-            serum_value_multiplier = 1.00 #For use with value boosting policies. Multipliers are multiplicative.
-            if mc.business.m_div.uniform and "Male Focused Modeling" in mc.business.active_policies:
-                #If there is a uniform and we have the policy to increase value based on that we change the multilier.
-                sluttiness_multiplier = (mc.business.m_div.uniform.slut_requirement/100.0) + 1
-                serum_value_multiplier = serum_value_multiplier * (sluttiness_multiplier)
-
-            serum_sale_count = __builtin__.round(((3*cha) + focus + (2*skill) + 10) * (self.team_effectiveness))/100 #Total number of doses of serum that can be sold by this person.
-
-            serum_sale_count = min(sum(self.inventory["sale"]["serum"].values()), serum_sale_count)
-
-            if serum_sale_count > 0: #ie. we have serum in our inventory to sell, and the capability to sell them.
-                for serum, count in sorted(self.inventory["sale"]["serum"].keys(), key=lambda serum: self.serum_design[serum]["value"]):
-                    # if there is not capacity enough to process all, process remainder and break
-                    count = min(serum_sale_count, count)
-                    value_sold = count * self.serum_design[serum]["value"] * serum_value_multiplier
-                    self.funds += value_sold
-                    self.sales_made += value_sold
-                    self.inventory["sale"]["serum"][serum] -= count
-                    serum_sale_count -= count
-                    if serum_sale_count == 0:
-                        break
-
-        def production_progress(self,focus,int,skill):
-
-            production_amount = __builtin__.round(((3*focus) + int + (2*skill) + 10) * (self.team_effectiveness))/100
-
-            self.production_potential += production_amount
-            production_amount = min(production_amount, self.supply_count)
-            self.production_used += production_amount
-
-            if self.serum_production_target != None:
-                target_name = self.serum_production_target
-                target = self.serum_design[target_name]
-
-                self.supply_count -= production_amount
-                ##Check how many serum can be made, make them and add them to your inventory.
-                self.production_points += production_amount
-                production_count = self.production_points // target["production"]
-
-                if production_count > 0:
-
-                    msg = "Produced %s" % target_name
-                    self.message_list[msg] = self.message_list.get(msg, 0) + production_count
-                    self.production_points -= production_count * target["production"]
-
-                    sold_count = max(0, self.inventory["stock"]["serum"][target_name] + production_count - self.auto_sell_threshold)
-                    self.inventory["stock"]["serum"][target_name] -= sold_count
-                    self.inventory["sale"]["serum"][target_name] += sold_count
-
-        def change_production(self,new_serum):
-            self.serum_production_target = new_serum
-            self.auto_sell_threshold = None
-            self.production_points = 0
-
-        def player_production(self):
-            self.production_progress(mc.focus,mc.int,mc.production_skill)
-
-        def player_hr(self):
-            self.hr_progress(mc.charisma,mc.int,mc.hr_skill)
-
-        def hr_progress(self,cha,int,skill): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
-            self.team_effectiveness += (3*cha) + int + (2*skill) + 10
 
         def add_employee(self, new_person, division, job=None, to_room_as_well=True):
             division.people.add(new_person)

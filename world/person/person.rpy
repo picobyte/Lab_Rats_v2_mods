@@ -95,9 +95,26 @@ init -16 python:
             self.char_object = Character(what_font="Avara.ttf") #We use this to customize the font in the dialogue boxes
             self.arousal = 0 #How actively horny a girl is, and how close she is to orgasm. Generally resets to 0 after orgasming, and decreases over time while not having sex (or having bad sex).
             self.inventory = collections.defaultdict(default_to_zero)
+            self.status_effects = [] #A list of functions that should be called each time chunk, usually given as the result of a serum.
+
+        def move(self, curr, dest):
+            if not curr is dest:
+                if self in curr.people: # Don't bother moving people who are already there.
+                    curr.people.remove(self)
+                dest.people.add(self)
+                self.location = dest
 
         def change_arousal(self,amount):
             self.arousal = max(self.arousal + amount, 0)
 
         def reset_arousal(self):
             self.arousal = 0
+
+        def add_status_effects(self,effects):
+            for effect in effects:
+                self.status_effects.append(effect)
+
+        def remove_status_effects(self,effects):
+            for effect in effects:
+                self.status_effects.remove(effect) #Find the effect and remove it. If it still exists somehwere else then they're still under the effect.
+

@@ -272,7 +272,7 @@ label special_training_crisis_label():
 init 1 python:
     def lab_accident_requirement():
         if in_research_with_other():
-            if mc.business.active_research_design and "value" in mc.business.active_research_design:
+            if mc.business.research.subject and "value" in mc.business.research.subject:
                 return True
         return False
         
@@ -281,10 +281,10 @@ init 1 python:
     
 label lab_accident_crisis_label():
     ## Some quick checks to make sure the crisis is still valid (for example, a serum being finished before this event can trigger)
-    if not (mc.business.active_research_design and mc.business.is_reasearching_drug()):
+    if not (mc.business.research.subject and mc.business.r_div.is_drug()):
         return
 
-    $ the_serum = mc.business.active_research_design
+    $ the_serum = mc.business.research.subject
     $ the_person = renpy.random.sample(world.r_room.people, 1)[0]
     
     if mc.location == world.rd_room:
@@ -318,7 +318,7 @@ label lab_accident_crisis_label():
 init 1 python:
     def production_accident_requirement():
         if in_production_with_other():
-            if mc.business.serum_production_target: #Check to see if there's at least one person in the production department and that we're serum right now.
+            if mc.business.production.serum: #Check to see if there's at least one person in the production department and that we're serum right now.
                 return True
         return False
         
@@ -328,10 +328,10 @@ init 1 python:
         
 label production_accident_crisis_label():
     ## Some quick checks to make sure the crisis is still valid (for example, a serum being finished before this event can trigger)
-    if not mc.business.serum_production_target:
+    if not mc.business.production.serum:
         return
         
-    $ the_serum = mc.business.serum_production_target
+    $ the_serum = mc.business.production.serum
     $ the_person = renpy.random.sample(world.p_room.people, 1)[0]
     
     if mc.location == world.p_room:

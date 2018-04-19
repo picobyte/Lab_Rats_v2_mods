@@ -154,7 +154,7 @@ init python:
         def __init__(self, **kwargs):
             self.__dict__.update(**kwargs)
 
-            for i, loc in enumerate(World.locations):
+            for loc in World.locations:
                 self.__dict__[loc["id"]] = Location(**loc)
 
             self.lobby.name = persistent.company_name + " " + self.lobby.name

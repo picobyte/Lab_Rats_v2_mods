@@ -6,9 +6,8 @@ init -4 python:
             "Sex Skills": 1
         }
         def __init__(self, business):
-            super(MainCharacter, self).__init__(**persistent.character)
+            super(MainCharacter, self).__init__(location=world.bedroom, job="Supervisor", **persistent.character)
 
-            self.location = world.bedroom
             self.energy = 50 #FIXME: not in use
             self.designed_wardrobe = Wardrobe("Designed Wardrobe", [])
             self.money = 100 ## Personal money that can be spent however you wish. Company funds are seperate (but can be manipulated in your favour)
