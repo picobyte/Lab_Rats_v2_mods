@@ -30,7 +30,7 @@ init -23 python:
 
         def work(self, corp):
             corp.funds -= self.sold
-            for person in self.room.people: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
+            for person in self.room.people | {mc}: #Check to see if the person is in the room, otherwise don't count their progress (they are at home, dragged away by PC, weekend, etc.)
                 if person.job in self.jobs:
 
                     serum_sale_count = __builtin__.round((3*person.charisma + person.focus + 2*person.market_skill + 10) * corp.team_effectiveness)/100 #Total number of doses of serum that can be sold by this person.
@@ -65,7 +65,7 @@ init -23 python:
                 remain = self.subject["research required"] - self.subject["research done"]
                 self.subject["research done"] += remain
                 self.progress += remain
-                for person in self.room.people:
+                for person in self.room.people | {mc}:
                     if person.job in self.jobs:
                         remain -= __builtin__.round((3*person.int + person.focus + 2*person.research_skill + 10) * corp.team_effectiveness)/100
 
@@ -93,7 +93,7 @@ init -23 python:
                 remain = corp.supply.count
                 self.used += remain
                 production_count = 0
-                for person in self.room.people:
+                for person in self.room.people | {mc}:
                     if person.job in self.jobs:
                         production_amount = min(remain, __builtin__.round((3*person.focus + person.int + 2*person.production_skill + 10) * corp.team_effectiveness)/100)
 
@@ -145,7 +145,7 @@ init -23 python:
         def work(self, corp):
             corp.funds += self.count
             self.purchased -= self.count  #Used for end of world.day reporting
-            for person in self.room.people:
+            for person in self.room.people | {mc}:
                 if person.job in self.jobs:
                     self.count += max(0, min(__builtin__.round((3*person.focus + person.charisma + 2*person.supply_skill + 10) * corp.team_effectiveness)/100, self.goal - self.count))
             corp.funds -= self.count
@@ -156,7 +156,7 @@ init -23 python:
             super(HumanResources, self).__init__("Human Resources", [], "office")
 
         def work(self, corp): #Don't compute efficency cap here so that player HR effort will be applied against any efficency drop even though it's run before the rest of the end of the turn.
-            for person in self.room.people:
+            for person in self.room.people | {mc}:
                 if person.job in self.jobs:
                     corp.team_effectiveness += 3*person.charisma + person.int + 2*person.hr_skill + 10
 

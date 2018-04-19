@@ -941,7 +941,6 @@ screen girl_outfit_select_manager(the_wardrobe): ##Brings up a list of outfits c
 
 screen map_manager():
     add "Paper_Background.png"
-    default location = mc.location
     for place, loc in itertools.combinations((loc for loc in world if hasattr(loc, "map_pos")), 2):
         if loc.id in place.connections or place.id in loc.connections:
             add Vren_Line(place.map_pos, loc.map_pos, 4,"#117bff") #Draw a white line between each location
@@ -954,8 +953,8 @@ screen map_manager():
                 align place.map_pos
                 imagebutton:
                     anchor [0.5,0.5]
-                    action SetScreenVariable("location", place)
-                    if location != place:
+                    action SetField(mc, "location", place)
+                    if mc.location != place:
                         auto "gui/LR2_Hex_Button_%s.png"
                         focus_mask "gui/LR2_Hex_Button_idle.png"
                         sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
@@ -974,7 +973,7 @@ screen map_manager():
             align [0.5,0.5]
             auto "gui/button/choice_%s_background.png"
             focus_mask "gui/button/choice_idle_background.png"
-            action Return(location)
+            action Return(mc.location)
         textbutton "Return" align [0.5,0.5] text_style "return_button_style"
 
 init -2 screen policy_selection_screen():
@@ -1279,8 +1278,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
         pers_ct = len(mc.location.people)
         if pers_ct < 5:
             for people in mc.location.people:
-                if people is not mc:
-                    tuple_list.append(("Talk to " + people.name + " " + people.last_name[0] + ".",people))
+                tuple_list.append(("Talk to " + people.name + " " + people.last_name[0] + ".",people))
         else:
             tuple_list.append(("Talk to someone.", "Talk to someone."))
 
@@ -1311,7 +1309,7 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
         elif choice == "Talk to someone.":
             python:
                 i = 0
-                people = list(mc.location.people)
+                people = list(p for p in mc.location.people if p is not mc)
                 while not isinstance(choice, NPC) and choice != "Back":
                     tuple_list = [(p.name + " " + p.last_name[0] + ".", p) for p in people[i:i+9]]
                     if pers_ct > i+10:
@@ -1337,7 +1335,6 @@ label game_loop: ##THIS IS THE IMPORTANT SECTION WHERE YOU DECIDE WHAT ACTIONS Y
 
 label change_location(the_place):
     $ renpy.scene()
-    $ mc.move(mc.location, the_place)
     $ renpy.show(the_place.name,what=the_place.background_image)
 #    "You spend some time travelling to %s." % the_place.name #TODO: Only show this when there is a significant time use? Otherwise takes up too much time changing between locations.
     return
@@ -1687,7 +1684,7 @@ label examine_room(the_room):
     python:
         desc = "You are at the %s. " % the_room.name
 
-        people_here = list(p for p in the_room.people if not p is mc) #Format the names of people in the room with you so it looks nice.
+        people_here = list(p for p in the_room.people) #Format the names of people in the room with you so it looks nice.
         pers_ct = len(people_here)
         if pers_ct == 1:
             desc += people_here[0].name + " is here. "
@@ -1785,8 +1782,7 @@ label advance_time:
         for place in world:
             for person in place.people:
                 people_to_process.append([person,place])
-                if hasattr(person, "run_turn"):
-                    person.run_turn()
+                person.run_turn()
         mc.business.run_turn()
         i = len(mc.business.mandatory_crises_list)
 
@@ -1813,8 +1809,7 @@ label advance_time:
     if world.add_time_is_next_day(): ##First, determine /if we're going into the next chunk of time. If we are, advance the world.day and run all of the end of world.day code.
         python:
             for (person,place) in people_to_process:
-                if hasattr(person, "run_day"):
-                    person.run_day()
+                person.run_day()
             mc.business.payout()
 
         call screen end_of_day_update() # We have to keep this outside of a python block, because the renpy.call_screen function does not properly fade out the text bar.
@@ -1825,8 +1820,7 @@ label advance_time:
 
     python:
         for (person,place) in people_to_process: #Now move everyone to where the should be in the next time chunk. That may be home, work, etc.
-            if hasattr(person, "auto_move"):
-                person.auto_move(place)
+            person.auto_move(place)
 
     return
 
