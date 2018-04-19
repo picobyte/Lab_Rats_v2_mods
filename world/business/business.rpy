@@ -15,7 +15,7 @@ init -23 python:
                         message_list["Stockpile ran out of %s to give to the %s division." % (self.serum.name, self.name.lower())] = 0
                         return
                     serum_inventory[self.serum] -= 1
-                    person.give_serum(copy.copy(self.serum)) #use a copy rather than the main class, so we can modify and delete the effects without changing anything else.
+                    person.give_serum(self.serum)
 
         def remove_employee(self, the_person):
             self.people.remove(the_person)

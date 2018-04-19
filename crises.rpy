@@ -310,7 +310,7 @@ label lab_accident_crisis_label():
     the_person.name "I was trying to [techno] and went to move the sample. It slipped out of my hand and when I tried to grab it..."
     "She turns her palm up to you. It's covered in the same coloured liquid, and there's a small cut."
     the_person.name "I'm not sure what the uptake is like with this new design. I think everything will be fine, but would you mind hanging around for a few minutes?."
-    $the_person.give_serum(copy.copy(the_serum))
+    $the_person.give_serum(the_serum)
     call talk_person(the_person) from _call_talk_person_5
     "It doesn't seem like [the_person] is having any unexpected affects from the dose of serum, so you return to your work."
     return
@@ -357,7 +357,7 @@ label production_accident_crisis_label():
     the_person.name "I was trying to [techno]like I normally do and went to move the batch. It slipped out of my hand and when I tried to grab it..."
     "She turns her palm up to you. It's covered in the same coloured liquid, and there's a small cut."
     the_person.name "I'm not sure what the uptake is like with this new design. I think everything will be fine, but would you mind hanging around for a few minutes?."
-    $the_person.give_serum(copy.copy(the_serum))
+    $the_person.give_serum(the_serum)
     call talk_person(the_person) from _call_talk_person_6
     "It doesn't seem like [the_person.name] is having any unexpected affects from the dose of serum, so you return to your work."
     return
@@ -756,7 +756,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                             mc.name "Alright, you've got yourself a deal. I'll have the books updated by the end of the world.day."
                             $ rd_staff.salary += raise_amount
                             rd_staff.name "Good to hear it. Let's get right to it then."
-                            $ rd_staff.give_serum(copy.copy(the_serum))
+                            $ rd_staff.give_serum(the_serum)
                             
                         "Refuse.":
                             mc.name "I'm sorry but that just isn't in the budget right now."
@@ -769,7 +769,7 @@ label serum_creation_crisis_label(the_serum): # Called every time a new serum is
                 else:
                     "[rd_staff.name] pauses for a moment, then nods."
                     rd_staff.name "Okay sir, if you think it will help the business."
-                    $ rd_staff.give_serum(copy.copy(the_serum))
+                    $ rd_staff.give_serum(the_serum)
                     
                         
         "[rd_staff.name] drinks down the contents of the vial and places it to the side."
