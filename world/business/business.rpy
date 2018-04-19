@@ -223,6 +223,17 @@ init -23 python:
             #Compute efficency drop
             for div in self.division:
                 for person in div.room.people: #Only people in the office lower effectiveness, no loss on weekends, not in for the world.day, etc.
+                    #Now we want to see if she's unhappy enough to quit. We will tally her "happy points", a negative number means a chance to quit.
+                    happy_points = person.get_job_happiness_score()
+                    if happy_points < 0: #We have a chance of quitting.
+                        chance_to_quit = happy_points * -2 #there is a %2*unhappiness chance that the girl will quit.
+                        if renpy.random.randint(0,100) < chance_to_quit: #She is quitting
+                            potential_quit_action = Action(person.name + " is quitting.", quiting_crisis_requirement, "quitting_crisis_label", person)
+                            if potential_quit_action not in self.mandatory_crises_list:
+                                self.mandatory_crises_list.append(potential_quit_action)
+
+                        else: #She's not quitting, but we'll let the player know she's unhappy TODO: Only present this message with a certain research/policy.
+                            self.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
                     if person.job in div.jobs:
                         self.team_effectiveness -= 1 #TODO: Make this dependant on charisma (High charisma have a lower impact on effectiveness) and happiness.
 

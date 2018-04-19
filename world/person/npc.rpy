@@ -135,20 +135,6 @@ init -14 python:
 
             self.serum_effects = self.recover(1)
 
-            #Now we want to see if she's unhappy enough to quit. We will tally her "happy points", a negative number means a chance to quit.
-
-            if any(self in div.people for div in mc.business.division): #Only let people who work for us quit their job.
-                happy_points = self.get_job_happiness_score()
-                if happy_points < 0: #We have a chance of quitting.
-                    chance_to_quit = happy_points * -2 #there is a %2*unhappiness chance that the girl will quit.
-                    if renpy.random.randint(0,100) < chance_to_quit: #She is quitting
-                        potential_quit_action = Action(self.name + " is quitting.", quiting_crisis_requirement, "quitting_crisis_label", self)
-                        if potential_quit_action not in mc.business.mandatory_crises_list:
-                            mc.business.mandatory_crises_list.append(potential_quit_action)
-
-                    else: #She's not quitting, but we'll let the player know she's unhappy TODO: Only present this message with a certain research/policy.
-                        mc.business.message_list[(self, "is unhappy with her job and is considering quitting.")] = 0
-
         def auto_move(self,location): #Move to the apporpriate place for the current time unit, ie. where the player should find us.
 
             #Move the girl the appropriate location on the map. For now this is either a division at work (chunks 1,2,3) or downtown (chunks 0,5). TODO: add personal homes to all girls that you know above a certain amount.
