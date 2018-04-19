@@ -955,7 +955,7 @@ screen map_manager():
                 imagebutton:
                     anchor [0.5,0.5]
                     action SetScreenVariable("location", place)
-                    if mc.location != place:
+                    if location != place:
                         auto "gui/LR2_Hex_Button_%s.png"
                         focus_mask "gui/LR2_Hex_Button_idle.png"
                         sensitive True #TODO: replace once we want limited travel again with: place in mc.location.connections
@@ -1792,9 +1792,9 @@ label advance_time:
 
     while i != 0: #We need to keep this in a renpy loop, because a return call will always return to the end of an entire python block.
         $ i -= 1
-        $crisis = mc.business.mandatory_crises_list[j]
+        $crisis = mc.business.mandatory_crises_list[i]
         if crisis.check_requirement():
-            $ mc.business.mandatory_crises_list.pop(j).crisis.call_action()
+            $ mc.business.mandatory_crises_list.pop(i).call_action()
             $ renpy.scene("Active")
             $ renpy.show(mc.location.name,what=mc.location.background_image) #Make sure we're showing the correct background for our location, which might have been temporarily changed by a crisis.
 

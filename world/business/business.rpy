@@ -63,6 +63,7 @@ init -23 python:
         def work(self, corp):
             if self.subject:
                 remain = self.subject["research required"] - self.subject["research done"]
+                self.subject["research done"] += remain
                 self.progress += remain
                 for person in self.room.people:
                     if person.job in self.jobs:
@@ -73,9 +74,8 @@ init -23 python:
                                 corp.mandatory_crises_list.append(Action("Research Finished Crisis",serum_creation_crisis_requirement,"serum_creation_crisis_label",self.subject)) #Create a serum finished crisis, it will trigger at the end of the round
                             corp.message_list["Finished researching: %s" % self.subject["name"]] = 0
                             self.subject = None
-                            remain = 0
-                            break
-                self.subject["research done"] = self.subject["research required"] - remain
+                            return
+                self.subject["research done"] -= remain
                 self.progress -= remain
 
     class Production(Division):
